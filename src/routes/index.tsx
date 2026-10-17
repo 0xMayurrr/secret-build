@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
-import logo from "@/assets/blackout-logo.png.asset.json";
+import { useEffect, useState, useRef } from "react";
+import blackoutLogo from "@/assets/blackout-logo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -123,7 +123,7 @@ function Typer({ text }: { text: string }) {
   const [n, setN] = useState(0);
   useEffect(() => {
     if (n >= text.length) return;
-    const t = setTimeout(() => setN(n + 1), 45);
+    const t = setTimeout(() => setN(n + 1), 25);
     return () => clearTimeout(t);
   }, [n, text]);
   return (
@@ -157,14 +157,61 @@ function CTA({ children, className = "" }: { children: React.ReactNode; classNam
 function Index() {
   const cd = useCountdown();
   const progress = useScrollFx();
+  const heroAnchorRef = useRef<HTMLDivElement | null>(null);
+  const [anchorRect, setAnchorRect] = useState<{ top: number; width: number }>({ top: 220, width: 650 });
+  const [scrollRatio, setScrollRatio] = useState(0);
+
+  useEffect(() => {
+    const updateRect = () => {
+      if (heroAnchorRef.current) {
+        const rect = heroAnchorRef.current.getBoundingClientRect();
+        setAnchorRect({
+          top: rect.top + window.scrollY,
+          width: rect.width || 650,
+        });
+      }
+    };
+    updateRect();
+    const t = setTimeout(updateRect, 100);
+    window.addEventListener("resize", updateRect);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("resize", updateRect);
+    };
+  }, []);
+
+  useEffect(() => {
+    const onScroll = () => {
+      // Morph smoothly across the first 280px of scrolling
+      const p = Math.min(1, Math.max(0, window.scrollY / 280));
+      setScrollRatio(p);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const isClient = typeof window !== "undefined";
+  const targetWidth = isClient && window.innerWidth < 640 ? 160 : 210;
+  const targetTop = 12;
+  const scrollY = isClient ? window.scrollY : 0;
+  const currentWidth = anchorRect.width + scrollRatio * (targetWidth - anchorRect.width);
+  const currentTop = (1 - scrollRatio) * (anchorRect.top - scrollY) + scrollRatio * targetTop;
 
   return (
     <div className="crt min-h-screen overflow-x-hidden bg-background text-foreground">
-      {/* progress */}
-      <div className="fixed left-0 top-0 z-[60] h-1 bg-signal" style={{ width: `${progress * 100}%` }} />
+      {/* progress (purple neon glow) */}
+      <div className="fixed left-0 top-0 z-[60] h-1 bg-primary shadow-[0_0_12px_rgba(168,85,247,0.85)]" style={{ width: `${progress * 100}%` }} />
 
-      {/* NAV */}
-      <header className="fixed inset-x-0 top-0 z-40 border-b-2 border-border bg-background/85 backdrop-blur">
+      {/* ORIGINAL HEADER (Shows at hero section, smoothly fades away on scroll) */}
+      <header
+        className="fixed inset-x-0 top-0 z-40 border-b-2 border-border bg-background/85 backdrop-blur transition-all duration-300 ease-in-out"
+        style={{
+          opacity: Math.max(0, 1 - scrollRatio * 2.2),
+          transform: `translateY(-${scrollRatio * 60}px)`,
+          pointerEvents: scrollRatio > 0.3 ? "none" : "auto",
+        }}
+      >
         <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
           <a href="#top" className="font-pixel text-xs tracking-widest text-primary">
             BLACKOUT<span className="text-signal">_</span>26
@@ -183,6 +230,37 @@ function Index() {
         </nav>
       </header>
 
+      {/* CONTINUOUS MORPHING LOGO: FULLY TRANSPARENT, ENLARGED, AND PURE PURPLE GLOW */}
+      <div
+        className="fixed left-1/2 -translate-x-1/2 z-50 flex items-center justify-center bg-transparent border-0 pointer-events-auto"
+        style={{
+          top: `${Math.max(12, currentTop)}px`,
+          width: `${currentWidth}px`,
+        }}
+      >
+        <a
+          href="#top"
+          onClick={(e) => {
+            if (scrollRatio > 0.3) {
+              e.preventDefault();
+              window.scrollTo({ top: 0, behavior: "smooth" });
+            }
+          }}
+          className="group block w-full select-none cursor-pointer"
+          aria-label="BLACKOUT"
+        >
+          <img
+            src={blackoutLogo}
+            alt="BLACKOUT logo"
+            className={`w-full h-auto object-contain transition-all duration-300 ${
+              scrollRatio < 0.4
+                ? "animate-flicker drop-shadow-[0_0_45px_rgba(168,85,247,0.85)]"
+                : "drop-shadow-[0_0_24px_rgba(168,85,247,0.85)] hover:drop-shadow-[0_0_35px_rgba(168,85,247,1)] group-hover:scale-105"
+            }`}
+          />
+        </a>
+      </div>
+
       {/* HERO */}
       <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-24 pb-16">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_75%)]" />
@@ -190,10 +268,12 @@ function Index() {
           <p className="font-term text-xl text-signal md:text-2xl">
             <Typer text="> system.status: POWER_FAILURE_IMMINENT" />
           </p>
-          <img
-            src={logo.url}
-            alt="BLACKOUT logo"
-            className="parallax animate-flicker mx-auto mt-8 w-full max-w-3xl drop-shadow-[0_0_40px_var(--primary)]"
+
+          {/* Hero Anchor placeholder reserving space for the morphing logo */}
+          <div
+            ref={heroAnchorRef}
+            className="mx-auto mt-8 w-full max-w-3xl aspect-[668/373] pointer-events-none"
+            aria-hidden="true"
           />
           <p className="mt-4 font-pixel text-[10px] tracking-[0.3em] text-muted-foreground md:text-sm">
             2026 · BY BUILDICY
@@ -458,7 +538,7 @@ function Index() {
       <footer className="border-t-2 border-foreground bg-card">
         <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-4">
           <div className="md:col-span-1">
-            <img src={logo.url} alt="BLACKOUT" className="w-48" />
+            <img src={blackoutLogo} alt="BLACKOUT" className="w-48" />
             <p className="mt-4 font-term text-xl text-muted-foreground">A Buildicy hackathon.</p>
           </div>
           <div>
