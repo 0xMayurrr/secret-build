@@ -36,8 +36,8 @@
 
 :root {
   --radius: 0rem;
-  --background: oklch(0.12 0.02 290);
-  --foreground: oklch(0.95 0.02 300);
+  --background: oklch(0.1 0.01 290);
+  --foreground: oklch(0.96 0.02 90);
   --card: oklch(0.16 0.03 290);
   --card-foreground: oklch(0.95 0.02 300);
   --popover: oklch(0.16 0.03 290);
@@ -125,4 +125,30 @@
   transform: translateY(24px);
   transition: opacity 0.7s ease, transform 0.7s ease;
   &.in { opacity: 1; transform: none; }
+}
+
+@utility parallax { transform: translateY(calc(var(--sy, 0) * 0.25px)); }
+@utility redact {
+  background: var(--foreground);
+  opacity: 0.85;
+  animation: blink 2.4s steps(1) infinite;
+}
+@utility noise {
+  background-image: repeating-radial-gradient(circle at 30% 40%, color-mix(in oklab, var(--primary) 30%, transparent) 0 1px, transparent 1px 4px);
+}
+@utility scanline {
+  background: linear-gradient(to bottom, transparent 0%, color-mix(in oklab, var(--signal) 35%, transparent) 50%, transparent 100%);
+  background-size: 100% 30%;
+  background-repeat: no-repeat;
+  animation: scan 1.6s linear infinite;
+}
+@keyframes scan { from { background-position: 0 -30%; } to { background-position: 0 130%; } }
+@utility glitch {
+  position: relative;
+  &:hover::before, &:hover::after {
+    content: attr(data-text);
+    position: absolute; inset: 0;
+  }
+  &:hover::before { color: var(--signal); transform: translate(3px, -2px); mix-blend-mode: screen; }
+  &:hover::after { color: var(--primary); transform: translate(-3px, 2px); mix-blend-mode: screen; }
 }
