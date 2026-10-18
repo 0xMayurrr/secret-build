@@ -154,7 +154,6 @@ function useBlackoutIntro() {
   };
 
   useEffect(() => {
-    // Fire on very first pointer/touch — guaranteed to work on deployed sites
     const onFirst = () => {
       startSequence();
       window.removeEventListener("pointerdown", onFirst);
@@ -162,9 +161,13 @@ function useBlackoutIntro() {
     };
     window.addEventListener("pointerdown", onFirst);
     window.addEventListener("touchstart", onFirst);
+    // also wire click sound to every click on page
+    const onClick = () => blackoutAudio.playClick();
+    window.addEventListener("click", onClick, { capture: true });
     return () => {
       window.removeEventListener("pointerdown", onFirst);
       window.removeEventListener("touchstart", onFirst);
+      window.removeEventListener("click", onClick, { capture: true });
     };
   }, []);
 

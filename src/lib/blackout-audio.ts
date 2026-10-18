@@ -1,7 +1,8 @@
 /**
  * BLACKOUT Audio Engine
- * - Cinematic suspense pad via Web Audio API
- * - Glitch intro SFX only (no click sounds)
+ * - Pure suspense sine tone via Web Audio API
+ * - Glitch intro SFX
+ * - Click sound
  */
 
 class BlackoutAudioEngine {
@@ -10,17 +11,16 @@ class BlackoutAudioEngine {
   private droneGain: GainNode | null = null;
 
   private introAudio: HTMLAudioElement | null = null;
+  private clickPool: HTMLAudioElement[] = [];
+  private clickIndex = 0;
 
   private isMuted = false;
   private isAmbientPlaying = false;
-  private listenersAttached = false;
-  private unlocked = false;
   private pendingAmbient = false;
 
   constructor() {
     if (typeof window !== "undefined") {
       this.initElements();
-      this.attachListeners();
     }
   }
 
@@ -32,37 +32,38 @@ class BlackoutAudioEngine {
         this.introAudio.volume = 0.3;
         this.introAudio.preload = "auto";
       }
+      if (this.clickPool.length === 0) {
+        this.clickPool = Array.from({ length: 4 }, () => {
+          const a = new Audio("/audio/click.wav");
+          a.volume = 0.4;
+          a.preload = "auto";
+          return a;
+        });
+      }
     } catch {}
   }
 
-  private getCtx(): AudioContext | null {
-    if (this.ctx) return this.ctx;
-    try {
+  private getCtx(): AudioContext {
+    if (!this.ctx) {
       this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-      return this.ctx;
-    } catch {
-      return null;
     }
+    return this.ctx;
   }
 
-  /**
-   * Pure suspense tone — single eerie sine wave with slow swell
-   * No chords, no drums, no noise. Just tension.
-   */
   private startSuspenseDrone() {
-    const ctx = this.getCtx();
-    if (!ctx || this.droneActive) return;
+    if (this.droneActive) return;
     this.droneActive = true;
 
+    const ctx = this.getCtx();
     const now = ctx.currentTime;
 
     const master = ctx.createGain();
     master.gain.setValueAtTime(0, now);
-    master.gain.linearRampToValueAtTime(0.7, now + 5);
+    master.gain.linearRampToValueAtTime(0.75, now + 5);
     master.connect(ctx.destination);
     this.droneGain = master;
 
-    // Single low eerie tone (55Hz) — pure suspense
+    // Single eerie sine tone — pure suspense, no chords no drums
     const tone = ctx.createOscillator();
     const toneGain = ctx.createGain();
     tone.type = "sine";
@@ -72,7 +73,7 @@ class BlackoutAudioEngine {
     toneGain.connect(master);
     tone.start(now);
 
-    // Very slow swell — breathes in and out every 8s
+    // Slow breathing swell
     const swell = ctx.createOscillator();
     const swellGain = ctx.createGain();
     swell.type = "sine";
@@ -82,7 +83,7 @@ class BlackoutAudioEngine {
     swellGain.connect(master.gain);
     swell.start(now);
 
-    // Barely noticeable pitch creep — never resolves, keeps tension alive
+    // Pitch creep — never resolves
     tone.frequency.linearRampToValueAtTime(52, now + 20);
     tone.frequency.linearRampToValueAtTime(58, now + 45);
     tone.frequency.linearRampToValueAtTime(54, now + 70);
@@ -92,59 +93,53 @@ class BlackoutAudioEngine {
   }
 
   private stopDrone() {
-    const ctx = this.getCtx();
-    if (!ctx || !this.droneGain) return;
-    this.droneGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+    if (!this.ctx || !this.droneGain) return;
+    this.droneGain.gain.linearRampToValueAtTime(0, this.ctx.currentTime + 1.5);
     this.droneGain = null;
     this.droneActive = false;
     this.isAmbientPlaying = false;
   }
 
-  private attachListeners() {
-    if (typeof window === "undefined" || this.listenersAttached) return;
-    this.listenersAttached = true;
-
-    const onGesture = () => {
-      if (!this.unlocked) {
-        this.unlocked = true;
-        this.ctx?.resume();
-        if (this.pendingAmbient && !this.isMuted && !this.isAmbientPlaying) {
-          this._playAmbient();
-        }
-      }
-    };
-
-    window.addEventListener("pointerdown", onGesture, { passive: true });
-    window.addEventListener("keydown", onGesture, { passive: true });
-    window.addEventListener("touchstart", onGesture, { passive: true });
-  }
-
-  private _playAmbient() {
-    if (this.isAmbientPlaying || this.isMuted) return;
-    const ctx = this.getCtx();
-    if (ctx) {
-      ctx.resume().then(() => this.startSuspenseDrone()).catch(() => {});
+  /** Call this directly inside a user gesture handler */
+  public playGlitchIntro() {
+    if (this.isMuted) return;
+    // Resume Web Audio context inside gesture
+    try { this.getCtx().resume(); } catch {}
+    // Play glitch wav
+    if (this.introAudio) {
+      this.introAudio.currentTime = 0;
+      this.introAudio.play().catch(() => {});
     }
   }
 
-  public playGlitchIntro() {
-    if (this.isMuted || !this.introAudio) return;
-    this.introAudio.currentTime = 0;
-    this.introAudio.play().then(() => {
-      this.unlocked = true;
-      this.ctx?.resume();
-    }).catch(() => {});
-  }
-
+  /** Call this after glitch — starts suspense drone */
   public startAmbientMusic() {
     if (this.isMuted) return;
     this.pendingAmbient = true;
-    if (this.unlocked) this._playAmbient();
+    try {
+      const ctx = this.getCtx();
+      ctx.resume().then(() => {
+        if (this.pendingAmbient && !this.isAmbientPlaying) {
+          this.startSuspenseDrone();
+        }
+      }).catch(() => {});
+    } catch {}
   }
 
   public stopAmbientMusic() {
     this.pendingAmbient = false;
     this.stopDrone();
+  }
+
+  public playClick() {
+    if (this.isMuted || this.clickPool.length === 0) return;
+    try {
+      const a = this.clickPool[this.clickIndex % this.clickPool.length];
+      this.clickIndex = (this.clickIndex + 1) % this.clickPool.length;
+      if (!a) return;
+      a.currentTime = 0;
+      a.play().catch(() => {});
+    } catch {}
   }
 
   public toggleMute(): boolean {
@@ -153,13 +148,12 @@ class BlackoutAudioEngine {
       this.stopDrone();
       this.introAudio?.pause();
     } else {
-      this._playAmbient();
+      this.startAmbientMusic();
     }
     return this.isMuted;
   }
 
   public getIsMuted() { return this.isMuted; }
-  public isUnlocked() { return this.unlocked; }
 }
 
 export const blackoutAudio = new BlackoutAudioEngine();
