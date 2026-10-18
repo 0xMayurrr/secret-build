@@ -68,7 +68,7 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
         className="pointer-events-none absolute inset-0 z-10 transition-opacity duration-700 ease-in-out"
         style={{
           opacity: isLit ? 1 : 0,
-          background: `radial-gradient(1100px 750px at calc(100% - 100px) 140px, rgba(251, 191, 36, 0.22) 0%, rgba(245, 158, 11, 0.08) 45%, rgba(168, 85, 247, 0.03) 75%, transparent 92%)`,
+          background: `radial-gradient(1100px 750px at calc(100% - 100px) 140px, rgba(251, 191, 36, 0.22) 0%, rgba(245, 158, 11, 0.08) 45%, rgba(95, 27, 202, 0.04) 75%, transparent 92%)`,
         }}
       />
 
@@ -248,6 +248,8 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
           className="group flex w-max items-start gap-5 px-3 hover:[animation-play-state:paused]"
           style={{
             animation: "marquee-ltr 38s linear infinite",
+            willChange: "transform",
+            transform: "translate3d(0, 0, 0)",
           }}
         >
           {/* We duplicate the 12 members array to guarantee seamless 0% -> 100% infinite continuous loop */}
@@ -266,9 +268,12 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                     handleToggleLight();
                   }
                 }}
-                className={`team-card group/card relative w-[240px] shrink-0 border-2 border-foreground bg-background transition-all duration-300 hover:rotate-0 hover:-translate-y-2 cursor-pointer ${
+                className={`team-card group/card relative w-[240px] shrink-0 border-2 border-foreground bg-background transition-transform duration-200 hover:rotate-0 hover:-translate-y-2 cursor-pointer ${
                   isDown ? "mt-10 md:mt-14 rotate-[1.5deg]" : "-rotate-[1.5deg]"
                 } shadow-[6px_6px_0_0_var(--primary)] hover:shadow-[10px_10px_0_0_var(--signal)]`}
+                style={{
+                  willChange: "transform",
+                }}
               >
                 {/* CARD HEADER (Clean Brutalist BLACKOUT Theme - Never Yellow) */}
                 <div className="flex items-center justify-between border-b-2 border-foreground bg-primary px-3 py-1 font-pixel text-[9px] text-primary-foreground">
@@ -280,13 +285,13 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                 <div className="relative aspect-square overflow-hidden border-b-2 border-foreground bg-muted">
                   {/* UNLIT / CLASSIFIED LAYER */}
                   <div
-                    className={`absolute inset-0 pixel-grid flex flex-col items-center justify-center transition-all ease-out ${
+                    className={`absolute inset-0 pixel-grid flex flex-col items-center justify-center transition-opacity ease-out ${
                       isLit
-                        ? "opacity-0 blur-md scale-95 pointer-events-none"
-                        : "opacity-100 blur-0 scale-100"
+                        ? "opacity-0 pointer-events-none"
+                        : "opacity-100"
                     }`}
                     style={{
-                      transitionDuration: "900ms",
+                      transitionDuration: "400ms",
                       transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
                       transitionDelay: cardDelay,
                     }}
@@ -302,14 +307,14 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
 
                   {/* ILLUMINATED OPERATIVE AVATAR LAYER (Cinematic de-blur reveal) */}
                   <div
-                    className={`absolute inset-0 flex items-center justify-center overflow-hidden transition-all ease-out ${
+                    className={`absolute inset-0 flex items-center justify-center overflow-hidden transition-opacity ease-out ${
                       isLit
-                        ? "opacity-100 blur-0 scale-100 pointer-events-auto"
-                        : "opacity-0 blur-lg scale-105 pointer-events-none"
+                        ? "opacity-100 pointer-events-auto"
+                        : "opacity-0 pointer-events-none"
                     }`}
                     style={{
                       backgroundColor: m.avatarBg,
-                      transitionDuration: "1200ms",
+                      transitionDuration: "400ms",
                       transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
                       transitionDelay: cardDelay,
                     }}

@@ -24,18 +24,18 @@ export const TEAM_MEMBERS: TeamMember[] = [
     clearance: "ALPHA_01",
     bio: "Visionary behind BLACKOUT's surprise architecture and challenge mechanics. Directs covert infrastructure and engineering.",
     skills: ["System Design", "Distributed Arch", "Strategy", "Go/Rust"],
-    avatarBg: "oklch(0.2 0.08 290)",
-    accentColor: "#a855f7",
+    avatarBg: "oklch(0.18 0.09 295)",
+    accentColor: "#8a31fb",
     linkedin: "https://linkedin.com",
     github: "https://github.com",
     avatarSvg: `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
-      <rect width="100" height="100" fill="%23130c1e"/>
-      <circle cx="50" cy="50" r="38" stroke="%23a855f7" stroke-width="2" stroke-dasharray="4 2"/>
-      <path d="M28 85 C28 65 38 58 50 58 C62 58 72 65 72 85" fill="%2324143a" stroke="%23a855f7" stroke-width="2"/>
-      <circle cx="50" cy="40" r="18" fill="%231a102b" stroke="%23a855f7" stroke-width="2"/>
-      <rect x="36" y="34" width="28" height="8" rx="2" fill="%23a855f7"/>
+      <rect width="100" height="100" fill="%2310081e"/>
+      <circle cx="50" cy="50" r="38" stroke="%238a31fb" stroke-width="2" stroke-dasharray="4 2"/>
+      <path d="M28 85 C28 65 38 58 50 58 C62 58 72 65 72 85" fill="%231e0f36" stroke="%238a31fb" stroke-width="2"/>
+      <circle cx="50" cy="40" r="18" fill="%23140a24" stroke="%238a31fb" stroke-width="2"/>
+      <rect x="36" y="34" width="28" height="8" rx="2" fill="%238a31fb"/>
       <rect x="40" y="36" width="20" height="4" fill="%2338bdf8"/>
-      <path d="M42 24 L58 24 L50 16 Z" fill="%23a855f7"/>
+      <path d="M42 24 L58 24 L50 16 Z" fill="%238a31fb"/>
       <circle cx="50" cy="72" r="3" fill="%2338bdf8"/>
     </svg>`,
   },
