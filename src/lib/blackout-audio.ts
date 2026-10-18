@@ -32,7 +32,10 @@ class BlackoutAudioEngine {
   public playGlitchIntro() {
     if (this.isMuted || !this.introAudio) return;
     this.introAudio.currentTime = 0;
-    this.introAudio.play().catch(() => {});
+    // load() before play() ensures iOS Safari has the audio ready
+    this.introAudio.load();
+    const p = this.introAudio.play();
+    if (p) p.catch(() => {});
   }
 
   public startAmbientMusic() {

@@ -155,18 +155,23 @@ function useBlackoutIntro() {
   };
 
   useEffect(() => {
-    const onFirst = (e: Event) => {
+    const onFirst = () => {
       startSequence();
-      window.removeEventListener("pointerdown", onFirst);
-      window.removeEventListener("touchstart", onFirst);
+      window.removeEventListener("touchstart", onFirst, { capture: true });
+      window.removeEventListener("touchend", onFirst, { capture: true });
+      window.removeEventListener("pointerdown", onFirst, { capture: true });
     };
-    window.addEventListener("pointerdown", onFirst);
-    window.addEventListener("touchstart", onFirst);
+    // touchstart/touchend for iOS Safari (most reliable gesture unlock)
+    window.addEventListener("touchstart", onFirst, { capture: true, passive: true });
+    window.addEventListener("touchend", onFirst, { capture: true, passive: true });
+    // pointerdown for desktop/non-touch
+    window.addEventListener("pointerdown", onFirst, { capture: true });
     const onClick = () => blackoutAudio.playClick();
     window.addEventListener("click", onClick, { capture: true });
     return () => {
-      window.removeEventListener("pointerdown", onFirst);
-      window.removeEventListener("touchstart", onFirst);
+      window.removeEventListener("touchstart", onFirst, { capture: true });
+      window.removeEventListener("touchend", onFirst, { capture: true });
+      window.removeEventListener("pointerdown", onFirst, { capture: true });
       window.removeEventListener("click", onClick, { capture: true });
     };
   }, []);
