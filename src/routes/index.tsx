@@ -144,6 +144,7 @@ function useBlackoutIntro() {
   const startSequence = () => {
     if (startedRef.current) return;
     startedRef.current = true;
+    // playGlitchIntro called synchronously inside gesture — unlocks AudioContext
     blackoutAudio.playGlitchIntro();
     setTimeout(() => setPhase("flicker"), 380);
     setTimeout(() => setPhase("surge"), 920);
@@ -154,14 +155,13 @@ function useBlackoutIntro() {
   };
 
   useEffect(() => {
-    const onFirst = () => {
+    const onFirst = (e: Event) => {
       startSequence();
       window.removeEventListener("pointerdown", onFirst);
       window.removeEventListener("touchstart", onFirst);
     };
     window.addEventListener("pointerdown", onFirst);
     window.addEventListener("touchstart", onFirst);
-    // also wire click sound to every click on page
     const onClick = () => blackoutAudio.playClick();
     window.addEventListener("click", onClick, { capture: true });
     return () => {
