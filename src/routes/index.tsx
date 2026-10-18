@@ -341,8 +341,8 @@ function Index() {
       {/* FLOATING CYBERPUNK AUDIO CONTROLLER */}
       <button
         onClick={handleToggleAudio}
-        className="fixed bottom-6 right-6 z-50 flex items-center gap-2.5 border-2 border-foreground bg-background/95 px-3 py-1.5 font-pixel text-[9px] tracking-wider text-foreground shadow-[4px_4px_0_0_var(--primary)] backdrop-blur-md transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--signal)] active:translate-y-0 active:shadow-none cursor-pointer"
-        title="Toggle Sound Effects & Suspense Ambient Music"
+        className="fixed bottom-4 right-4 z-50 flex items-center gap-2 border-2 border-foreground bg-background/95 px-2.5 py-1.5 font-pixel text-[8px] md:text-[9px] tracking-wider text-foreground shadow-[4px_4px_0_0_var(--primary)] backdrop-blur-md transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--signal)] active:translate-y-0 active:shadow-none cursor-pointer"
+        title="Toggle Sound"
       >
         <span className="flex items-center gap-0.5">
           {!isMuted ? (
@@ -367,9 +367,9 @@ function Index() {
           pointerEvents: scrollRatio > 0.3 ? "none" : "auto",
         }}
       >
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           {/* left — nav links */}
-          <div className="flex items-center gap-8 font-term text-xl text-muted-foreground">
+          <div className="hidden md:flex items-center gap-8 font-term text-xl text-muted-foreground">
             {NAV.slice(0, 3).map(([label, href]) => (
               <a key={label} href={href} className="tracking-widest uppercase hover:text-foreground transition-colors">
                 {label}
@@ -381,7 +381,7 @@ function Index() {
           <div className="flex-1" />
 
           {/* right — remaining links + register */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 md:gap-8">
             <div className="hidden md:flex items-center gap-8 font-term text-xl text-muted-foreground">
               {NAV.slice(3).map(([label, href]) => (
                 <a key={label} href={href} className="tracking-widest uppercase hover:text-foreground transition-colors">
@@ -391,7 +391,7 @@ function Index() {
             </div>
             <a
               href={REGISTER_URL}
-              className="font-pixel text-[10px] text-primary border border-primary/50 px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+              className="font-pixel text-[9px] md:text-[10px] text-primary border border-primary/50 px-3 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
             >
               REGISTER
             </a>
@@ -433,12 +433,12 @@ function Index() {
       </div>
 
       {/* HERO */}
-      <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-24 pb-16">
+      <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-20 pb-12 md:pt-24 md:pb-16">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_75%)]" />
         <div className="relative mx-auto w-full max-w-6xl px-5 text-center">
 
           <p
-            className="font-term text-xl text-signal md:text-2xl"
+            className="font-term text-lg text-signal md:text-2xl"
             style={{
               opacity: intro === "done" ? 1 : 0,
               transform: intro === "done" ? "none" : "translateY(16px)",
@@ -483,7 +483,7 @@ function Index() {
           </h1>
 
           <div
-            className="mx-auto mt-10 grid max-w-xl grid-cols-4 gap-2 md:gap-3"
+            className="mx-auto mt-8 grid max-w-xl grid-cols-4 gap-1.5 md:gap-3"
             style={{
               opacity: intro === "done" ? 1 : 0,
               transform: intro === "done" ? "none" : "translateY(20px)",
@@ -491,23 +491,23 @@ function Index() {
             }}
           >
             {cd.map(([l, v]) => (
-              <div key={l} className="border-2 border-border bg-card py-3 md:py-4">
-                <div className="font-pixel text-lg text-foreground md:text-3xl">{v}</div>
-                <div className="mt-2 font-term text-base text-muted-foreground md:text-lg">{l}</div>
+              <div key={l} className="border-2 border-border bg-card py-2 md:py-4">
+                <div className="font-pixel text-base text-foreground md:text-3xl">{v}</div>
+                <div className="mt-1 font-term text-sm text-muted-foreground md:text-lg">{l}</div>
               </div>
             ))}
           </div>
 
           <div
-            className="mt-8 flex flex-wrap justify-center gap-3 font-term text-xl md:text-2xl"
+            className="mt-6 flex flex-wrap justify-center gap-2 font-term text-lg md:text-2xl"
             style={{
               opacity: intro === "done" ? 1 : 0,
               transform: intro === "done" ? "none" : "translateY(16px)",
               transition: "opacity 0.6s ease 0.65s, transform 0.6s ease 0.65s",
             }}
           >
-            <span className="border-2 border-border px-4 py-1">NOV 28, 2026</span>
-            <span className="border-2 border-border px-4 py-1">COIMBATORE, TN</span>
+            <span className="border-2 border-border px-3 py-1">NOV 28, 2026</span>
+            <span className="border-2 border-border px-3 py-1">COIMBATORE, TN</span>
           </div>
 
           <div

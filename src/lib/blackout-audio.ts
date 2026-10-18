@@ -1,8 +1,7 @@
 /**
  * BLACKOUT Audio Engine
  * - Cinematic suspense pad via Web Audio API
- * - Glitch intro SFX
- * - Click pool for UI tactile feedback
+ * - Glitch intro SFX only (no click sounds)
  */
 
 class BlackoutAudioEngine {
@@ -12,8 +11,6 @@ class BlackoutAudioEngine {
 
   private introAudio: HTMLAudioElement | null = null;
   private ambientAudio: HTMLAudioElement | null = null;
-  private clickPool: HTMLAudioElement[] = [];
-  private clickIndex = 0;
 
   private isMuted = false;
   private isAmbientPlaying = false;
@@ -42,14 +39,6 @@ class BlackoutAudioEngine {
         this.ambientAudio.volume = 1.0;
         this.ambientAudio.preload = "auto";
       }
-      if (this.clickPool.length === 0) {
-        this.clickPool = Array.from({ length: 4 }, () => {
-          const a = new Audio("/audio/click.wav");
-          a.volume = 0.4;
-          a.preload = "auto";
-          return a;
-        });
-      }
     } catch {}
   }
 
@@ -66,7 +55,6 @@ class BlackoutAudioEngine {
   /**
    * Cinematic suspense pad — soft Dm chord with reverb
    * Warm, dark, dramatic. Like a thriller movie score.
-   * No noise, no harsh tones. Just quiet dread.
    */
   private startSuspenseDrone() {
     const ctx = this.getCtx();
@@ -75,7 +63,7 @@ class BlackoutAudioEngine {
 
     const now = ctx.currentTime;
 
-    // Reverb convolver — gives it that big cinematic hall sound
+    // Reverb convolver
     const convolver = ctx.createConvolver();
     const reverbLen = ctx.sampleRate * 3;
     const reverbBuf = ctx.createBuffer(2, reverbLen, ctx.sampleRate);
@@ -107,19 +95,19 @@ class BlackoutAudioEngine {
       osc.detune.value = detune;
       g.gain.value = gain;
       osc.connect(g);
-      g.connect(master);     // dry signal
-      g.connect(convolver);  // wet reverb
+      g.connect(master);
+      g.connect(convolver);
       osc.start(now);
       return osc;
     };
 
     // Dm chord — dark, cinematic, melancholic
-    const root  = makePad(73.4,  0.55);      // D2 — deep warm root
-    const fifth = makePad(110,   0.35);       // A2 — open fifth, adds space
-    const minor = makePad(130.8, 0.22);       // C3 — minor 7th, melancholic
-    makePad(146.8, 0.10, -8);                 // D3 slightly flat — ghostly overtone
+    const root  = makePad(73.4,  0.55);
+    const fifth = makePad(110,   0.35);
+    const minor = makePad(130.8, 0.22);
+    makePad(146.8, 0.10, -8);
 
-    // Slow breathing swell LFO (one breath every ~10s)
+    // Slow breathing swell LFO
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.type = "sine";
@@ -129,7 +117,7 @@ class BlackoutAudioEngine {
     lfoGain.connect(master.gain);
     lfo.start(now);
 
-    // Gentle pitch drift — barely perceptible, keeps it alive
+    // Gentle pitch drift
     root.frequency.linearRampToValueAtTime(72,   now + 25);
     root.frequency.linearRampToValueAtTime(74,   now + 55);
     fifth.frequency.linearRampToValueAtTime(109, now + 30);
@@ -166,7 +154,6 @@ class BlackoutAudioEngine {
     window.addEventListener("pointerdown", onGesture, { passive: true });
     window.addEventListener("keydown", onGesture, { passive: true });
     window.addEventListener("touchstart", onGesture, { passive: true });
-    window.addEventListener("click", () => { onGesture(); this.playClick(); }, { capture: true, passive: true });
   }
 
   private _playAmbient() {
@@ -209,17 +196,6 @@ class BlackoutAudioEngine {
     this.stopDrone();
     this.ambientAudio?.pause();
     this.isAmbientPlaying = false;
-  }
-
-  public playClick() {
-    if (this.isMuted || this.clickPool.length === 0) return;
-    try {
-      const a = this.clickPool[this.clickIndex % this.clickPool.length];
-      this.clickIndex = (this.clickIndex + 1) % this.clickPool.length;
-      if (!a) return;
-      a.currentTime = 0;
-      a.play().catch(() => {});
-    } catch {}
   }
 
   public toggleMute(): boolean {
