@@ -144,9 +144,7 @@ function useBlackoutIntro() {
   const startSequence = () => {
     if (startedRef.current) return;
     startedRef.current = true;
-
     blackoutAudio.playGlitchIntro();
-
     setTimeout(() => setPhase("flicker"), 380);
     setTimeout(() => setPhase("surge"), 920);
     setTimeout(() => {
@@ -156,24 +154,17 @@ function useBlackoutIntro() {
   };
 
   useEffect(() => {
-    // On deployed sites autoplay is blocked until first gesture
-    // So we listen for first interaction then fire sequence
-    const onFirstGesture = () => {
+    // Fire on very first pointer/touch — guaranteed to work on deployed sites
+    const onFirst = () => {
       startSequence();
-      window.removeEventListener("pointerdown", onFirstGesture);
-      window.removeEventListener("keydown", onFirstGesture);
+      window.removeEventListener("pointerdown", onFirst);
+      window.removeEventListener("touchstart", onFirst);
     };
-
-    window.addEventListener("pointerdown", onFirstGesture);
-    window.addEventListener("keydown", onFirstGesture);
-
-    // Also try immediately in case autoplay is allowed (localhost / returning user)
-    const t = setTimeout(() => startSequence(), 300);
-
+    window.addEventListener("pointerdown", onFirst);
+    window.addEventListener("touchstart", onFirst);
     return () => {
-      clearTimeout(t);
-      window.removeEventListener("pointerdown", onFirstGesture);
-      window.removeEventListener("keydown", onFirstGesture);
+      window.removeEventListener("pointerdown", onFirst);
+      window.removeEventListener("touchstart", onFirst);
     };
   }, []);
 
@@ -271,13 +262,8 @@ function Index() {
   const [isMuted, setIsMuted] = useState(false);
 
   const handleToggleAudio = () => {
-    blackoutAudio.unlock().then(() => {
-      const muted = blackoutAudio.toggleMute();
-      setIsMuted(muted);
-      if (!muted) {
-        blackoutAudio.startAmbientMusic();
-      }
-    });
+    const muted = blackoutAudio.toggleMute();
+    setIsMuted(muted);
   };
   const heroAnchorRef = useRef<HTMLDivElement | null>(null);
   const [anchorRect, setAnchorRect] = useState<{ top: number; width: number }>({ top: 220, width: 650 });
