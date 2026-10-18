@@ -31,7 +31,7 @@ export function Footer() {
       <div
         className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-1000"
         style={{
-          background: `radial-gradient(ellipse 900px 500px at 50% 100%, rgba(168, 85, 247, 0.18) 0%, rgba(147, 51, 234, 0.06) 50%, transparent 80%)`,
+          background: `radial-gradient(ellipse 900px 500px at 50% 100%, rgba(95, 27, 202, 0.22) 0%, rgba(43, 4, 71, 0.08) 50%, transparent 80%)`,
         }}
       />
 
@@ -108,7 +108,7 @@ export function Footer() {
                 <img
                   src={blackoutLogo}
                   alt="BLACKOUT"
-                  className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_0_35px_rgba(168,85,247,0.8)] filter transition duration-500 hover:scale-105"
+                  className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_0_30px_rgba(138,49,251,0.85)] drop-shadow-[0_0_60px_rgba(95,27,202,0.5)] filter transition duration-500 hover:scale-105"
                 />
                 <p className="mt-4 font-term text-2xl text-muted-foreground tracking-wide">
                   An 8-hour surprise-challenge hackathon.
@@ -124,7 +124,7 @@ export function Footer() {
                     className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_0_35px_rgba(34,197,94,0.7)] filter transition duration-500 hover:scale-105"
                   />
                   <div className="text-left">
-                    <span className="font-pixel text-3xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]">
+                    <span className="font-pixel text-3xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-[0_0_20px_rgba(138,49,251,0.7)]">
                       BUILDICY
                     </span>
                     <p className="font-term text-xl text-signal">&gt; builders_first_ecosystem</p>
@@ -142,14 +142,14 @@ export function Footer() {
             <button
               onClick={() => setActiveBrand("BLACKOUT")}
               className={`h-2 transition-all duration-300 rounded-full ${
-                activeBrand === "BLACKOUT" ? "w-8 bg-primary shadow-[0_0_10px_#a855f7]" : "w-2 bg-neutral-700 hover:bg-neutral-500"
+                activeBrand === "BLACKOUT" ? "w-8 bg-primary shadow-[0_0_10px_#8a31fb]" : "w-2 bg-neutral-700 hover:bg-neutral-500"
               }`}
               title="View Blackout"
             />
             <button
               onClick={() => setActiveBrand("BUILDICY")}
               className={`h-2 transition-all duration-300 rounded-full ${
-                activeBrand === "BUILDICY" ? "w-8 bg-signal shadow-[0_0_10px_#22c55e]" : "w-2 bg-neutral-700 hover:bg-neutral-500"
+                activeBrand === "BUILDICY" ? "w-8 bg-signal shadow-[0_0_10px_#ffffff]" : "w-2 bg-neutral-700 hover:bg-neutral-500"
               }`}
               title="View Buildicy"
             />

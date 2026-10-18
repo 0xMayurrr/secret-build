@@ -3,6 +3,7 @@ import { useEffect, useState, useRef } from "react";
 import blackoutLogo from "@/assets/blackout-logo.png";
 import { TeamSection } from "@/components/TeamSection";
 import { Footer } from "@/components/Footer";
+import { blackoutAudio } from "@/lib/blackout-audio";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -98,7 +99,8 @@ function useCountdown() {
 }
 
 function useScrollFx() {
-  const [p, setP] = useState(0);
+  const progressBarRef = useRef<HTMLDivElement | null>(null);
+
   useEffect(() => {
     const els = document.querySelectorAll(".reveal");
     const io = new IntersectionObserver(
@@ -106,11 +108,22 @@ function useScrollFx() {
       { threshold: 0.12 },
     );
     els.forEach((el) => io.observe(el));
+
+    let ticking = false;
     const onScroll = () => {
-      const h = document.documentElement.scrollHeight - window.innerHeight;
-      setP(h > 0 ? window.scrollY / h : 0);
-      document.documentElement.style.setProperty("--sy", String(window.scrollY));
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const h = document.documentElement.scrollHeight - window.innerHeight;
+          const p = h > 0 ? (window.scrollY / h) * 100 : 0;
+          if (progressBarRef.current) {
+            progressBarRef.current.style.width = `${p}%`;
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
+
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
@@ -118,46 +131,99 @@ function useScrollFx() {
       window.removeEventListener("scroll", onScroll);
     };
   }, []);
-  return p;
+
+  return progressBarRef;
 }
 
-type IntroPhase = "black" | "flicker" | "surge" | "done";
+type IntroPhase = "standby" | "flicker" | "surge" | "done";
 
 function useBlackoutIntro() {
-  const [phase, setPhase] = useState<IntroPhase>("black");
+  const [phase, setPhase] = useState<IntroPhase>("standby");
+  const startedRef = useRef(false);
+
+  const startSequence = () => {
+    if (startedRef.current) return;
+    startedRef.current = true;
+    // playGlitchIntro called synchronously inside gesture — unlocks AudioContext
+    blackoutAudio.playGlitchIntro();
+    setTimeout(() => setPhase("flicker"), 380);
+    setTimeout(() => setPhase("surge"), 920);
+    setTimeout(() => {
+      setPhase("done");
+      blackoutAudio.startAmbientMusic();
+    }, 1500);
+  };
+
   useEffect(() => {
-    const t1 = setTimeout(() => setPhase("flicker"), 1400);
-    const t2 = setTimeout(() => setPhase("surge"),   2200);
-    const t3 = setTimeout(() => setPhase("done"),    2900);
-    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+    const onFirst = () => {
+      startSequence();
+      window.removeEventListener("touchstart", onFirst, { capture: true });
+      window.removeEventListener("touchend", onFirst, { capture: true });
+      window.removeEventListener("pointerdown", onFirst, { capture: true });
+    };
+    // touchstart/touchend for iOS Safari (most reliable gesture unlock)
+    window.addEventListener("touchstart", onFirst, { capture: true, passive: true });
+    window.addEventListener("touchend", onFirst, { capture: true, passive: true });
+    // pointerdown for desktop/non-touch
+    window.addEventListener("pointerdown", onFirst, { capture: true });
+    const onClick = () => blackoutAudio.playClick();
+    window.addEventListener("click", onClick, { capture: true });
+    return () => {
+      window.removeEventListener("touchstart", onFirst, { capture: true });
+      window.removeEventListener("touchend", onFirst, { capture: true });
+      window.removeEventListener("pointerdown", onFirst, { capture: true });
+      window.removeEventListener("click", onClick, { capture: true });
+    };
   }, []);
-  return phase;
+
+  return { phase, startSequence };
 }
 
-function BlackoutIntro({ phase, logo }: { phase: IntroPhase; logo: string }) {
+function BlackoutIntro({
+  phase,
+  logo,
+  onActivate,
+}: {
+  phase: IntroPhase;
+  logo: string;
+  onActivate: () => void;
+}) {
   if (phase === "done") return null;
+
   return (
     <div
-      className="fixed inset-0 z-[200] flex items-center justify-center"
+      onClick={onActivate}
+      className="fixed inset-0 z-[200] flex flex-col items-center justify-center cursor-pointer select-none"
       style={{
         backgroundColor: "#000000",
         overflow: "hidden",
       }}
+      title="Click to initialize BLACKOUT"
     >
-      {/* logo — hidden during pure black, flickers in, blazes on surge */}
-      <img
-        src={logo}
-        alt="BLACKOUT"
-        className="w-64 md:w-96 object-contain"
-        style={{
-          opacity: phase === "black" ? 0 : 1,
-          animation: phase === "flicker" ? "intro-flicker 0.8s steps(1) forwards" : "none",
-          filter: phase === "surge"
-            ? "drop-shadow(0 0 50px rgba(168,85,247,1)) drop-shadow(0 0 100px rgba(168,85,247,0.9)) brightness(1.8)"
-            : "drop-shadow(0 0 36px rgba(168,85,247,0.85))",
-          transition: "filter 0.1s",
-        }}
-      />
+      {/* Glitch CRT static lines background effect */}
+      <div className="pointer-events-none absolute inset-0 opacity-15 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.35)_50%)] bg-[length:100%_4px]" />
+
+      {/* Center Logo */}
+      <div className="relative flex flex-col items-center">
+        <img
+          src={logo}
+          alt="BLACKOUT"
+          className="w-64 md:w-96 object-contain will-change-[transform,opacity]"
+          style={{
+            opacity: phase === "standby" ? 0.9 : 1,
+            animation: phase === "flicker" ? "intro-flicker 0.52s steps(1) forwards" : phase === "standby" ? "floaty 4s ease-in-out infinite" : "none",
+            filter: phase === "surge"
+              ? "drop-shadow(0 0 25px rgba(138,49,251,0.95)) drop-shadow(0 0 50px rgba(95,27,202,0.85)) drop-shadow(0 0 85px rgba(43,4,71,0.7))"
+              : "drop-shadow(0 0 20px rgba(138,49,251,0.8)) drop-shadow(0 0 40px rgba(95,27,202,0.6))",
+            transform: phase === "surge" ? "scale(1.04) translateZ(0)" : "scale(1) translateZ(0)",
+            transition: "filter 0.12s, transform 0.18s ease-out, opacity 0.3s",
+          }}
+        />
+
+
+      </div>
+
+
     </div>
   );
 }
@@ -198,9 +264,15 @@ function CTA({ children, className = "" }: { children: React.ReactNode; classNam
 }
 
 function Index() {
-  const intro = useBlackoutIntro();
+  const { phase: intro, startSequence } = useBlackoutIntro();
   const cd = useCountdown();
-  const progress = useScrollFx();
+  const progressBarRef = useScrollFx();
+  const [isMuted, setIsMuted] = useState(false);
+
+  const handleToggleAudio = () => {
+    const muted = blackoutAudio.toggleMute();
+    setIsMuted(muted);
+  };
   const heroAnchorRef = useRef<HTMLDivElement | null>(null);
   const [anchorRect, setAnchorRect] = useState<{ top: number; width: number }>({ top: 220, width: 650 });
   const [scrollRatio, setScrollRatio] = useState(0);
@@ -225,11 +297,25 @@ function Index() {
   }, []);
 
   useEffect(() => {
+    let ticking = false;
+    let prevRatio = 0;
+
     const onScroll = () => {
-      // Morph smoothly across the first 280px of scrolling
-      const p = Math.min(1, Math.max(0, window.scrollY / 280));
-      setScrollRatio(p);
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          const scrollY = window.scrollY;
+          // Morph smoothly across the first 280px of scrolling
+          const p = Math.min(1, Math.max(0, scrollY / 280));
+          if (Math.abs(p - prevRatio) > 0.005 || (p === 1 && prevRatio !== 1) || (p === 0 && prevRatio !== 0)) {
+            prevRatio = p;
+            setScrollRatio(p);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
     };
+
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -254,7 +340,31 @@ function Index() {
     <div className="crt min-h-screen overflow-x-hidden bg-background text-foreground">
       <BlackoutIntro phase={intro} logo={blackoutLogo} />
       {/* progress (purple neon glow) */}
-      <div className="fixed left-0 top-0 z-[60] h-1 bg-primary shadow-[0_0_12px_rgba(168,85,247,0.85)]" style={{ width: `${progress * 100}%` }} />
+      <div
+        ref={progressBarRef}
+        className="fixed left-0 top-0 z-[60] h-1 bg-primary shadow-[0_0_12px_rgba(138,49,251,0.85)] will-change-[width]"
+        style={{ width: "0%" }}
+      />
+
+      {/* FLOATING CYBERPUNK AUDIO CONTROLLER */}
+      <button
+        onClick={handleToggleAudio}
+        className="fixed bottom-4 right-4 z-50 flex items-center gap-2 border-2 border-foreground bg-background/95 px-2.5 py-1.5 font-pixel text-[8px] md:text-[9px] tracking-wider text-foreground shadow-[4px_4px_0_0_var(--primary)] backdrop-blur-md transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--signal)] active:translate-y-0 active:shadow-none cursor-pointer"
+        title="Toggle Sound"
+      >
+        <span className="flex items-center gap-0.5">
+          {!isMuted ? (
+            <>
+              <span className="inline-block h-3 w-0.5 bg-primary animate-pulse" />
+              <span className="inline-block h-4 w-0.5 bg-primary animate-[pulse_0.8s_ease-in-out_infinite]" />
+              <span className="inline-block h-2 w-0.5 bg-primary animate-pulse" />
+            </>
+          ) : (
+            <span className="text-muted-foreground font-bold">✕</span>
+          )}
+        </span>
+        <span>{!isMuted ? "AUDIO: ON" : "AUDIO: MUTED"}</span>
+      </button>
 
       {/* HEADER — minimalist, centered nav, no logo text */}
       <header
@@ -265,9 +375,9 @@ function Index() {
           pointerEvents: scrollRatio > 0.3 ? "none" : "auto",
         }}
       >
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+        <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           {/* left — nav links */}
-          <div className="flex items-center gap-8 font-term text-xl text-muted-foreground">
+          <div className="hidden md:flex items-center gap-8 font-term text-xl text-muted-foreground">
             {NAV.slice(0, 3).map(([label, href]) => (
               <a key={label} href={href} className="tracking-widest uppercase hover:text-foreground transition-colors">
                 {label}
@@ -279,7 +389,7 @@ function Index() {
           <div className="flex-1" />
 
           {/* right — remaining links + register */}
-          <div className="flex items-center gap-8">
+          <div className="flex items-center gap-4 md:gap-8">
             <div className="hidden md:flex items-center gap-8 font-term text-xl text-muted-foreground">
               {NAV.slice(3).map(([label, href]) => (
                 <a key={label} href={href} className="tracking-widest uppercase hover:text-foreground transition-colors">
@@ -289,7 +399,7 @@ function Index() {
             </div>
             <a
               href={REGISTER_URL}
-              className="font-pixel text-[10px] text-primary border border-primary/50 px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+              className="font-pixel text-[9px] md:text-[10px] text-primary border border-primary/50 px-3 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
             >
               REGISTER
             </a>
@@ -323,20 +433,20 @@ function Index() {
             alt="BLACKOUT logo"
             className={`w-full h-auto object-contain transition-all duration-300 ${
               scrollRatio < 0.4
-                ? "animate-flicker drop-shadow-[0_0_45px_rgba(168,85,247,0.85)]"
-                : "drop-shadow-[0_0_24px_rgba(168,85,247,0.85)] hover:drop-shadow-[0_0_35px_rgba(168,85,247,1)] group-hover:scale-105"
+                ? "animate-flicker drop-shadow-[0_0_35px_rgba(138,49,251,0.85)] drop-shadow-[0_0_70px_rgba(95,27,202,0.6)]"
+                : "drop-shadow-[0_0_20px_rgba(138,49,251,0.8)] drop-shadow-[0_0_40px_rgba(95,27,202,0.5)] hover:drop-shadow-[0_0_35px_rgba(138,49,251,1)] group-hover:scale-105"
             }`}
           />
         </a>
       </div>
 
       {/* HERO */}
-      <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-24 pb-16">
+      <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-20 pb-12 md:pt-24 md:pb-16">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_75%)]" />
         <div className="relative mx-auto w-full max-w-6xl px-5 text-center">
 
           <p
-            className="font-term text-xl text-signal md:text-2xl"
+            className="font-term text-lg text-signal md:text-2xl"
             style={{
               opacity: intro === "done" ? 1 : 0,
               transform: intro === "done" ? "none" : "translateY(16px)",
@@ -381,7 +491,7 @@ function Index() {
           </h1>
 
           <div
-            className="mx-auto mt-10 grid max-w-xl grid-cols-4 gap-2 md:gap-3"
+            className="mx-auto mt-8 grid max-w-xl grid-cols-4 gap-1.5 md:gap-3"
             style={{
               opacity: intro === "done" ? 1 : 0,
               transform: intro === "done" ? "none" : "translateY(20px)",
@@ -389,23 +499,23 @@ function Index() {
             }}
           >
             {cd.map(([l, v]) => (
-              <div key={l} className="border-2 border-border bg-card py-3 md:py-4">
-                <div className="font-pixel text-lg text-foreground md:text-3xl">{v}</div>
-                <div className="mt-2 font-term text-base text-muted-foreground md:text-lg">{l}</div>
+              <div key={l} className="border-2 border-border bg-card py-2 md:py-4">
+                <div className="font-pixel text-base text-foreground md:text-3xl">{v}</div>
+                <div className="mt-1 font-term text-sm text-muted-foreground md:text-lg">{l}</div>
               </div>
             ))}
           </div>
 
           <div
-            className="mt-8 flex flex-wrap justify-center gap-3 font-term text-xl md:text-2xl"
+            className="mt-6 flex flex-wrap justify-center gap-2 font-term text-lg md:text-2xl"
             style={{
               opacity: intro === "done" ? 1 : 0,
               transform: intro === "done" ? "none" : "translateY(16px)",
               transition: "opacity 0.6s ease 0.65s, transform 0.6s ease 0.65s",
             }}
           >
-            <span className="border-2 border-border px-4 py-1">NOV 28, 2026</span>
-            <span className="border-2 border-border px-4 py-1">COIMBATORE, TN</span>
+            <span className="border-2 border-border px-3 py-1">NOV 28, 2026</span>
+            <span className="border-2 border-border px-3 py-1">COIMBATORE, TN</span>
           </div>
 
           <div
@@ -434,8 +544,8 @@ function Index() {
       </div>
 
       {/* ABOUT */}
-      <section id="about" className="mx-auto max-w-6xl px-5 py-28">
-        <div className="grid gap-12 md:grid-cols-[1fr_1.4fr]">
+      <section id="about" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
+        <div className="grid gap-8 md:gap-12 md:grid-cols-[1fr_1.4fr]">
           <SectionHead n="01" k="about" title={<>No brief.<br />No hints.<br /><span className="text-primary">Just build.</span></>} />
           <div className="reveal space-y-6 text-lg leading-relaxed text-muted-foreground">
             <p>
@@ -463,7 +573,7 @@ function Index() {
         <div className="noise pointer-events-none absolute inset-0 opacity-30" />
         <div className="relative mx-auto max-w-6xl px-5">
           <SectionHead n="02" k="the mystery" title={<>YOU WON'T KNOW<br /><span className="text-signal">UNTIL YOU SHOW UP.</span></>} />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
             {[
               ["FILE_001.ENC", "PROBLEM STATEMENT", "Sealed. Encrypted. Unopened until zero hour."],
               ["FILE_002.ENC", "THE RULES", "Classified. Some things only make sense in the dark."],
@@ -494,7 +604,7 @@ function Index() {
       </section>
 
       {/* WHO */}
-      <section id="who" className="mx-auto max-w-6xl px-5 py-28">
+      <section id="who" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
         <SectionHead n="03" k="who should join" title="Anyone who builds." />
         <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
           {WHO.map((w, i) => (
@@ -514,7 +624,7 @@ function Index() {
       <section id="passes" className="pixel-grid border-y-2 border-border py-28">
         <div className="mx-auto max-w-6xl px-5">
           <SectionHead n="04" k="registration passes" title="Pick your pass." />
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
             {PASSES.map((p, i) => (
               <article
                 key={p.name}
@@ -547,9 +657,9 @@ function Index() {
       </section>
 
       {/* PRIZES */}
-      <section id="prizes" className="mx-auto max-w-6xl px-5 py-28">
+      <section id="prizes" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
         <SectionHead n="05" k="prizes & recognition" title="What's at stake." />
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-4 grid-cols-2 lg:grid-cols-4">
           {([
             { code: "BOUNTY",    glyph: "₿",  accent: "text-signal",  border: "hover:border-signal",  shadow: "hover:shadow-[6px_6px_0_0_var(--signal)]",  label: "The Bounty",    line: "Compete for high-value cash rewards." },
             { code: "LAUNCHPAD", glyph: "↑",  accent: "text-primary", border: "hover:border-primary", shadow: "hover:shadow-[6px_6px_0_0_var(--primary)]", label: "The Launchpad", line: "Secure elite internship opportunities." },
@@ -586,7 +696,7 @@ function Index() {
       <TeamSection />
 
       {/* EVENT INFO */}
-      <section id="info" className="mx-auto max-w-6xl px-5 py-28">
+      <section id="info" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
         <SectionHead n="07" k="event information" title="The coordinates." />
         <div className="mt-10 grid border-2 border-border md:grid-cols-2">
           {[
@@ -634,7 +744,7 @@ function Index() {
       <section className="pixel-grid border-t-2 border-primary py-32 text-center">
         <div className="reveal mx-auto max-w-4xl px-5">
           <p className="font-term text-2xl text-signal">&gt; ready_to_go_dark?</p>
-          <h2 className="glow mt-6 font-pixel text-2xl leading-relaxed md:text-5xl">
+          <h2 className="glow mt-6 font-pixel text-base leading-relaxed md:text-5xl">
             YOU CAN'T PREDICT IT.<br /><span className="text-primary">YOU CAN SHOW UP.</span>
           </h2>
           <CTA className="mt-12">CLAIM YOUR PASS ▶</CTA>

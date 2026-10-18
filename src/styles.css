@@ -37,26 +37,26 @@
 
 :root {
   --radius: 0rem;
-  --background: oklch(0.09 0.008 305);
+  --background: oklch(0.08 0.012 295);
   --foreground: oklch(0.96 0.01 90);
-  --card: oklch(0.14 0.015 305);
-  --card-foreground: oklch(0.95 0.01 305);
-  --popover: oklch(0.14 0.015 305);
-  --popover-foreground: oklch(0.95 0.01 305);
-  --primary: oklch(0.60 0.27 305);
-  --primary-foreground: oklch(0.98 0.005 305);
-  --secondary: oklch(0.20 0.03 305);
-  --secondary-foreground: oklch(0.95 0.01 305);
-  --muted: oklch(0.18 0.02 305);
-  --muted-foreground: oklch(0.65 0.03 305);
-  --accent: oklch(0.88 0.18 120);
-  --accent-foreground: oklch(0.12 0.01 305);
-  --signal: oklch(0.88 0.18 120);
+  --card: oklch(0.12 0.02 295);
+  --card-foreground: oklch(0.95 0.01 295);
+  --popover: oklch(0.12 0.02 295);
+  --popover-foreground: oklch(0.95 0.01 295);
+  --primary: oklch(0.56 0.27 295);
+  --primary-foreground: oklch(0.98 0.005 295);
+  --secondary: oklch(0.18 0.04 295);
+  --secondary-foreground: oklch(0.95 0.01 295);
+  --muted: oklch(0.16 0.03 295);
+  --muted-foreground: oklch(0.65 0.03 295);
+  --accent: oklch(1 0 0);
+  --accent-foreground: oklch(0.12 0.01 295);
+  --signal: oklch(1 0 0);
   --destructive: oklch(0.6 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.28 0.05 305);
-  --input: oklch(0.28 0.05 305);
-  --ring: oklch(0.60 0.27 305);
+  --border: oklch(0.24 0.06 295);
+  --input: oklch(0.24 0.06 295);
+  --ring: oklch(0.56 0.27 295);
 }
 
 @layer base {
@@ -82,9 +82,11 @@
       to bottom,
       transparent 0px,
       transparent 2px,
-      oklch(0 0 0 / 0.25) 3px
+      oklch(0 0 0 / 0.15) 3px
     );
-    mix-blend-mode: multiply;
+    opacity: 0.6;
+    transform: translateZ(0);
+    will-change: transform;
   }
 }
 
@@ -105,15 +107,14 @@
 
 @keyframes intro-flicker {
   0%   { opacity: 0; }
-  10%  { opacity: 1; }
-  15%  { opacity: 0; }
-  25%  { opacity: 1; }
-  30%  { opacity: 0.2; }
-  40%  { opacity: 1; }
-  55%  { opacity: 0; }
-  65%  { opacity: 0.8; }
-  75%  { opacity: 0.1; }
-  85%  { opacity: 1; }
+  12%  { opacity: 1; }
+  18%  { opacity: 0.15; }
+  30%  { opacity: 1; }
+  42%  { opacity: 0.3; }
+  55%  { opacity: 1; }
+  68%  { opacity: 0.1; }
+  80%  { opacity: 0.9; }
+  90%  { opacity: 0.4; }
   100% { opacity: 1; }
 }
 @keyframes surge-sweep {
@@ -121,10 +122,11 @@
   to   { transform: translateY(100%); }
 }
 @utility animate-intro-flicker {
-  animation: intro-flicker 0.8s steps(1) forwards;
+  animation: intro-flicker 0.52s steps(1) forwards;
+  will-change: opacity, transform;
 }
 @utility animate-surge-sweep {
-  animation: surge-sweep 0.6s linear forwards;
+  animation: surge-sweep 0.4s linear forwards;
 }
 
 @keyframes flicker {
@@ -165,22 +167,23 @@
 
 @utility animate-flicker { animation: flicker 1.8s infinite; }
 @utility animate-blink { animation: blink 0.5s steps(1) infinite; }
-@utility animate-marquee { animation: marquee 28s linear infinite; }
-@utility animate-marquee-ltr { animation: marquee-ltr 36s linear infinite; }
-@utility animate-floaty { animation: floaty 5s ease-in-out infinite; }
-@utility animate-bulb-sway {
-  transform-origin: top center;
-  animation: bulb-sway 6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+@utility animate-marquee {
+  animation: marquee 28s linear infinite;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
-@utility animate-filament-glow {
-  animation: filament-flicker 2.5s ease-in-out infinite;
+@utility animate-marquee-ltr {
+  animation: marquee-ltr 36s linear infinite;
+  will-change: transform;
+  transform: translate3d(0, 0, 0);
 }
 
 @utility reveal {
   opacity: 0;
-  transform: translateY(24px);
-  transition: opacity 0.7s ease, transform 0.7s ease;
-  &.in { opacity: 1; transform: none; }
+  transform: translate3d(0, 20px, 0);
+  transition: opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1), transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+  &.in { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
 @utility parallax { transform: translateY(calc(var(--sy, 0) * 0.25px)); }
