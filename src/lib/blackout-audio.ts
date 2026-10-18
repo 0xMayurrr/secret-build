@@ -33,7 +33,7 @@ class BlackoutAudioEngine {
     try {
       if (!this.introAudio) {
         this.introAudio = new Audio("/audio/blackout-glitch.wav");
-        this.introAudio.volume = 0.6;
+        this.introAudio.volume = 0.3;
         this.introAudio.preload = "auto";
       }
       if (!this.ambientAudio) {
