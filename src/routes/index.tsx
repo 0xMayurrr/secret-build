@@ -156,9 +156,25 @@ function useBlackoutIntro() {
   };
 
   useEffect(() => {
-    // Start sequence immediately — ambient music uses pendingAmbient flag
-    // so it fires as soon as browser allows audio (first gesture or autoplay)
-    startSequence();
+    // On deployed sites autoplay is blocked until first gesture
+    // So we listen for first interaction then fire sequence
+    const onFirstGesture = () => {
+      startSequence();
+      window.removeEventListener("pointerdown", onFirstGesture);
+      window.removeEventListener("keydown", onFirstGesture);
+    };
+
+    window.addEventListener("pointerdown", onFirstGesture);
+    window.addEventListener("keydown", onFirstGesture);
+
+    // Also try immediately in case autoplay is allowed (localhost / returning user)
+    const t = setTimeout(() => startSequence(), 300);
+
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("pointerdown", onFirstGesture);
+      window.removeEventListener("keydown", onFirstGesture);
+    };
   }, []);
 
   return { phase, startSequence };

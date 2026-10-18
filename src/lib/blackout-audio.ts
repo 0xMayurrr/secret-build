@@ -33,7 +33,7 @@ class BlackoutAudioEngine {
     try {
       if (!this.introAudio) {
         this.introAudio = new Audio("/audio/blackout-glitch.wav");
-        this.introAudio.volume = 0.2;
+        this.introAudio.volume = 0.6;
         this.introAudio.preload = "auto";
       }
       if (!this.ambientAudio) {
@@ -89,7 +89,7 @@ class BlackoutAudioEngine {
     // Master — slow cinematic fade in over 6s
     const master = ctx.createGain();
     master.gain.setValueAtTime(0, now);
-    master.gain.linearRampToValueAtTime(0.9, now + 6);
+    master.gain.linearRampToValueAtTime(1.0, now + 6);
     master.connect(ctx.destination);
     this.droneGain = master;
 
