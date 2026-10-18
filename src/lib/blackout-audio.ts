@@ -33,7 +33,7 @@ class BlackoutAudioEngine {
     try {
       if (!this.introAudio) {
         this.introAudio = new Audio("/audio/blackout-glitch.wav");
-        this.introAudio.volume = 0.2;
+        this.introAudio.volume = 0.4;
         this.introAudio.preload = "auto";
       }
       if (!this.ambientAudio) {
@@ -64,8 +64,15 @@ class BlackoutAudioEngine {
   }
 
   /**
-   * Cinematic suspense pad — soft strings-like swell with reverb
-   * Warm, dramatic, not noisy. Like a thriller movie score.
+   * Cinematic horror suspense drone
+   *
+   * Layers:
+   * 1. 28Hz infrasonic rumble  — subconscious dread, felt not heard
+   * 2. 55Hz + 82Hz tritone     — the "devil's interval", inherently unsettling
+   * 3. Filtered noise swell    — like a distant storm or crowd murmur
+   * 4. 528Hz detuned shimmer   — thin, eerie, slightly out of tune
+   * 5. Slow LFO tremolo        — makes everything breathe with unease
+   * 6. Gradual pitch drift     — tension that never resolves
    */
   private startSuspenseDrone() {
     const ctx = this.getCtx();
@@ -74,65 +81,106 @@ class BlackoutAudioEngine {
 
     const now = ctx.currentTime;
 
-    // Reverb via convolver (simulated with decaying noise impulse)
-    const convolver = ctx.createConvolver();
-    const reverbLen = ctx.sampleRate * 3;
-    const reverbBuf = ctx.createBuffer(2, reverbLen, ctx.sampleRate);
-    for (let c = 0; c < 2; c++) {
-      const d = reverbBuf.getChannelData(c);
-      for (let i = 0; i < reverbLen; i++)
-        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / reverbLen, 2.5);
-    }
-    convolver.buffer = reverbBuf;
-
-    // Master — slow cinematic fade in over 6s
+    // Master output with slow fade-in (4s)
     const master = ctx.createGain();
     master.gain.setValueAtTime(0, now);
-    master.gain.linearRampToValueAtTime(0.9, now + 6);
+    master.gain.linearRampToValueAtTime(0.75, now + 4);
     master.connect(ctx.destination);
     this.droneGain = master;
 
-    // Wet reverb bus
-    const reverbGain = ctx.createGain();
-    reverbGain.gain.value = 0.55;
-    convolver.connect(reverbGain);
-    reverbGain.connect(master);
+    // ── Layer 1: Infrasonic sub rumble (28Hz) ──────────────────────────────
+    // Below hearing threshold but creates physical unease
+    const sub = ctx.createOscillator();
+    const subGain = ctx.createGain();
+    sub.type = "sine";
+    sub.frequency.value = 28;
+    subGain.gain.value = 1.0;
+    sub.connect(subGain);
+    subGain.connect(master);
+    sub.start(now);
 
-    const makePad = (freq: number, gain: number, detune = 0) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      osc.detune.value = detune;
-      g.gain.value = gain;
-      osc.connect(g);
-      g.connect(master);      // dry signal
-      g.connect(convolver);   // wet reverb
-      osc.start(now);
-      return osc;
-    };
+    // ── Layer 2: Tritone interval (55Hz + 82.5Hz = devil's interval) ───────
+    // Tritone = 6 semitones apart, sounds inherently wrong to human brain
+    const tri1 = ctx.createOscillator();
+    const tri1Gain = ctx.createGain();
+    tri1.type = "sawtooth";
+    tri1.frequency.value = 55;
+    tri1Gain.gain.value = 0.22;
+    tri1.connect(tri1Gain);
+    tri1Gain.connect(master);
+    tri1.start(now);
 
-    // Chord: Dm-ish pad — dark, cinematic, not dissonant
-    const root  = makePad(73.4,  0.55);       // D2 — deep warm root
-    const fifth = makePad(110,   0.35);        // A2 — open fifth, adds space
-    const minor = makePad(130.8, 0.22);        // C3 — minor 7th, melancholic
-    const high  = makePad(146.8, 0.10, -8);   // D3 slightly flat — ghostly overtone
+    const tri2 = ctx.createOscillator();
+    const tri2Gain = ctx.createGain();
+    tri2.type = "sawtooth";
+    tri2.frequency.value = 82.5; // tritone above 55Hz
+    tri2Gain.gain.value = 0.18;
+    tri2.connect(tri2Gain);
+    tri2Gain.connect(master);
+    tri2.start(now);
 
-    // Slow breathing swell LFO (one breath every ~10s)
+    // ── Layer 3: Filtered noise swell ──────────────────────────────────────
+    // White noise through a low-pass filter = distant rumble / crowd murmur
+    const bufferSize = ctx.sampleRate * 3;
+    const noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+    const data = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = ctx.createBufferSource();
+    noise.buffer = noiseBuffer;
+    noise.loop = true;
+
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = "lowpass";
+    noiseFilter.frequency.value = 180;
+    noiseFilter.Q.value = 1.2;
+
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = 0.12;
+
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(master);
+    noise.start(now);
+
+    // ── Layer 4: Detuned eerie shimmer (528Hz, slightly off) ───────────────
+    const shimmer = ctx.createOscillator();
+    const shimmerGain = ctx.createGain();
+    shimmer.type = "sine";
+    shimmer.frequency.value = 528;
+    shimmer.detune.value = -14; // slightly flat = unsettling
+    shimmerGain.gain.value = 0.04;
+    shimmer.connect(shimmerGain);
+    shimmerGain.connect(master);
+    shimmer.start(now);
+
+    // ── Layer 5: Slow tremolo LFO (0.3Hz) ─────────────────────────────────
+    // Makes the whole thing breathe slowly — like something alive in the dark
     const lfo = ctx.createOscillator();
     const lfoGain = ctx.createGain();
     lfo.type = "sine";
-    lfo.frequency.value = 0.1;
-    lfoGain.gain.value = 0.15;
+    lfo.frequency.value = 0.3;
+    lfoGain.gain.value = 0.28;
     lfo.connect(lfoGain);
-    lfoGain.connect(master.gain);
+    lfoGain.connect(subGain.gain);
     lfo.start(now);
 
-    // Slow pitch drift — barely perceptible, keeps it alive
-    root.frequency.linearRampToValueAtTime(72,   now + 25);
-    root.frequency.linearRampToValueAtTime(74,   now + 55);
-    fifth.frequency.linearRampToValueAtTime(109, now + 30);
-    fifth.frequency.linearRampToValueAtTime(111, now + 60);
+    // ── Layer 6: Pitch drift — tension that never resolves ─────────────────
+    // Tritone slowly drifts, never settles, brain keeps waiting for resolution
+    tri1.frequency.linearRampToValueAtTime(52, now + 15);
+    tri1.frequency.linearRampToValueAtTime(58, now + 35);
+    tri1.frequency.linearRampToValueAtTime(50, now + 55);
+    tri1.frequency.linearRampToValueAtTime(55, now + 75);
+
+    tri2.frequency.linearRampToValueAtTime(79, now + 18);
+    tri2.frequency.linearRampToValueAtTime(86, now + 38);
+    tri2.frequency.linearRampToValueAtTime(77, now + 58);
+    tri2.frequency.linearRampToValueAtTime(82.5, now + 78);
+
+    // Noise filter sweeps slowly — like pressure building
+    noiseFilter.frequency.linearRampToValueAtTime(280, now + 20);
+    noiseFilter.frequency.linearRampToValueAtTime(120, now + 45);
+    noiseFilter.frequency.linearRampToValueAtTime(220, now + 70);
 
     this.isAmbientPlaying = true;
   }
@@ -211,8 +259,9 @@ class BlackoutAudioEngine {
   public playClick() {
     if (this.isMuted || this.clickPool.length === 0) return;
     try {
-      const a = this.clickPool[this.clickIndex];
+      const a = this.clickPool[this.clickIndex % this.clickPool.length];
       this.clickIndex = (this.clickIndex + 1) % this.clickPool.length;
+      if (!a) return;
       a.currentTime = 0;
       a.play().catch(() => {});
     } catch {}
