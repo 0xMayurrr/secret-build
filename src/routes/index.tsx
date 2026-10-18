@@ -539,8 +539,8 @@ function Index() {
       </div>
 
       {/* ABOUT */}
-      <section id="about" className="mx-auto max-w-6xl px-5 py-28">
-        <div className="grid gap-12 md:grid-cols-[1fr_1.4fr]">
+      <section id="about" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
+        <div className="grid gap-8 md:gap-12 md:grid-cols-[1fr_1.4fr]">
           <SectionHead n="01" k="about" title={<>No brief.<br />No hints.<br /><span className="text-primary">Just build.</span></>} />
           <div className="reveal space-y-6 text-lg leading-relaxed text-muted-foreground">
             <p>
@@ -568,7 +568,7 @@ function Index() {
         <div className="noise pointer-events-none absolute inset-0 opacity-30" />
         <div className="relative mx-auto max-w-6xl px-5">
           <SectionHead n="02" k="the mystery" title={<>YOU WON'T KNOW<br /><span className="text-signal">UNTIL YOU SHOW UP.</span></>} />
-          <div className="mt-12 grid gap-6 md:grid-cols-3">
+          <div className="mt-8 grid gap-4 md:grid-cols-3">
             {[
               ["FILE_001.ENC", "PROBLEM STATEMENT", "Sealed. Encrypted. Unopened until zero hour."],
               ["FILE_002.ENC", "THE RULES", "Classified. Some things only make sense in the dark."],
@@ -599,7 +599,7 @@ function Index() {
       </section>
 
       {/* WHO */}
-      <section id="who" className="mx-auto max-w-6xl px-5 py-28">
+      <section id="who" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
         <SectionHead n="03" k="who should join" title="Anyone who builds." />
         <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
           {WHO.map((w, i) => (
@@ -619,7 +619,7 @@ function Index() {
       <section id="passes" className="pixel-grid border-y-2 border-border py-28">
         <div className="mx-auto max-w-6xl px-5">
           <SectionHead n="04" k="registration passes" title="Pick your pass." />
-          <div className="mt-12 grid gap-8 md:grid-cols-3">
+          <div className="mt-8 grid gap-5 md:grid-cols-3">
             {PASSES.map((p, i) => (
               <article
                 key={p.name}
@@ -652,9 +652,9 @@ function Index() {
       </section>
 
       {/* PRIZES */}
-      <section id="prizes" className="mx-auto max-w-6xl px-5 py-28">
+      <section id="prizes" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
         <SectionHead n="05" k="prizes & recognition" title="What's at stake." />
-        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-4 grid-cols-2 lg:grid-cols-4">
           {([
             { code: "BOUNTY",    glyph: "₿",  accent: "text-signal",  border: "hover:border-signal",  shadow: "hover:shadow-[6px_6px_0_0_var(--signal)]",  label: "The Bounty",    line: "Compete for high-value cash rewards." },
             { code: "LAUNCHPAD", glyph: "↑",  accent: "text-primary", border: "hover:border-primary", shadow: "hover:shadow-[6px_6px_0_0_var(--primary)]", label: "The Launchpad", line: "Secure elite internship opportunities." },
@@ -691,7 +691,7 @@ function Index() {
       <TeamSection />
 
       {/* EVENT INFO */}
-      <section id="info" className="mx-auto max-w-6xl px-5 py-28">
+      <section id="info" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
         <SectionHead n="07" k="event information" title="The coordinates." />
         <div className="mt-10 grid border-2 border-border md:grid-cols-2">
           {[
@@ -739,7 +739,7 @@ function Index() {
       <section className="pixel-grid border-t-2 border-primary py-32 text-center">
         <div className="reveal mx-auto max-w-4xl px-5">
           <p className="font-term text-2xl text-signal">&gt; ready_to_go_dark?</p>
-          <h2 className="glow mt-6 font-pixel text-2xl leading-relaxed md:text-5xl">
+          <h2 className="glow mt-6 font-pixel text-base leading-relaxed md:text-5xl">
             YOU CAN'T PREDICT IT.<br /><span className="text-primary">YOU CAN SHOW UP.</span>
           </h2>
           <CTA className="mt-12">CLAIM YOUR PASS ▶</CTA>
