@@ -8,13 +8,10 @@ class BlackoutAudioEngine {
   private clickPool: HTMLAudioElement[] = [];
   private clickIndex = 0;
   private isMuted = false;
+  private unlocked = false;
 
   constructor() {
     if (typeof window !== "undefined") {
-      this.introAudio = new Audio("/audio/blackout-glitch.wav");
-      this.introAudio.volume = 0.3;
-      this.introAudio.preload = "auto";
-
       this.ambientAudio = new Audio("/audio/ambient-suspenseee.mp3");
       this.ambientAudio.loop = true;
       this.ambientAudio.volume = 0.4;
@@ -29,13 +26,14 @@ class BlackoutAudioEngine {
     }
   }
 
+  // Must be called synchronously inside a user gesture event handler
   public playGlitchIntro() {
-    if (this.isMuted || !this.introAudio) return;
-    this.introAudio.currentTime = 0;
-    // load() before play() ensures iOS Safari has the audio ready
-    this.introAudio.load();
-    const p = this.introAudio.play();
-    if (p) p.catch(() => {});
+    if (this.isMuted) return;
+    // Always create a fresh Audio element inside the gesture — most reliable on iOS/Android
+    const a = new Audio("/audio/blackout-glitch.wav");
+    a.volume = 0.3;
+    this.introAudio = a;
+    a.play().catch(() => {});
   }
 
   public startAmbientMusic() {
