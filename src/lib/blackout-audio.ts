@@ -46,8 +46,8 @@ class BlackoutAudioEngine {
   }
 
   /**
-   * Cinematic suspense pad — soft Dm chord with reverb
-   * Warm, dark, dramatic. Like a thriller movie score.
+   * Pure suspense tone — single eerie sine wave with slow swell
+   * No chords, no drums, no noise. Just tension.
    */
   private startSuspenseDrone() {
     const ctx = this.getCtx();
@@ -56,67 +56,37 @@ class BlackoutAudioEngine {
 
     const now = ctx.currentTime;
 
-    // Reverb convolver
-    const convolver = ctx.createConvolver();
-    const reverbLen = ctx.sampleRate * 3;
-    const reverbBuf = ctx.createBuffer(2, reverbLen, ctx.sampleRate);
-    for (let c = 0; c < 2; c++) {
-      const d = reverbBuf.getChannelData(c);
-      for (let i = 0; i < reverbLen; i++)
-        d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / reverbLen, 2.5);
-    }
-    convolver.buffer = reverbBuf;
-
-    // Master — slow cinematic fade in over 6s
     const master = ctx.createGain();
     master.gain.setValueAtTime(0, now);
-    master.gain.linearRampToValueAtTime(1.0, now + 6);
+    master.gain.linearRampToValueAtTime(0.7, now + 5);
     master.connect(ctx.destination);
     this.droneGain = master;
 
-    // Wet reverb bus
-    const reverbGain = ctx.createGain();
-    reverbGain.gain.value = 0.55;
-    convolver.connect(reverbGain);
-    reverbGain.connect(master);
+    // Single low eerie tone (55Hz) — pure suspense
+    const tone = ctx.createOscillator();
+    const toneGain = ctx.createGain();
+    tone.type = "sine";
+    tone.frequency.value = 55;
+    toneGain.gain.value = 0.8;
+    tone.connect(toneGain);
+    toneGain.connect(master);
+    tone.start(now);
 
-    const makePad = (freq: number, gain: number, detune = 0) => {
-      const osc = ctx.createOscillator();
-      const g = ctx.createGain();
-      osc.type = "sine";
-      osc.frequency.value = freq;
-      osc.detune.value = detune;
-      g.gain.value = gain;
-      osc.connect(g);
-      g.connect(master);
-      g.connect(convolver);
-      osc.start(now);
-      return osc;
-    };
+    // Very slow swell — breathes in and out every 8s
+    const swell = ctx.createOscillator();
+    const swellGain = ctx.createGain();
+    swell.type = "sine";
+    swell.frequency.value = 0.12;
+    swellGain.gain.value = 0.3;
+    swell.connect(swellGain);
+    swellGain.connect(master.gain);
+    swell.start(now);
 
-    // Dm chord — dark, cinematic, melancholic
-    const root  = makePad(73.4,  0.55);
-    const fifth = makePad(110,   0.35);
-    const minor = makePad(130.8, 0.22);
-    makePad(146.8, 0.10, -8);
-
-    // Slow breathing swell LFO
-    const lfo = ctx.createOscillator();
-    const lfoGain = ctx.createGain();
-    lfo.type = "sine";
-    lfo.frequency.value = 0.1;
-    lfoGain.gain.value = 0.15;
-    lfo.connect(lfoGain);
-    lfoGain.connect(master.gain);
-    lfo.start(now);
-
-    // Gentle pitch drift
-    root.frequency.linearRampToValueAtTime(72,   now + 25);
-    root.frequency.linearRampToValueAtTime(74,   now + 55);
-    fifth.frequency.linearRampToValueAtTime(109, now + 30);
-    fifth.frequency.linearRampToValueAtTime(111, now + 60);
-    minor.frequency.linearRampToValueAtTime(129, now + 35);
-    minor.frequency.linearRampToValueAtTime(131, now + 65);
+    // Barely noticeable pitch creep — never resolves, keeps tension alive
+    tone.frequency.linearRampToValueAtTime(52, now + 20);
+    tone.frequency.linearRampToValueAtTime(58, now + 45);
+    tone.frequency.linearRampToValueAtTime(54, now + 70);
+    tone.frequency.linearRampToValueAtTime(56, now + 95);
 
     this.isAmbientPlaying = true;
   }
