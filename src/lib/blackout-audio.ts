@@ -17,7 +17,7 @@ class BlackoutAudioEngine {
 
       this.ambientAudio = new Audio("/audio/ambient-suspenseee.mp3");
       this.ambientAudio.loop = true;
-      this.ambientAudio.volume = 1.0;
+      this.ambientAudio.volume = 0.4;
       this.ambientAudio.preload = "auto";
 
       this.clickPool = Array.from({ length: 4 }, () => {
