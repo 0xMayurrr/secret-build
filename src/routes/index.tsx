@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import blackoutLogo from "@/assets/blackout-logo.png";
+import { TeamSection } from "@/components/TeamSection";
+import { Footer } from "@/components/Footer";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -68,11 +70,11 @@ const FAQ = [
 ];
 
 const NAV = [
-  ["about", "/about"],
-  ["mystery", "/mystery"],
-  ["passes", "/passes"],
-  ["team", "/team"],
-  ["faq", "/faq"],
+  ["about", "#about"],
+  ["mystery", "#mystery"],
+  ["passes", "#passes"],
+  ["team", "#team"],
+  ["faq", "#faq"],
 ];
 /* ========================================= */
 
@@ -119,13 +121,54 @@ function useScrollFx() {
   return p;
 }
 
-function Typer({ text }: { text: string }) {
+type IntroPhase = "black" | "flicker" | "surge" | "done";
+
+function useBlackoutIntro() {
+  const [phase, setPhase] = useState<IntroPhase>("black");
+  useEffect(() => {
+    const t1 = setTimeout(() => setPhase("flicker"), 1400);
+    const t2 = setTimeout(() => setPhase("surge"),   2200);
+    const t3 = setTimeout(() => setPhase("done"),    2900);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  }, []);
+  return phase;
+}
+
+function BlackoutIntro({ phase, logo }: { phase: IntroPhase; logo: string }) {
+  if (phase === "done") return null;
+  return (
+    <div
+      className="fixed inset-0 z-[200] flex items-center justify-center"
+      style={{
+        backgroundColor: "#000000",
+        overflow: "hidden",
+      }}
+    >
+      {/* logo — hidden during pure black, flickers in, blazes on surge */}
+      <img
+        src={logo}
+        alt="BLACKOUT"
+        className="w-64 md:w-96 object-contain"
+        style={{
+          opacity: phase === "black" ? 0 : 1,
+          animation: phase === "flicker" ? "intro-flicker 0.8s steps(1) forwards" : "none",
+          filter: phase === "surge"
+            ? "drop-shadow(0 0 50px rgba(168,85,247,1)) drop-shadow(0 0 100px rgba(168,85,247,0.9)) brightness(1.8)"
+            : "drop-shadow(0 0 36px rgba(168,85,247,0.85))",
+          transition: "filter 0.1s",
+        }}
+      />
+    </div>
+  );
+}
+
+function Typer({ text, active }: { text: string; active: boolean }) {
   const [n, setN] = useState(0);
   useEffect(() => {
-    if (n >= text.length) return;
-    const t = setTimeout(() => setN(n + 1), 25);
+    if (!active || n >= text.length) return;
+    const t = setTimeout(() => setN(n + 1), 28);
     return () => clearTimeout(t);
-  }, [n, text]);
+  }, [n, text, active]);
   return (
     <span>
       {text.slice(0, n)}
@@ -155,6 +198,7 @@ function CTA({ children, className = "" }: { children: React.ReactNode; classNam
 }
 
 function Index() {
+  const intro = useBlackoutIntro();
   const cd = useCountdown();
   const progress = useScrollFx();
   const heroAnchorRef = useRef<HTMLDivElement | null>(null);
@@ -191,43 +235,68 @@ function Index() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
-  const isClient = typeof window !== "undefined";
-  const targetWidth = isClient && window.innerWidth < 640 ? 160 : 210;
+  const [windowWidth, setWindowWidth] = useState(typeof window !== "undefined" ? window.innerWidth : 1024);
+  useEffect(() => {
+    const onResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  const targetWidth = windowWidth < 640 ? 160 : 210;
   const targetTop = 12;
-  const scrollY = isClient ? window.scrollY : 0;
   const currentWidth = anchorRect.width + scrollRatio * (targetWidth - anchorRect.width);
-  const currentTop = (1 - scrollRatio) * (anchorRect.top - scrollY) + scrollRatio * targetTop;
+  // anchorRect.top is document-absolute; convert to viewport by subtracting current scrollY
+  const currentScrollY = scrollRatio * 280; // mirrors the scroll listener (scrollY / 280 = scrollRatio)
+  const anchorViewportTop = anchorRect.top - currentScrollY;
+  const currentTop = (1 - scrollRatio) * anchorViewportTop + scrollRatio * targetTop;
 
   return (
     <div className="crt min-h-screen overflow-x-hidden bg-background text-foreground">
+      <BlackoutIntro phase={intro} logo={blackoutLogo} />
       {/* progress (purple neon glow) */}
       <div className="fixed left-0 top-0 z-[60] h-1 bg-primary shadow-[0_0_12px_rgba(168,85,247,0.85)]" style={{ width: `${progress * 100}%` }} />
 
-      {/* ORIGINAL HEADER (Shows at hero section, smoothly fades away on scroll) */}
+      {/* HEADER — minimalist, centered nav, no logo text */}
       <header
-        className="fixed inset-x-0 top-0 z-40 border-b-2 border-border bg-background/85 backdrop-blur transition-all duration-300 ease-in-out"
+        className="fixed inset-x-0 top-0 z-40 transition-all duration-300 ease-in-out"
         style={{
           opacity: Math.max(0, 1 - scrollRatio * 2.2),
           transform: `translateY(-${scrollRatio * 60}px)`,
           pointerEvents: scrollRatio > 0.3 ? "none" : "auto",
         }}
       >
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-5 py-4">
-          <a href="#top" className="font-pixel text-xs tracking-widest text-primary">
-            BLACKOUT<span className="text-signal">_</span>26
-          </a>
-          <div className="hidden gap-6 font-term text-xl text-muted-foreground lg:flex">
-            {NAV.map(([id, l]) => (
-              <a key={id} href={`#${id}`} className="hover:text-signal">{l}</a>
+        <nav className="mx-auto flex max-w-6xl items-center justify-between px-6 py-5">
+          {/* left — nav links */}
+          <div className="flex items-center gap-8 font-term text-xl text-muted-foreground">
+            {NAV.slice(0, 3).map(([label, href]) => (
+              <a key={label} href={href} className="tracking-widest uppercase hover:text-foreground transition-colors">
+                {label}
+              </a>
             ))}
           </div>
-          <a
-            href={REGISTER_URL}
-            className="border-2 border-primary px-4 py-2 font-pixel text-[10px] text-primary transition hover:bg-primary hover:text-primary-foreground"
-          >
-            REGISTER
-          </a>
+
+          {/* center — empty spacer so register sits right */}
+          <div className="flex-1" />
+
+          {/* right — remaining links + register */}
+          <div className="flex items-center gap-8">
+            <div className="hidden md:flex items-center gap-8 font-term text-xl text-muted-foreground">
+              {NAV.slice(3).map(([label, href]) => (
+                <a key={label} href={href} className="tracking-widest uppercase hover:text-foreground transition-colors">
+                  {label}
+                </a>
+              ))}
+            </div>
+            <a
+              href={REGISTER_URL}
+              className="font-pixel text-[10px] text-primary border border-primary/50 px-4 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+            >
+              REGISTER
+            </a>
+          </div>
         </nav>
+        {/* thin bottom line */}
+        <div className="h-px bg-border/40" />
       </header>
 
       {/* CONTINUOUS MORPHING LOGO: FULLY TRANSPARENT, ENLARGED, AND PURE PURPLE GLOW */}
@@ -265,8 +334,16 @@ function Index() {
       <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-24 pb-16">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_75%)]" />
         <div className="relative mx-auto w-full max-w-6xl px-5 text-center">
-          <p className="font-term text-xl text-signal md:text-2xl">
-            <Typer text="> system.status: POWER_FAILURE_IMMINENT" />
+
+          <p
+            className="font-term text-xl text-signal md:text-2xl"
+            style={{
+              opacity: intro === "done" ? 1 : 0,
+              transform: intro === "done" ? "none" : "translateY(16px)",
+              transition: "opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s",
+            }}
+          >
+            <Typer text="> system.status: POWER_FAILURE_IMMINENT" active={intro === "done"} />
           </p>
 
           {/* Hero Anchor placeholder reserving space for the morphing logo */}
@@ -275,14 +352,42 @@ function Index() {
             className="mx-auto mt-8 w-full max-w-3xl aspect-[668/373] pointer-events-none"
             aria-hidden="true"
           />
-          <p className="mt-4 font-pixel text-[10px] tracking-[0.3em] text-muted-foreground md:text-sm">
-            2026 · BY BUILDICY
+
+          <p
+            className="mt-4 font-pixel text-[10px] tracking-[0.3em] text-muted-foreground md:text-sm"
+            style={{
+              opacity: intro === "done" ? 1 : 0,
+              transform: intro === "done" ? "none" : "translateY(16px)",
+              transition: "opacity 0.6s ease 0.25s, transform 0.6s ease 0.25s",
+            }}
+          >
+            2026 · BY
+            <span className="inline-flex items-center gap-1.5 align-middle mx-1">
+              <img src="/logo.png" alt="Buildicy" className="inline-block h-10 w-10 object-contain" />
+              <span>BUILDICY</span>
+            </span>
           </p>
-          <h1 className="glow glitch mx-auto mt-8 font-pixel text-xl leading-relaxed md:text-4xl" data-text="READY FOR THE UNKNOWN?">
+
+          <h1
+            className="glow glitch mx-auto mt-8 font-pixel text-xl leading-relaxed md:text-4xl"
+            data-text="READY FOR THE UNKNOWN?"
+            style={{
+              opacity: intro === "done" ? 1 : 0,
+              transform: intro === "done" ? "none" : "translateY(20px)",
+              transition: "opacity 0.7s ease 0.4s, transform 0.7s ease 0.4s",
+            }}
+          >
             READY FOR THE UNKNOWN?
           </h1>
 
-          <div className="mx-auto mt-10 grid max-w-xl grid-cols-4 gap-2 md:gap-3">
+          <div
+            className="mx-auto mt-10 grid max-w-xl grid-cols-4 gap-2 md:gap-3"
+            style={{
+              opacity: intro === "done" ? 1 : 0,
+              transform: intro === "done" ? "none" : "translateY(20px)",
+              transition: "opacity 0.7s ease 0.55s, transform 0.7s ease 0.55s",
+            }}
+          >
             {cd.map(([l, v]) => (
               <div key={l} className="border-2 border-border bg-card py-3 md:py-4">
                 <div className="font-pixel text-lg text-foreground md:text-3xl">{v}</div>
@@ -291,11 +396,27 @@ function Index() {
             ))}
           </div>
 
-          <div className="mt-8 flex flex-wrap justify-center gap-3 font-term text-xl md:text-2xl">
+          <div
+            className="mt-8 flex flex-wrap justify-center gap-3 font-term text-xl md:text-2xl"
+            style={{
+              opacity: intro === "done" ? 1 : 0,
+              transform: intro === "done" ? "none" : "translateY(16px)",
+              transition: "opacity 0.6s ease 0.65s, transform 0.6s ease 0.65s",
+            }}
+          >
             <span className="border-2 border-border px-4 py-1">NOV 28, 2026</span>
             <span className="border-2 border-border px-4 py-1">COIMBATORE, TN</span>
           </div>
-          <CTA className="mt-10">CLAIM YOUR PASS ▶</CTA>
+
+          <div
+            style={{
+              opacity: intro === "done" ? 1 : 0,
+              transform: intro === "done" ? "none" : "translateY(16px)",
+              transition: "opacity 0.6s ease 0.75s, transform 0.6s ease 0.75s",
+            }}
+          >
+            <CTA className="mt-10">CLAIM YOUR PASS ▶</CTA>
+          </div>
         </div>
       </section>
 
@@ -319,7 +440,10 @@ function Index() {
           <div className="reveal space-y-6 text-lg leading-relaxed text-muted-foreground">
             <p>
               <span className="text-foreground">BLACKOUT</span> is a surprise-challenge hackathon by
-              Buildicy — made for creative thinkers, developers, designers and builders who love
+              <span className="inline-flex items-center gap-1.5 align-middle">
+                <img src="/logo.png" alt="Buildicy" className="inline-block h-7 w-7 object-contain" />
+                <span className="text-foreground">Buildicy</span>
+              </span> — made for creative thinkers, developers, designers and builders who love
               solving problems and creating something unexpected.
             </p>
             <p>
@@ -425,65 +549,41 @@ function Index() {
       {/* PRIZES */}
       <section id="prizes" className="mx-auto max-w-6xl px-5 py-28">
         <SectionHead n="05" k="prizes & recognition" title="What's at stake." />
-        {PRIZES.length ? (
-          <div className="mt-10 grid gap-6 md:grid-cols-3">
-            {PRIZES.map((p) => (
-              <div key={p.title} className="reveal border-2 border-border bg-card p-6">
-                <h3 className="font-pixel text-sm">{p.title}</h3>
-                <p className="mt-3 font-term text-xl text-muted-foreground">{p.detail}</p>
+        <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {([
+            { code: "BOUNTY",    glyph: "₿",  accent: "text-signal",  border: "hover:border-signal",  shadow: "hover:shadow-[6px_6px_0_0_var(--signal)]",  label: "The Bounty",    line: "Compete for high-value cash rewards." },
+            { code: "LAUNCHPAD", glyph: "↑",  accent: "text-primary", border: "hover:border-primary", shadow: "hover:shadow-[6px_6px_0_0_var(--primary)]", label: "The Launchpad", line: "Secure elite internship opportunities." },
+            { code: "ALLIANCE",  glyph: "◈",  accent: "text-signal",  border: "hover:border-signal",  shadow: "hover:shadow-[6px_6px_0_0_var(--signal)]",  label: "The Alliance",  line: "Direct venture partnership with Buildicy." },
+            { code: "UNKNOWN",   glyph: "?",  accent: "text-primary", border: "hover:border-primary", shadow: "hover:shadow-[6px_6px_0_0_var(--primary)]", label: "The Unknown",   line: "Classified surprises unlocked as you build.", redact: true },
+          ] as const).map((p, i) => (
+            <div
+              key={p.code}
+              className={`reveal group relative flex flex-col border-2 border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 ${p.border} ${p.shadow}`}
+              style={{ transitionDelay: `${i * 80}ms` }}
+            >
+              <p className="font-pixel text-[9px] text-muted-foreground tracking-widest">{p.code}</p>
+              <div className={`mt-4 font-pixel text-4xl ${p.accent} glow`}>{p.glyph}</div>
+              <h3 className="mt-5 font-pixel text-xs leading-relaxed">{p.label}</h3>
+              {p.redact ? (
+                <div className="mt-3 space-y-2">
+                  <div className="redact h-3 w-full" />
+                  <div className="redact h-3 w-4/5" />
+                </div>
+              ) : (
+                <p className="mt-3 font-term text-xl text-muted-foreground leading-snug group-hover:text-foreground transition-colors">
+                  &gt; {p.line}
+                </p>
+              )}
+              <div className={`mt-auto pt-5 font-pixel text-[8px] ${p.accent} opacity-0 group-hover:opacity-100 transition-opacity`}>
+                REWARD_CONFIRMED ▶
               </div>
-            ))}
-          </div>
-        ) : (
-          <div className="reveal hard-shadow mt-10 border-2 border-primary bg-card p-10 text-center md:p-16">
-            <p className="glitch glow font-pixel text-2xl md:text-5xl" data-text="COMING SOON">COMING SOON</p>
-            <p className="mt-6 font-term text-2xl text-muted-foreground">&gt; prize_pool.decrypt() … pending</p>
-          </div>
-        )}
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* TEAM */}
-      <section id="team" className="relative overflow-hidden border-y-2 border-primary bg-card/40 py-28">
-        <div className="mx-auto max-w-6xl px-5">
-          <SectionHead n="06" k="meet the team" title={<>THE PEOPLE<br /><span className="text-primary">BEHIND BLACKOUT.</span></>} />
-          <div className="mt-14 grid gap-10 sm:grid-cols-2 lg:grid-cols-4">
-            {(TEAM.length ? TEAM : Array.from({ length: TEAM_SLOTS }, () => null)).map((m, i) => (
-              <article
-                key={i}
-                className={`reveal team-card group relative border-2 border-foreground bg-background transition duration-300 hover:-translate-y-2 hover:rotate-0 hover:shadow-[10px_10px_0_0_var(--signal)] ${i % 2 ? "lg:mt-16 rotate-[1.5deg]" : "-rotate-[1.5deg]"} shadow-[6px_6px_0_0_var(--primary)]`}
-                style={{ transitionDelay: `${i * 90}ms` }}
-              >
-                <div className="flex items-center justify-between border-b-2 border-foreground bg-primary px-3 py-1 font-pixel text-[9px] text-primary-foreground">
-                  <span>ID_{String(i + 1).padStart(3, "0")}</span>
-                  <span className="animate-blink">●</span>
-                </div>
-                <div className="relative aspect-square overflow-hidden border-b-2 border-foreground bg-muted">
-                  {m?.photo ? (
-                    <img src={m.photo} alt={m.name} className="h-full w-full object-cover grayscale transition duration-500 group-hover:scale-105 group-hover:grayscale-0" />
-                  ) : (
-                    <div className="pixel-grid flex h-full w-full flex-col items-center justify-center">
-                      <span className="font-pixel text-5xl text-primary transition group-hover:text-signal">?</span>
-                      <span className="mt-4 font-term text-lg text-muted-foreground">IDENTITY_LOCKED</span>
-                    </div>
-                  )}
-                  <div className="scanline pointer-events-none absolute inset-0 opacity-0 transition group-hover:opacity-100" />
-                </div>
-                <div className="p-4">
-                  <h3 className="font-pixel text-xs leading-relaxed">{m?.name ?? "CLASSIFIED"}</h3>
-                  <p className="mt-2 font-term text-xl text-signal">{m?.role ?? "> role: revealing soon"}</p>
-                  <p className="mt-2 text-sm text-muted-foreground">{m?.bio ?? "Profile drops before the lights go out."}</p>
-                  {(m?.linkedin || m?.github) && (
-                    <div className="mt-4 flex gap-2 font-pixel text-[9px]">
-                      {m.linkedin && <a href={m.linkedin} target="_blank" rel="noreferrer" className="border-2 border-border px-2 py-1 hover:border-signal hover:text-signal">IN</a>}
-                      {m.github && <a href={m.github} target="_blank" rel="noreferrer" className="border-2 border-border px-2 py-1 hover:border-signal hover:text-signal">GH</a>}
-                    </div>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        </div>
-      </section>
+      <TeamSection />
 
       {/* EVENT INFO */}
       <section id="info" className="mx-auto max-w-6xl px-5 py-28">
@@ -493,13 +593,20 @@ function Index() {
             ["DATE", "November 28, 2026"],
             ["LOCATION", "Coimbatore, Tamil Nadu"],
             ["VENUE", "To be announced"],
-            ["ORGANIZER", "Buildicy"],
+            ["ORGANIZER", null],
             ["REGISTRATION", "Passes from ₹499"],
             ["CHALLENGE", "████████████"],
           ].map(([k, v], i) => (
             <div key={k} className={`reveal border-border p-6 ${i % 2 === 0 ? "md:border-r-2" : ""} ${i < 4 ? "border-b-2" : i === 4 ? "border-b-2 md:border-b-0" : ""}`}>
               <p className="font-pixel text-[10px] text-muted-foreground">{k}</p>
-              <p className="mt-3 font-term text-3xl">{v}</p>
+              {k === "ORGANIZER" ? (
+                <div className="mt-3 flex items-center gap-2">
+                  <img src="/logo.png" alt="Buildicy" className="h-9 w-9 object-contain" />
+                  <span className="font-term text-2xl">Buildicy</span>
+                </div>
+              ) : (
+                <p className="mt-3 font-term text-3xl">{v}</p>
+              )}
             </div>
           ))}
         </div>
@@ -535,39 +642,7 @@ function Index() {
       </section>
 
       {/* FOOTER */}
-      <footer className="border-t-2 border-foreground bg-card">
-        <div className="mx-auto grid max-w-6xl gap-10 px-5 py-14 md:grid-cols-4">
-          <div className="md:col-span-1">
-            <img src={blackoutLogo} alt="BLACKOUT" className="w-48" />
-            <p className="mt-4 font-term text-xl text-muted-foreground">A Buildicy hackathon.</p>
-          </div>
-          <div>
-            <p className="font-pixel text-[10px] text-signal">NAVIGATE</p>
-            <ul className="mt-4 space-y-1 font-term text-xl text-muted-foreground">
-              {NAV.map(([id, l]) => <li key={id}><a href={`#${id}`} className="hover:text-foreground">{l}</a></li>)}
-            </ul>
-          </div>
-          <div>
-            <p className="font-pixel text-[10px] text-signal">CONNECT</p>
-            <ul className="mt-4 space-y-1 font-term text-xl text-muted-foreground">
-              <li>Instagram — soon</li>
-              <li>LinkedIn — soon</li>
-              <li>Email — soon</li>
-            </ul>
-          </div>
-          <div>
-            <p className="font-pixel text-[10px] text-signal">LEGAL</p>
-            <ul className="mt-4 space-y-1 font-term text-xl text-muted-foreground">
-              <li>Terms — soon</li>
-              <li>Privacy — soon</li>
-              <li>Refund Policy — soon</li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t-2 border-border py-5 text-center font-term text-lg text-muted-foreground">
-          © 2026 BUILDICY · BLACKOUT<span className="animate-blink text-signal">_</span>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
