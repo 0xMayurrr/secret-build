@@ -10,7 +10,6 @@ class BlackoutAudioEngine {
   private droneGain: GainNode | null = null;
 
   private introAudio: HTMLAudioElement | null = null;
-  private ambientAudio: HTMLAudioElement | null = null;
 
   private isMuted = false;
   private isAmbientPlaying = false;
@@ -32,12 +31,6 @@ class BlackoutAudioEngine {
         this.introAudio = new Audio("/audio/blackout-glitch.wav");
         this.introAudio.volume = 0.3;
         this.introAudio.preload = "auto";
-      }
-      if (!this.ambientAudio) {
-        this.ambientAudio = new Audio("/audio/ambient-suspense.wav");
-        this.ambientAudio.loop = true;
-        this.ambientAudio.volume = 1.0;
-        this.ambientAudio.preload = "auto";
       }
     } catch {}
   }
@@ -160,20 +153,8 @@ class BlackoutAudioEngine {
     if (this.isAmbientPlaying || this.isMuted) return;
     const ctx = this.getCtx();
     if (ctx) {
-      ctx.resume().then(() => this.startSuspenseDrone()).catch(() => this._fallback());
-    } else {
-      this._fallback();
+      ctx.resume().then(() => this.startSuspenseDrone()).catch(() => {});
     }
-  }
-
-  private _fallback() {
-    if (!this.ambientAudio || this.isAmbientPlaying) return;
-    this.ambientAudio.currentTime = 0;
-    this.ambientAudio.play().then(() => {
-      this.isAmbientPlaying = true;
-    }).catch(() => {
-      this.pendingAmbient = true;
-    });
   }
 
   public playGlitchIntro() {
@@ -194,15 +175,12 @@ class BlackoutAudioEngine {
   public stopAmbientMusic() {
     this.pendingAmbient = false;
     this.stopDrone();
-    this.ambientAudio?.pause();
-    this.isAmbientPlaying = false;
   }
 
   public toggleMute(): boolean {
     this.isMuted = !this.isMuted;
     if (this.isMuted) {
       this.stopDrone();
-      this.ambientAudio?.pause();
       this.introAudio?.pause();
     } else {
       this._playAmbient();
