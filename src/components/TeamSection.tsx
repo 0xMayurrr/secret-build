@@ -6,7 +6,7 @@ interface TeamSectionProps {
 }
 
 export function TeamSection({ sectionHead }: TeamSectionProps) {
-  const [isLit, setIsLit] = useState(false);
+  const [isLit, setIsLit] = useState(true);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -480,11 +480,7 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                 key={`${m.id}-${idx}`}
                 onClick={() => {
                   if (hasDraggedRef.current) return;
-                  if (isLit) {
-                    setSelectedMember(m);
-                  } else {
-                    handleToggleLight();
-                  }
+                  setSelectedMember(m);
                 }}
                 className={`team-card group/card relative w-[240px] shrink-0 border-2 border-foreground bg-background transition-transform duration-200 hover:rotate-0 hover:-translate-y-2 cursor-pointer ${
                   isDown ? "mt-10 md:mt-14 rotate-[1.5deg]" : "-rotate-[1.5deg]"
@@ -500,7 +496,7 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                 </div>
 
                 {/* CARD PHOTO AREA (Cinematic Blur-to-Sharpness Crossfade) */}
-                <div className="relative aspect-square overflow-hidden border-b-2 border-foreground bg-muted">
+                <div className="relative aspect-square overflow-hidden border-b-2 border-foreground bg-[#0d041a]">
                   {/* UNLIT / CLASSIFIED LAYER */}
                   <div
                     className={`absolute inset-0 pixel-grid flex flex-col items-center justify-center transition-opacity ease-out ${
@@ -634,18 +630,18 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
           onClick={() => setSelectedMember(null)}
         >
           <div
-            className="relative w-full max-w-lg border-2 border-amber-400 bg-background p-6 shadow-[10px_10px_0_0_#f59e0b] crt"
+            className="relative w-full max-w-lg border-2 border-primary bg-[#0d0718] p-6 shadow-[10px_10px_0_0_var(--primary)] crt"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className="flex items-center justify-between border-b-2 border-border pb-3">
-              <div className="flex items-center gap-2 font-pixel text-[10px] text-amber-400">
-                <span className="animate-blink">●</span>
-                <span>OPERATIVE DOSSIER // {selectedMember.id}</span>
+            <div className="flex items-center justify-between border-b-2 border-border/70 pb-3">
+              <div className="flex items-center gap-2 font-pixel text-[10px] text-primary">
+                <span className="animate-blink text-signal">●</span>
+                <span className="tracking-wider">OPERATIVE DOSSIER // {selectedMember.id}</span>
               </div>
               <button
                 onClick={() => setSelectedMember(null)}
-                className="border-2 border-border px-2 py-1 font-pixel text-[10px] text-muted-foreground hover:border-destructive hover:text-destructive transition"
+                className="border-2 border-border/80 px-2 py-1 font-pixel text-[10px] text-muted-foreground hover:border-primary hover:text-white transition"
               >
                 ✕ ESC
               </button>
@@ -654,8 +650,7 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
             {/* Modal Content */}
             <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-5">
               <div
-                className="relative aspect-square border-2 border-foreground overflow-hidden"
-                style={{ backgroundColor: selectedMember.avatarBg }}
+                className="relative aspect-square border-2 border-border overflow-hidden bg-[#110722] shadow-[0_0_15px_rgba(168,85,247,0.3)]"
               >
                 <img
                   src={selectedMember.avatarSvg}
@@ -667,13 +662,13 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
               </div>
 
               <div className="sm:col-span-2">
-                <span className="rounded bg-amber-400/10 border border-amber-400/40 px-2 py-0.5 font-pixel text-[8px] text-amber-300">
+                <span className="rounded bg-primary/20 border border-primary/50 px-2.5 py-0.5 font-pixel text-[8px] text-purple-200 uppercase tracking-wider font-bold">
                   {selectedMember.squad}
                 </span>
-                <h3 className="mt-2 font-pixel text-sm text-foreground">
+                <h3 className="mt-2 font-pixel text-base text-white font-bold">
                   {selectedMember.name}
                 </h3>
-                <p className="mt-1 font-term text-2xl text-amber-400 font-bold">
+                <p className="mt-1 font-term text-2xl text-primary font-bold">
                   &gt; {selectedMember.role}
                 </p>
                 <p className="mt-3 text-xs leading-relaxed text-muted-foreground">

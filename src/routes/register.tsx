@@ -27,7 +27,6 @@ import {
 import { BlackoutPassCard } from "@/components/BlackoutPassCard";
 import { Lanyard } from "@/components/Lanyard";
 import { generateBadgeFrontSvg, generateBadgeBackSvg } from "@/lib/badgeTexture";
-import { CrossedDuctTape, PriceDuctTape } from "@/components/CrossedDuctTape";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -580,14 +579,6 @@ export function RegisterPage() {
                         : "border-border bg-background/60 hover:border-foreground/50 hover:shadow-[5px_5px_0_0_rgba(0,0,0,0.5)] cursor-pointer"
                     }`}
                   >
-                    {/* Realistic Crossed Yellow & Black Hazard Duct Tape */}
-                    {tier.locked && (
-                      <CrossedDuctTape
-                        label1="RESTRICTED // DO NOT CROSS"
-                        label2="CLASSIFIED // ACCESS DENIED"
-                      />
-                    )}
-
                     {/* TV Glitch, CRT static & scanline layers for locked passes */}
                     {tier.locked && (
                       <>
@@ -614,8 +605,15 @@ export function RegisterPage() {
                       <h3 className="mt-4 font-pixel text-base text-foreground/90">{tier.name}</h3>
 
                       {tier.locked ? (
-                        <div className="relative mt-4 h-12 w-full flex items-center justify-center overflow-hidden">
-                          <PriceDuctTape label="PRICE SEALED // ⚠" />
+                        <div className="mt-4 flex items-center gap-3">
+                          <div className="relative overflow-hidden border border-primary/40 bg-black/70 px-4 py-1.5 shadow-[inset_0_0_12px_rgba(168,85,247,0.3)]">
+                            <div className="pointer-events-none absolute inset-0 opacity-40 bg-[linear-gradient(rgba(168,85,247,0)_50%,rgba(0,0,0,0.8)_50%)] bg-[length:100%_4px]" />
+                            <span className="font-pixel text-2xl sm:text-3xl text-primary/30 tracking-widest blur-[3px] select-none">
+                              ₹███
+                            </span>
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-scan pointer-events-none" />
+                          </div>
+                          <div className="redact h-4 w-16" />
                         </div>
                       ) : (
                         <div className="mt-4 flex items-baseline gap-2">
@@ -652,9 +650,8 @@ export function RegisterPage() {
                     </div>
 
                     {tier.locked ? (
-                      <div className="mt-6 w-full border-2 border-border/80 bg-background/80 py-2.5 font-pixel text-[9px] uppercase tracking-wider text-muted-foreground flex items-center justify-center gap-2 cursor-not-allowed group-hover/locked:border-primary group-hover/locked:text-primary transition-colors">
-                        <span className="inline-block w-1.5 h-1.5 bg-signal animate-blink" />
-                        <span>ENCRYPTED // OPENS POST EARLY-BIRD</span>
+                      <div className="mt-6 w-full border-2 border-border/80 bg-background/80 py-2.5 font-pixel text-[9px] uppercase tracking-wider text-muted-foreground flex items-center justify-center cursor-not-allowed group-hover/locked:border-primary group-hover/locked:text-primary transition-colors">
+                        <span>OPENS POST EARLY BIRD</span>
                       </div>
                     ) : (
                       <button

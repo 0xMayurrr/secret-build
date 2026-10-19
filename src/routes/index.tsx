@@ -8,8 +8,7 @@ import { ArrowUp } from "lucide-react";
 import { blackoutAudio } from "@/lib/blackout-audio";
 import Silk from "@/components/Silk";
 import BlurText from "@/components/BlurText";
-import Shuffle from "@/components/Shuffle";
-import { CrossedDuctTape, PriceDuctTape } from "@/components/CrossedDuctTape";
+import MoltenMetal from "@/components/MoltenMetal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -459,6 +458,17 @@ function Index() {
         </div>
       </div>
 
+      {/* MINIMAL TOP NAVBAR: ONLY THE REGISTER NOW BUTTON */}
+      <header className="fixed top-0 left-0 right-0 z-40 flex items-center justify-end px-5 sm:px-8 py-3.5 sm:py-4 pointer-events-none">
+        <a
+          href={REGISTER_URL}
+          className="pointer-events-auto inline-flex items-center gap-2 border-2 border-primary bg-[#0d0718]/90 px-4 py-2 font-pixel text-[10px] sm:text-xs text-white shadow-[0_0_20px_rgba(168,85,247,0.45)] backdrop-blur-md transition-all duration-300 hover:border-signal hover:bg-primary hover:text-black hover:shadow-[0_0_25px_rgba(168,85,247,0.85)] hover:scale-105 active:scale-95 cursor-pointer"
+        >
+          <span>REGISTER NOW</span>
+          <span>▶</span>
+        </a>
+      </header>
+
       {/* FLOATING CYBERPUNK SCROLL SECTOR TRACKER (DESKTOP) */}
       <aside
         aria-label="Sector Navigation Tracker"
@@ -582,6 +592,22 @@ function Index() {
 
       {/* HERO */}
       <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-20 pb-12 md:pt-24 md:pb-16 overflow-hidden">
+        {/* WEBGL2 MOLTEN METAL / GLASS FLUID EFFECT */}
+        <div className="absolute inset-0 z-0 overflow-hidden opacity-35 pointer-events-auto">
+          <MoltenMetal
+            colors={['#5227FF', '#9333ea', '#c084fc', '#06b6d4']}
+            coreColor="#ffffff"
+            backgroundColor="transparent"
+            speed={0.28}
+            scale={3.6}
+            swirl={1.2}
+            turbulence={0.2}
+            glow={1.8}
+            thickness={1.1}
+            mouseInteraction={true}
+            flareOnClick={true}
+          />
+        </div>
         <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_75%)]" />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 text-center">
 
@@ -593,13 +619,7 @@ function Index() {
               transition: "opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s",
             }}
           >
-            <Shuffle
-              text="> system.status: POWER_FAILURE_IMMINENT"
-              className="inline-block"
-              triggerOnHover={true}
-              scrambleCharset="01#$X_!?<>"
-              shuffleTimes={2}
-            />
+            <span>&gt; system.status: POWER_FAILURE_IMMINENT</span>
           </div>
 
           {/* Hero Anchor placeholder reserving space for the morphing logo */}
@@ -645,26 +665,20 @@ function Index() {
             />
           </h1>
 
-          {/* HIGH-TECH CYBER COUNTDOWN TIMER WITH NEON GLOW & SPLIT HORIZON NOTCHES */}
+          {/* COMPACT CYBER COUNTDOWN TIMER (SMALLER THAN BLACKOUT LOGO) */}
           <div
-            className="mx-auto mt-10 max-w-2xl px-2"
+            className="mx-auto mt-8 max-w-lg px-2"
             style={{
               opacity: intro === "done" ? 1 : 0,
               transform: intro === "done" ? "none" : "translateY(20px)",
               transition: "opacity 0.7s ease 0.55s, transform 0.7s ease 0.55s",
             }}
           >
-            {/* Ambient cyber header badge */}
-            <div className="mb-3 flex items-center justify-center gap-2 font-pixel text-[8px] md:text-[9px] text-primary tracking-widest uppercase">
-              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
-              <span>T-MINUS // INITIATION PROTOCOL</span>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4 relative">
+            <div className="grid grid-cols-4 gap-2 sm:gap-3 relative">
               {cd.map(([l, v]) => (
                 <div
                   key={l}
-                  className="group relative flex flex-col items-center justify-center rounded-sm border-2 border-primary/50 bg-[#0d0718]/90 py-3 sm:py-4 md:py-6 shadow-[0_0_20px_rgba(168,85,247,0.25)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-signal hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] overflow-hidden"
+                  className="group relative flex flex-col items-center justify-center rounded-sm border-2 border-primary/50 bg-[#0d0718]/90 py-2 sm:py-2.5 md:py-3.5 shadow-[0_0_15px_rgba(168,85,247,0.25)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-signal hover:shadow-[0_0_25px_rgba(168,85,247,0.5)] overflow-hidden"
                 >
                   {/* Subtle top laser scan reflection */}
                   <div className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/[0.08] to-transparent" />
@@ -679,18 +693,18 @@ function Index() {
                   <div className="pointer-events-none absolute bottom-1 right-1 h-1.5 w-1.5 border-b-2 border-r-2 border-primary/70" />
 
                   {/* Digit Display */}
-                  <div className="relative z-10 font-pixel text-xl sm:text-2xl md:text-4xl text-white font-bold tracking-tight drop-shadow-[0_0_14px_rgba(168,85,247,0.85)] group-hover:scale-105 transition-transform duration-200">
+                  <div className="relative z-10 font-pixel text-lg sm:text-xl md:text-2xl text-white font-bold tracking-tight drop-shadow-[0_0_10px_rgba(168,85,247,0.85)] group-hover:scale-105 transition-transform duration-200">
                     {v}
                   </div>
 
                   {/* Unit Label */}
-                  <div className="relative z-10 mt-1.5 sm:mt-2 font-term text-xs sm:text-sm md:text-lg text-primary tracking-wider font-bold">
+                  <div className="relative z-10 mt-1 font-term text-[10px] sm:text-xs md:text-sm text-primary tracking-wider font-bold">
                     {l}
                   </div>
 
                   {/* Seconds live pulsing LED dot */}
                   {l === "SEC" && (
-                    <span className="absolute top-2 right-2 flex h-1.5 w-1.5">
+                    <span className="absolute top-1.5 right-1.5 flex h-1.5 w-1.5">
                       <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-signal opacity-75" />
                       <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-signal" />
                     </span>
@@ -843,16 +857,12 @@ function Index() {
             ))}
           </div>
           {/* Sealed Brief Indicators */}
-
-          <p className="reveal mt-10 text-center font-pixel text-[10px] tracking-[0.4em] text-muted-foreground md:text-xs">
-            ACCESS_DENIED · CLEARANCE_REQUIRED · ACCESS_DENIED
-          </p>
         </div>
       </section>
 
       {/* WHO */}
       <section id="who" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
-        <SectionHead n="03" k="who should join" title={<Shuffle text="Anyone who builds." triggerOnHover={true} effect="slide" />} />
+        <SectionHead n="03" k="who should join" title="Anyone who builds." />
         <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
           {WHO.map((w, i) => (
             <div
@@ -904,12 +914,6 @@ function Index() {
               >
                 {p.locked ? (
                   <>
-                    {/* Realistic Crossed Yellow & Black Hazard Duct Tape */}
-                    <CrossedDuctTape
-                      label1="RESTRICTED // DO NOT CROSS"
-                      label2="CLASSIFIED // OPENS POST EARLY-BIRD"
-                    />
-
                     {/* TV Glitch, CRT static & scanline layers */}
                     <div className="pointer-events-none absolute inset-0 opacity-25 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
                     <div className="scanline pointer-events-none absolute inset-0 opacity-35 transition-opacity group-hover/locked:opacity-75" />
@@ -924,9 +928,16 @@ function Index() {
 
                     <h3 className="mt-2 font-pixel text-sm text-foreground/90">{p.name}</h3>
 
-                    {/* Price hidden completely by yellow-and-black hazard caution duct tape */}
-                    <div className="relative mt-6 h-12 w-full flex items-center justify-center overflow-hidden">
-                      <PriceDuctTape label="PRICE SEALED // ⚠" />
+                    {/* TV Glitch Redacted Price */}
+                    <div className="mt-6 flex items-center gap-3">
+                      <div className="relative overflow-hidden border border-primary/40 bg-black/70 px-4 py-1.5 shadow-[inset_0_0_12px_rgba(168,85,247,0.3)]">
+                        <div className="pointer-events-none absolute inset-0 opacity-40 bg-[linear-gradient(rgba(168,85,247,0)_50%,rgba(0,0,0,0.8)_50%)] bg-[length:100%_4px]" />
+                        <span className="font-pixel text-2xl sm:text-3xl text-primary/30 tracking-widest blur-[3px] select-none">
+                          ₹███
+                        </span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-scan pointer-events-none" />
+                      </div>
+                      <div className="redact h-5 w-20" />
                     </div>
 
                     <div className="mt-6 flex-1 space-y-2">
@@ -940,9 +951,8 @@ function Index() {
                       </p>
                     </div>
 
-                    <div className="mt-8 border-2 border-border/80 bg-background/80 py-3 text-center font-pixel text-[9px] text-muted-foreground flex items-center justify-center gap-2 group-hover/locked:border-primary group-hover/locked:text-primary transition-colors cursor-not-allowed">
-                      <span className="inline-block w-2 h-2 rounded-full bg-signal animate-blink" />
-                      <span className="tracking-wider">ENCRYPTED // OPENS POST EARLY-BIRD</span>
+                    <div className="mt-8 border-2 border-border/80 bg-background/80 py-3 text-center font-pixel text-[9px] text-muted-foreground flex items-center justify-center group-hover/locked:border-primary group-hover/locked:text-primary transition-colors cursor-not-allowed">
+                      <span className="tracking-wider">OPENS POST EARLY BIRD</span>
                     </div>
                   </>
                 ) : (
