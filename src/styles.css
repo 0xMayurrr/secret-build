@@ -436,4 +436,95 @@
   }
 }
 
+/* ── 8-BIT RETRO PIXEL RUNNER ANIMATIONS (WHO SECTION) ── */
+@keyframes runAcrossTrack {
+  0% {
+    transform: translateX(-40px);
+  }
+  100% {
+    transform: translateX(calc(100% + 40px));
+  }
+}
+
+.group:hover .pixel-runner-container {
+  animation-duration: 1.5s !important;
+  filter: drop-shadow(0 0 6px var(--signal));
+}
+
+@keyframes pixelLegLead {
+  0%, 100% {
+    transform: rotate(20deg);
+    transform-origin: 12px 17px;
+  }
+  50% {
+    transform: rotate(-20deg);
+    transform-origin: 12px 17px;
+  }
+}
+
+@keyframes pixelLegBack {
+  0%, 100% {
+    transform: rotate(-20deg);
+    transform-origin: 8px 17px;
+  }
+  50% {
+    transform: rotate(20deg);
+    transform-origin: 8px 17px;
+  }
+}
+
+@keyframes pixelArmLeft {
+  0%, 100% {
+    transform: rotate(-15deg);
+    transform-origin: 13px 11px;
+  }
+  50% {
+    transform: rotate(15deg);
+    transform-origin: 13px 11px;
+  }
+}
+
+@keyframes pixelTieFlutter {
+  0%, 100% {
+    transform: rotate(0deg);
+    transform-origin: 11px 12px;
+  }
+  50% {
+    transform: rotate(-12deg) scaleX(1.1);
+    transform-origin: 11px 12px;
+  }
+}
+
+@keyframes pixelHammerSwing {
+  0%, 100% {
+    transform: rotate(-10deg);
+    transform-origin: 14px 11px;
+  }
+  50% {
+    transform: rotate(14deg);
+    transform-origin: 14px 11px;
+  }
+}
+
+.animate-pixel-leg-lead {
+  animation: pixelLegLead 0.32s infinite ease-in-out;
+}
+
+.animate-pixel-leg-back {
+  animation: pixelLegBack 0.32s infinite ease-in-out;
+}
+
+.animate-pixel-arm-left {
+  animation: pixelArmLeft 0.32s infinite ease-in-out;
+}
+
+.animate-pixel-tie {
+  animation: pixelTieFlutter 0.28s infinite ease-in-out;
+}
+
+.animate-pixel-hammer {
+  animation: pixelHammerSwing 0.35s infinite ease-in-out;
+}
+
+
 

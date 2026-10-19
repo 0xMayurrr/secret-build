@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
-import { ArrowUp, Instagram, Linkedin, MessageSquare, Twitter, Mail, Phone } from "lucide-react";
+import { ArrowUp, Instagram, Linkedin, MessageSquare, Twitter, Mail, Phone, Globe } from "lucide-react";
 import blackoutLogo from "@/assets/blackout-logo.png";
+
 
 // 5x7 Dot-Matrix Font Definitions for the illuminated LED light element
 const FONT_5X7: Record<string, number[]> = {
@@ -87,44 +88,44 @@ export function Footer() {
           {/* Social Links in Minimalist Brutalist Pills */}
           <div className="flex flex-wrap items-center gap-2.5 font-pixel text-[9px]">
             <a
-              href="https://instagram.com"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="Instagram"
-              className="flex items-center gap-1.5 border border-border/70 bg-card/40 px-3 py-1.5 text-muted-foreground transition hover:border-primary hover:text-primary-foreground hover:bg-primary/20"
-            >
-              <Instagram className="h-3.5 w-3.5" />
-              <span>IG</span>
-            </a>
-            <a
-              href="https://linkedin.com"
-              target="_blank"
-              rel="noreferrer"
-              aria-label="LinkedIn"
-              className="flex items-center gap-1.5 border border-border/70 bg-card/40 px-3 py-1.5 text-muted-foreground transition hover:border-primary hover:text-primary-foreground hover:bg-primary/20"
-            >
-              <Linkedin className="h-3.5 w-3.5" />
-              <span>IN</span>
-            </a>
-            <a
-              href="https://x.com"
+              href="https://x.com/blackoutlabss"
               target="_blank"
               rel="noreferrer"
               aria-label="Twitter / X"
               className="flex items-center gap-1.5 border border-border/70 bg-card/40 px-3 py-1.5 text-muted-foreground transition hover:border-primary hover:text-primary-foreground hover:bg-primary/20"
             >
               <Twitter className="h-3.5 w-3.5" />
-              <span>X</span>
+              <span>X // @blackoutlabss</span>
             </a>
             <a
-              href="https://discord.gg"
+              href="https://www.linkedin.com/company/buildicy/?viewAsMember=true"
               target="_blank"
               rel="noreferrer"
-              aria-label="Discord"
+              aria-label="LinkedIn"
               className="flex items-center gap-1.5 border border-border/70 bg-card/40 px-3 py-1.5 text-muted-foreground transition hover:border-primary hover:text-primary-foreground hover:bg-primary/20"
             >
-              <MessageSquare className="h-3.5 w-3.5" />
-              <span>DISCORD</span>
+              <Linkedin className="h-3.5 w-3.5" />
+              <span>LINKEDIN</span>
+            </a>
+            <a
+              href="https://www.instagram.com/_buildicy?srtk=dnlwNmN6eG1ubWp5&utm_source=qr"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Instagram"
+              className="flex items-center gap-1.5 border border-border/70 bg-card/40 px-3 py-1.5 text-muted-foreground transition hover:border-primary hover:text-primary-foreground hover:bg-primary/20"
+            >
+              <Instagram className="h-3.5 w-3.5" />
+              <span>INSTAGRAM</span>
+            </a>
+            <a
+              href="https://www.buildicy.com"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Buildicy Official Website"
+              className="flex items-center gap-1.5 border border-signal/60 bg-signal/10 px-3 py-1.5 text-signal transition hover:border-signal hover:text-black hover:bg-signal font-bold"
+            >
+              <Globe className="h-3.5 w-3.5" />
+              <span>WWW.BUILDICY.COM ↗</span>
             </a>
           </div>
         </div>
@@ -151,24 +152,29 @@ export function Footer() {
               </div>
             ) : (
               /* BUILDICY LOGO SHOWCASE */
-              <div className="flex flex-col items-center">
+              <a
+                href="https://www.buildicy.com"
+                target="_blank"
+                rel="noreferrer"
+                className="group/buildicy flex flex-col items-center hover:opacity-95 transition"
+              >
                 <div className="flex items-center gap-4">
                   <img
                     src="/logo.png"
                     alt="Buildicy"
-                    className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_0_35px_rgba(34,197,94,0.7)] filter transition duration-500 hover:scale-105"
+                    className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_0_35px_rgba(34,197,94,0.7)] filter transition duration-500 group-hover/buildicy:scale-105"
                   />
                   <div className="text-left">
                     <span className="font-pixel text-3xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-[0_0_20px_rgba(138,49,251,0.7)]">
                       BUILDICY
                     </span>
-                    <p className="font-term text-xl text-signal">&gt; builders_first_ecosystem</p>
+                    <p className="font-term text-xl text-signal">&gt; www.buildicy.com ↗</p>
                   </div>
                 </div>
                 <p className="mt-4 font-term text-2xl text-muted-foreground tracking-wide">
                   Innovating, accelerating, and backing tomorrow's engineers.
                 </p>
-              </div>
+              </a>
             )}
           </div>
 

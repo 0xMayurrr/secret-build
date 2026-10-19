@@ -527,7 +527,7 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                         : "opacity-0 pointer-events-none"
                     }`}
                     style={{
-                      backgroundColor: m.avatarBg,
+                      backgroundColor: "#0d041a",
                       transitionDuration: "400ms",
                       transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
                       transitionDelay: cardDelay,
@@ -536,10 +536,10 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                     <img
                       src={m.avatarSvg}
                       alt={m.name}
-                      className={`h-full w-full object-cover transition duration-500 group-hover/card:scale-105 ${
-                        m.avatarSvg.startsWith("data:image/svg") ? "p-3" : "p-0"
-                      }`}
+                      className="h-full w-full object-cover object-top transition duration-500 group-hover/card:scale-105"
                     />
+                    {/* Seamless bottom vignette so portrait flows naturally into card */}
+                    <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#0a0314] via-[#0a0314]/40 to-transparent" />
                     <div className="scanline pointer-events-none absolute inset-0 opacity-40 transition group-hover/card:opacity-100" />
                   </div>
                 </div>
@@ -650,28 +650,27 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
             {/* Modal Content */}
             <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-5">
               <div
-                className="relative aspect-square border-2 border-border overflow-hidden bg-[#110722] shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                className="relative aspect-square border-2 border-primary/50 overflow-hidden bg-[#0d041a] shadow-[0_0_20px_rgba(168,85,247,0.35)]"
               >
                 <img
                   src={selectedMember.avatarSvg}
                   alt={selectedMember.name}
-                  className={`h-full w-full object-cover ${
-                    selectedMember.avatarSvg.startsWith("data:image/svg") ? "p-2" : "p-0"
-                  }`}
+                  className="h-full w-full object-cover object-top"
                 />
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-[#0a0314] via-[#0a0314]/40 to-transparent" />
               </div>
 
               <div className="sm:col-span-2">
                 <span className="rounded bg-primary/20 border border-primary/50 px-2.5 py-0.5 font-pixel text-[8px] text-purple-200 uppercase tracking-wider font-bold">
                   {selectedMember.squad}
                 </span>
-                <h3 className="mt-2 font-pixel text-base text-white font-bold">
+                <h3 className="mt-2 font-pixel text-lg text-white font-bold">
                   {selectedMember.name}
                 </h3>
                 <p className="mt-1 font-term text-2xl text-primary font-bold">
                   &gt; {selectedMember.role}
                 </p>
-                <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
+                <p className="mt-3 font-sans text-xs sm:text-sm leading-relaxed text-neutral-200">
                   {selectedMember.bio}
                 </p>
               </div>

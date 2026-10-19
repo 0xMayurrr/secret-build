@@ -9,6 +9,8 @@ import { blackoutAudio } from "@/lib/blackout-audio";
 import Silk from "@/components/Silk";
 import BlurText from "@/components/BlurText";
 import MoltenMetal from "@/components/MoltenMetal";
+import { PixelRunner } from "@/components/PixelRunner";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -867,15 +869,31 @@ function Index() {
           {WHO.map((w, i) => (
             <div
               key={w.t}
-              className={`reveal group border-2 border-border bg-card p-5 transition hover:-translate-y-1 hover:border-signal hover:shadow-[6px_6px_0_0_var(--signal)] ${i === WHO.length - 1 ? "col-span-2 md:col-span-1 bg-primary text-primary-foreground" : ""}`}
+              className={`reveal group relative flex flex-col justify-between border-2 border-border bg-card p-4 sm:p-5 transition hover:-translate-y-1 hover:border-signal hover:shadow-[6px_6px_0_0_var(--signal)] min-h-[160px] overflow-hidden ${
+                i === WHO.length - 1
+                  ? "col-span-2 md:col-span-1 bg-primary text-primary-foreground border-foreground shadow-[6px_6px_0_0_var(--signal)]"
+                  : ""
+              }`}
               style={{ transitionDelay: `${i * 60}ms` }}
             >
-              <p className="font-pixel text-xs opacity-60">[{w.c}]</p>
-              <p className="mt-6 font-term text-3xl">{w.t}</p>
+              <div className="flex items-center justify-between">
+                <p className="font-pixel text-xs opacity-75">[{w.c}]</p>
+                <span className="font-pixel text-[8px] opacity-40 uppercase tracking-widest hidden sm:inline">
+                  8-BIT // RUNNER
+                </span>
+              </div>
+
+              {/* 8-Bit Pixel Character Running Across Inside The Card */}
+              <div className="relative my-3 h-12 w-full overflow-hidden">
+                <PixelRunner role={w.c} isFeatured={i === WHO.length - 1} delay={i * 0.45} />
+              </div>
+
+              <p className="font-term text-2xl md:text-3xl font-bold leading-tight">{w.t}</p>
             </div>
           ))}
         </div>
       </section>
+
 
       {/* PASSES */}
       <section id="passes" className="pixel-grid border-y-2 border-border py-28 relative overflow-hidden">
