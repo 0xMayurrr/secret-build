@@ -24,9 +24,10 @@ import type { RegistrationRecord } from "@/lib/supabase";
 
 interface BlackoutPassCardProps {
   record: RegistrationRecord;
+  badgeTopSlot?: React.ReactNode;
 }
 
-export function BlackoutPassCard({ record }: BlackoutPassCardProps) {
+export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -525,8 +526,11 @@ export function BlackoutPassCard({ record }: BlackoutPassCardProps) {
         </div>
       )}
 
+      {/* TOP 3D EVENT LANYARD BADGE (AT THE TOP) */}
+      {badgeTopSlot && <div className="w-full mb-8">{badgeTopSlot}</div>}
+
       {/* ========================================================= */}
-      {/* INTERACTIVE 3D HOLOGRAPHIC CYBER PASS BADGE (CAPTURE TARGET) */}
+      {/* INTERACTIVE 3D HOLOGRAPHIC CYBER PASS ID CARD (AT THE BOTTOM) */}
       {/* ========================================================= */}
       <div className="flex justify-center px-2 py-4">
         <div

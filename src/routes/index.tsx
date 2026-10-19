@@ -4,10 +4,8 @@ import blackoutLogo from "@/assets/blackout-logo.png";
 import { TeamSection } from "@/components/TeamSection";
 import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
-import { GooeyNav } from "@/components/GooeyNav";
 import { ArrowUp } from "lucide-react";
 import { blackoutAudio } from "@/lib/blackout-audio";
-import MoltenMetal from "@/components/MoltenMetal";
 import Silk from "@/components/Silk";
 import BlurText from "@/components/BlurText";
 import Shuffle from "@/components/Shuffle";
@@ -548,47 +546,7 @@ function Index() {
         <span>{!isMuted ? "AUDIO: ON" : "AUDIO: MUTED"}</span>
       </button>
 
-      {/* HEADER — GooeyNav + Register CTA */}
-      <header
-        className="fixed inset-x-0 top-3 z-40 transition-all duration-300 ease-in-out pointer-events-auto"
-        style={{
-          opacity: Math.max(0, 1 - scrollRatio * 2.2),
-          transform: `translateY(-${scrollRatio * 60}px)`,
-          pointerEvents: scrollRatio > 0.3 ? "none" : "auto",
-        }}
-      >
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
-          {/* Left spacer so center stays balanced with morphing logo/branding */}
-          <div className="hidden lg:block w-28" />
 
-          {/* Center GooeyNav */}
-          <div className="flex-1 flex justify-center">
-            <GooeyNav
-              items={[
-                { label: "ABOUT", href: "#about" },
-                { label: "MYSTERY", href: "#mystery" },
-                { label: "PASSES", href: "#passes" },
-                { label: "TEAM", href: "#team" },
-                { label: "FAQ", href: "#faq" },
-              ]}
-              theme="dark"
-              color="#a855f7"
-              size="md"
-              frame={true}
-            />
-          </div>
-
-          {/* Right Action */}
-          <div className="flex items-center gap-3">
-            <a
-              href={REGISTER_URL}
-              className="hard-shadow hidden sm:inline-flex items-center justify-center border-2 border-primary bg-primary px-4 py-2 font-pixel text-[9px] text-primary-foreground hover:translate-x-0.5 hover:translate-y-0.5 transition shadow-[3px_3px_0_0_var(--signal)]"
-            >
-              CLAIM PASS
-            </a>
-          </div>
-        </div>
-      </header>
 
       {/* CONTINUOUS MORPHING LOGO: FULLY TRANSPARENT, ENLARGED, AND PURE PURPLE GLOW */}
       <div
@@ -623,22 +581,6 @@ function Index() {
 
       {/* HERO */}
       <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-20 pb-12 md:pt-24 md:pb-16 overflow-hidden">
-        {/* WEBGL2 MOLTEN METAL REACTOR CORE FLUID EFFECT */}
-        <div className="absolute inset-0 z-0 overflow-hidden opacity-35 pointer-events-auto">
-          <MoltenMetal
-            colors={['#5227FF', '#9333ea', '#c084fc', '#06b6d4']}
-            coreColor="#ffffff"
-            backgroundColor="transparent"
-            speed={0.28}
-            scale={3.6}
-            swirl={1.2}
-            turbulence={0.2}
-            glow={1.8}
-            thickness={1.1}
-            mouseInteraction={true}
-            flareOnClick={true}
-          />
-        </div>
         <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_75%)]" />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 text-center">
 

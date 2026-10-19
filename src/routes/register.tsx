@@ -15,7 +15,6 @@ import {
   User,
   CreditCard,
   Building,
-  Terminal,
   Lock,
 } from "lucide-react";
 import blackoutLogo from "@/assets/blackout-logo.png";
@@ -24,7 +23,6 @@ import {
   saveRegistration,
   type RegistrationRecord,
   type TeammateInfo,
-  isSupabaseConfigured,
 } from "@/lib/supabase";
 import { BlackoutPassCard } from "@/components/BlackoutPassCard";
 import { Lanyard } from "@/components/Lanyard";
@@ -455,10 +453,7 @@ export function RegisterPage() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 font-pixel text-[9px] text-signal">
-            <span className="animate-blink">●</span>
-            <span className="hidden sm:inline">LIVE ARENA 2026</span>
-          </div>
+          <div className="w-20 hidden sm:block" />
         </div>
       </header>
 
@@ -1176,16 +1171,6 @@ export function RegisterPage() {
                       </div>
                     )}
                   </div>
-
-                  {/* Database persistence status pill */}
-                  <div className="border border-border/60 bg-card/60 p-2.5 flex items-center gap-2 font-mono text-xs text-muted-foreground">
-                    <Terminal className="h-4 w-4 text-primary shrink-0" />
-                    <span>
-                      {isSupabaseConfigured
-                        ? "Connected to Supabase live database."
-                        : "Ready for Supabase (local vault enabled)."}
-                    </span>
-                  </div>
                 </div>
               </div>
 
@@ -1238,40 +1223,42 @@ export function RegisterPage() {
         {/* ============================================================== */}
         {step === 4 && confirmedRecord && (
           <section className="animate-fade-in max-w-4xl mx-auto space-y-8">
-            {/* 3D Physical Lanyard Badge Showcase (Free-Floating, Unboxed) */}
-            <div className="relative w-full flex flex-col items-center justify-center my-4">
-              <div className="inline-flex items-center gap-2 border border-primary/40 bg-primary/10 px-3.5 py-1.5 rounded-full mb-2 backdrop-blur-sm">
-                <span className="h-2 w-2 rounded-full bg-signal animate-pulse" />
-                <span className="font-pixel text-[9px] sm:text-[10px] text-primary font-bold tracking-wider">
-                  OFFICIAL 3D EVENT LANYARD BADGE // INTERACTIVE PHYSICS
-                </span>
-                <span className="hidden sm:inline font-term text-xs text-muted-foreground ml-2">
-                  (DRAG TO SWING · CLICK TO ROTATE 360°)
-                </span>
-              </div>
+            <BlackoutPassCard
+              record={confirmedRecord}
+              badgeTopSlot={
+                <div className="relative w-full flex flex-col items-center justify-center my-2">
+                  <div className="inline-flex items-center gap-2 border border-primary/40 bg-primary/10 px-3.5 py-1.5 rounded-full mb-2 backdrop-blur-sm">
+                    <span className="h-2 w-2 rounded-full bg-signal animate-pulse" />
+                    <span className="font-pixel text-[9px] sm:text-[10px] text-primary font-bold tracking-wider">
+                      OFFICIAL 3D EVENT LANYARD BADGE // INTERACTIVE PHYSICS
+                    </span>
+                    <span className="hidden sm:inline font-term text-xs text-muted-foreground ml-2">
+                      (DRAG TO SWING · CLICK TO ROTATE 360°)
+                    </span>
+                  </div>
 
-              <div className="h-[520px] sm:h-[600px] w-full flex items-center justify-center relative">
-                <Lanyard
-                  frontImage={generateBadgeFrontSvg(confirmedRecord)}
-                  backImage={generateBadgeBackSvg()}
-                  cardColor="#0a0314"
-                  finish="holographic"
-                  metal="silver"
-                  strapColor="#7e22ce"
-                  orientation="portrait"
-                  size={0.68}
-                  strapLength={0.52}
-                  interactive={true}
-                  intro={true}
-                />
-              </div>
+                  <div className="h-[520px] sm:h-[600px] w-full flex items-center justify-center relative">
+                    <Lanyard
+                      frontImage={generateBadgeFrontSvg(confirmedRecord)}
+                      backImage={generateBadgeBackSvg()}
+                      cardColor="#0a0314"
+                      finish="holographic"
+                      metal="silver"
+                      strapColor="#7e22ce"
+                      orientation="portrait"
+                      size={0.68}
+                      strapLength={0.52}
+                      interactive={true}
+                      intro={true}
+                    />
+                  </div>
 
-              <p className="mt-2 text-center font-pixel text-[8px] sm:text-[9px] text-muted-foreground tracking-widest">
-                ✦ PHYSICAL LANYARD &amp; RFID BADGE ISSUED AT COIMBATORE CHECK-IN DESK ✦
-              </p>
-            </div>
-
-            <BlackoutPassCard record={confirmedRecord} />
+                  <p className="mt-2 text-center font-pixel text-[8px] sm:text-[9px] text-muted-foreground tracking-widest">
+                    ✦ PHYSICAL LANYARD &amp; RFID BADGE ISSUED AT COIMBATORE CHECK-IN DESK ✦
+                  </p>
+                </div>
+              }
+            />
           </section>
         )}
       </main>
