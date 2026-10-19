@@ -20,6 +20,7 @@ import { toPng } from "html-to-image";
 import QRCode from "qrcode";
 import blackoutLogo from "@/assets/blackout-logo.png";
 import type { RegistrationRecord } from "@/lib/supabase";
+import { generateBadgeFrontSvg } from "@/lib/badgeTexture";
 
 interface BlackoutPassCardProps {
   record: RegistrationRecord;
@@ -58,7 +59,8 @@ export function BlackoutPassCard({
 
   // Action states
   const [isDownloading, setIsDownloading] = useState(false);
-  const [downloadSuccess, setDownloadSuccess] = useState(false);
+  const [isDownloadingBadge, setIsDownloadingBadge] = useState(false);
+  const [downloadSuccessMsg, setDownloadSuccessMsg] = useState<string | null>(null);
   const [passImageModal, setPassImageModal] = useState<{
     open: boolean;
     dataUrl: string;
@@ -79,11 +81,11 @@ export function BlackoutPassCard({
     const vUrl = `${origin}/admin?verify=${encodeURIComponent(record.registration_id)}`;
     setVerificationUrl(vUrl);
 
-    // Generate high-resolution local base64 QR code for offline + canvas security
+    // Fast, high-resolution local base64 QR code (<10ms)
     QRCode.toDataURL(vUrl, {
-      errorCorrectionLevel: "H",
+      errorCorrectionLevel: "M",
       margin: 1,
-      width: 260,
+      width: 240,
       color: {
         dark: "#000000",
         light: "#ffffff",
@@ -173,12 +175,11 @@ export function BlackoutPassCard({
     });
 
     try {
-      await new Promise((r) => setTimeout(r, 120));
-
+      // Optimized capture: no cacheBust network stalls, crisp 2x retina
       const dataUrl = await toPng(cardEl, {
-        cacheBust: true,
-        pixelRatio: 3, // Ultra-sharp 3x retina quality
-        quality: 1,
+        cacheBust: false,
+        pixelRatio: 2,
+        quality: 0.95,
         backgroundColor: "#050508",
         filter: (node) => {
           if (node instanceof HTMLElement) {
@@ -208,54 +209,65 @@ export function BlackoutPassCard({
     }
   };
 
-  // Save Pass as native high-res PNG image
+  // Instant High-Res ID Badge PNG Generation & Download from SVG Vector (<60ms)
+  const handleDownloadIdBadge = async () => {
+    setIsDownloadingBadge(true);
+    try {
+      const svgDataUri = generateBadgeFrontSvg(record);
+      const img = new Image();
+      img.crossOrigin = "anonymous";
+
+      await new Promise<void>((resolve, reject) => {
+        img.onload = () => resolve();
+        img.onerror = () => reject(new Error("Failed to load badge SVG image"));
+        img.src = svgDataUri;
+      });
+
+      const canvas = document.createElement("canvas");
+      canvas.width = 1024;
+      canvas.height = 1440;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Could not acquire 2D rendering context");
+
+      ctx.drawImage(img, 0, 0, 1024, 1440);
+      const pngUrl = canvas.toDataURL("image/png");
+
+      const fileName = `BLACKOUT-ID-BADGE-${record.registration_id}.png`;
+      const link = document.createElement("a");
+      link.download = fileName;
+      link.href = pngUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      setDownloadSuccessMsg("✓ Official ID Badge image downloaded in high-res PNG!");
+      setTimeout(() => setDownloadSuccessMsg(null), 5000);
+    } catch (err) {
+      console.error("ID Badge download error:", err);
+      alert("Unable to download ID badge automatically. Please try again.");
+    } finally {
+      setIsDownloadingBadge(false);
+    }
+  };
+
+  // Save Pass as native high-res PNG image (Fast direct trigger)
   const handleDownloadPass = async () => {
     setIsDownloading(true);
     try {
       const dataUrl = await generatePassImageData();
       if (!dataUrl) {
-        alert("Failed to render badge image. Please try again.");
+        alert("Failed to render receipt image. Please try again.");
         return;
       }
 
-      const res = await fetch(dataUrl);
-      const blob = await res.blob();
       const fileName = `BLACKOUT-RECEIPT-${record.registration_id}.png`;
-      const file = new File([blob], fileName, { type: "image/png" });
-      const blobUrl = URL.createObjectURL(blob);
 
-      // Check if Web Share API with files is supported (e.g. mobile Safari / Chrome)
-      const navAny = navigator as unknown as {
-        canShare?: (data: { files?: File[] }) => boolean;
-        share?: (data: { files?: File[]; title?: string; text?: string }) => Promise<void>;
-      };
-
-      const isTouchDevice =
-        typeof window !== "undefined" &&
-        ("ontouchstart" in window || navigator.maxTouchPoints > 0);
-      const isIOS =
-        typeof navigator !== "undefined" &&
-        /iPad|iPhone|iPod/.test(navigator.userAgent || "");
-
-      if (isTouchDevice && isIOS && navAny.canShare && navAny.canShare({ files: [file] })) {
-        try {
-          await navAny.share({
-            files: [file],
-            title: `BLACKOUT 2026 Receipt Pass - ${record.full_name}`,
-            text: `My verified clearance receipt pass for BLACKOUT 2026 Hackathon! #BLACKOUT2026`,
-          });
-          setDownloadSuccess(true);
-          setTimeout(() => setDownloadSuccess(false), 5000);
-          return;
-        } catch (shareErr) {
-          if ((shareErr as Error)?.name === "AbortError") return;
-        }
-      }
-
-      // Standard desktop or mobile download anchor trigger
+      // Instant download trigger via anchor
       const link = document.createElement("a");
       link.download = fileName;
-      link.href = blobUrl;
+      link.href = dataUrl;
       link.target = "_blank";
       link.rel = "noopener noreferrer";
       document.body.appendChild(link);
@@ -263,12 +275,15 @@ export function BlackoutPassCard({
       document.body.removeChild(link);
 
       // Mobile fall-back preview modal
+      const isTouchDevice =
+        typeof window !== "undefined" &&
+        ("ontouchstart" in window || navigator.maxTouchPoints > 0);
       if (isTouchDevice) {
-        setPassImageModal({ open: true, dataUrl, blobUrl });
+        setPassImageModal({ open: true, dataUrl });
       }
 
-      setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 5000);
+      setDownloadSuccessMsg("✓ Cryptographic Receipt Pass downloaded as high-res PNG image!");
+      setTimeout(() => setDownloadSuccessMsg(null), 5000);
     } catch (err) {
       console.error("Pass image download error:", err);
       alert("Unable to download image automatically. Please take a screenshot of your pass.");
@@ -643,18 +658,37 @@ Get your pass before tickets sell out:
           <div className="mt-5 flex flex-col sm:flex-row items-center justify-center gap-3">
             <button
               type="button"
-              onClick={handleDownloadPass}
-              disabled={isDownloading}
-              className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 border-2 border-signal bg-signal px-6 py-3.5 font-pixel text-xs text-black shadow-[4px_4px_0_0_var(--primary)] hover:bg-signal/90 transition active:scale-95 disabled:opacity-50"
+              onClick={handleDownloadIdBadge}
+              disabled={isDownloadingBadge}
+              className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 border-2 border-signal bg-signal px-5 py-3.5 font-pixel text-xs text-black shadow-[4px_4px_0_0_var(--primary)] hover:bg-signal/90 transition active:scale-95 disabled:opacity-50"
             >
-              {isDownloading ? (
+              {isDownloadingBadge ? (
                 <>
                   <Loader2 className="h-4 w-4 animate-spin" />
-                  <span>GENERATING RECEIPT PNG...</span>
+                  <span>SAVING ID BADGE...</span>
                 </>
               ) : (
                 <>
                   <Download className="h-4 w-4" />
+                  <span>DOWNLOAD ID IMAGE (PNG)</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleDownloadPass}
+              disabled={isDownloading}
+              className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 border-2 border-primary bg-primary/25 px-5 py-3.5 font-pixel text-xs text-white shadow-[3px_3px_0_0_var(--signal)] hover:bg-primary transition active:scale-95 disabled:opacity-50"
+            >
+              {isDownloading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  <span>SAVING RECEIPT...</span>
+                </>
+              ) : (
+                <>
+                  <Receipt className="h-4 w-4 text-signal" />
                   <span>DOWNLOAD RECEIPT (PNG)</span>
                 </>
               )}
@@ -663,7 +697,7 @@ Get your pass before tickets sell out:
             <button
               type="button"
               onClick={() => setShowSuccessModal(false)}
-              className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 border-2 border-primary bg-primary/25 px-6 py-3.5 font-pixel text-xs text-white shadow-[3px_3px_0_0_var(--signal)] hover:bg-primary transition active:scale-95"
+              className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 border-2 border-border bg-card px-5 py-3.5 font-pixel text-xs text-white hover:border-signal transition active:scale-95"
             >
               <Eye className="h-4 w-4 text-signal" />
               <span>VIEW 3D ID CARD ▶</span>
@@ -700,39 +734,59 @@ Get your pass before tickets sell out:
       </div>
 
       {/* Download Success Notice */}
-      {downloadSuccess && (
+      {downloadSuccessMsg && (
         <div className="max-w-xl mx-auto mb-4 border-2 border-signal bg-signal/15 p-3 text-center font-mono text-xs text-signal flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(34,197,94,0.3)] animate-fade-in">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
-          <span>✓ Cryptographic Receipt Pass downloaded as high-res PNG image!</span>
+          <span>{downloadSuccessMsg}</span>
         </div>
       )}
 
       {/* ========================================================= */}
       {/* 3. 3D EVENT LANYARD ID CARD BADGE (HERO CENTERPIECE) */}
       {/* ========================================================= */}
-      {badgeTopSlot && <div className="w-full mb-6">{badgeTopSlot}</div>}
+      {badgeTopSlot && <div className="w-full mb-6 overflow-visible">{badgeTopSlot}</div>}
 
       {/* ========================================================= */}
       {/* 4. DIRECTLY BELOW ID CARD: DOWNLOAD & 1-CLICK SHARE ON PLATFORMS */}
       {/* ========================================================= */}
-      <div className="mt-6 max-w-2xl mx-auto space-y-4 no-print px-4">
+      <div className="mt-6 max-w-3xl mx-auto space-y-4 no-print px-4">
         {/* Main Action Buttons */}
         <div className="flex flex-wrap items-center justify-center gap-3">
+          {/* Download ID Image PNG */}
+          <button
+            type="button"
+            onClick={handleDownloadIdBadge}
+            disabled={isDownloadingBadge}
+            className="flex items-center gap-2 border-2 border-signal bg-signal px-6 py-3 font-pixel text-xs text-black shadow-[4px_4px_0_0_var(--primary)] hover:bg-signal/90 hover:shadow-[6px_6px_0_0_rgba(255,255,255,0.4)] transition active:scale-95 disabled:opacity-50"
+          >
+            {isDownloadingBadge ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>SAVING ID BADGE...</span>
+              </>
+            ) : (
+              <>
+                <Download className="h-4 w-4" />
+                <span>DOWNLOAD ID IMAGE (PNG)</span>
+              </>
+            )}
+          </button>
+
           {/* Download Receipt Pass PNG */}
           <button
             type="button"
             onClick={handleDownloadPass}
             disabled={isDownloading}
-            className="flex items-center gap-2 border-2 border-signal bg-signal px-6 py-3 font-pixel text-xs text-black shadow-[4px_4px_0_0_rgba(255,255,255,0.4)] hover:bg-signal/90 hover:shadow-[6px_6px_0_0_var(--primary)] transition active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 border-2 border-primary/80 bg-primary/20 px-5 py-3 font-pixel text-xs text-white shadow-[3px_3px_0_0_var(--signal)] hover:bg-primary transition active:scale-95 disabled:opacity-50"
           >
             {isDownloading ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span>SAVING RECEIPT PNG...</span>
+                <span>SAVING RECEIPT...</span>
               </>
             ) : (
               <>
-                <Download className="h-4 w-4" />
+                <Receipt className="h-4 w-4 text-signal" />
                 <span>DOWNLOAD RECEIPT (PNG)</span>
               </>
             )}
@@ -742,9 +796,9 @@ Get your pass before tickets sell out:
           <button
             type="button"
             onClick={() => setShowSuccessModal(true)}
-            className="flex items-center gap-2 border-2 border-primary/80 bg-primary/20 px-5 py-3 font-pixel text-xs text-white shadow-[3px_3px_0_0_var(--signal)] hover:bg-primary transition active:scale-95"
+            className="flex items-center gap-2 border-2 border-border bg-card/80 px-5 py-3 font-pixel text-xs text-foreground shadow-[3px_3px_0_0_var(--primary)] hover:border-signal hover:text-signal transition active:scale-95"
           >
-            <Receipt className="h-4 w-4 text-signal" />
+            <Eye className="h-4 w-4 text-signal" />
             <span>VIEW RECEIPT PASS</span>
           </button>
 

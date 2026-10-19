@@ -1232,8 +1232,8 @@ export function RegisterPage() {
             <BlackoutPassCard
               record={confirmedRecord}
               badgeTopSlot={
-                <div className="relative w-full flex flex-col items-center justify-center my-2">
-                  <div className="h-[520px] sm:h-[600px] w-full flex items-center justify-center relative">
+                <div className="relative w-screen left-1/2 -translate-x-1/2 flex flex-col items-center justify-center overflow-visible pointer-events-auto select-none my-2">
+                  <div className="h-[680px] sm:h-[760px] md:h-[840px] w-full flex items-center justify-center relative overflow-visible">
                     <Lanyard
                       frontImage={generateBadgeFrontSvg(confirmedRecord)}
                       backImage={generateBadgeBackSvg()}
@@ -1249,7 +1249,7 @@ export function RegisterPage() {
                     />
                   </div>
 
-                  <p className="mt-2 text-center font-pixel text-[8px] sm:text-[9px] text-muted-foreground tracking-widest">
+                  <p className="mt-1 text-center font-pixel text-[8px] sm:text-[9px] text-muted-foreground tracking-widest select-none">
                     ✦ PHYSICAL LANYARD &amp; RFID BADGE ISSUED AT COIMBATORE CHECK-IN DESK ✦
                   </p>
                 </div>
