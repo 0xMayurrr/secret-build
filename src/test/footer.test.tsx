@@ -10,7 +10,7 @@ describe("Footer Component", () => {
     expect(screen.getByLabelText("Instagram")).toBeInTheDocument();
     expect(screen.getByLabelText("LinkedIn")).toBeInTheDocument();
     expect(screen.getByLabelText("Twitter / X")).toBeInTheDocument();
-    expect(screen.getByLabelText("Discord")).toBeInTheDocument();
+    expect(screen.getByLabelText("Buildicy Official Website")).toBeInTheDocument();
   });
 
   it("renders BLACKOUT logo initially and toggles to BUILDICY logo", () => {
@@ -26,7 +26,7 @@ describe("Footer Component", () => {
 
     // Buildicy logo and branding should now be rendered
     expect(screen.getByAltText("Buildicy")).toBeInTheDocument();
-    expect(screen.getByText(/builders_first_ecosystem/i)).toBeInTheDocument();
+    expect(screen.getByText(/Innovating, accelerating/i)).toBeInTheDocument();
   });
 
   it("renders navigation and copyright information", () => {

@@ -19,40 +19,46 @@ describe("TeamSection", () => {
     expect(TEAM_MEMBERS.find((m) => m.name === "Bhuvana Sree S")?.role).toBe("Organizers");
   });
 
-  it("renders in ON state by default revealing real member names and profiles", () => {
+  it("renders in OFF state by default showing CLASSIFIED profiles", () => {
     render(<TeamSection />);
 
-    // Real team members appear by default
-    expect(screen.getAllByText("Prajwal N").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Mayur P").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Tamil TM").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Mohammed Parish Khan K").length).toBeGreaterThan(0);
-  });
-
-  it("toggles to OFF state when bulb is clicked and back to ON", () => {
-    render(<TeamSection />);
-
-    // Click hanging bulb to turn OFF
-    const bulbButton = screen.getByTestId("hanging-bulb");
-    fireEvent.click(bulbButton);
+    // Shows CLASSIFIED by default when light is off
+    expect(screen.getAllByText("CLASSIFIED").length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/role: revealing soon/i).length).toBeGreaterThan(0);
 
     // Profile elements have opacity-0 when light is off
     const revealedElements = screen.getAllByText("Mayur P");
     revealedElements.forEach((el) => {
       expect(el.closest("div")?.className).toContain("opacity-0");
     });
+  });
 
-    // Click hanging bulb to turn back ON
+  it("toggles to ON state when bulb is clicked and back to OFF", () => {
+    render(<TeamSection />);
+
+    // Click hanging bulb to turn ON
+    const bulbButton = screen.getByTestId("hanging-bulb");
     fireEvent.click(bulbButton);
 
     // Profile elements have opacity-100 when light is on
+    const revealedElements = screen.getAllByText("Mayur P");
     revealedElements.forEach((el) => {
       expect(el.closest("div")?.className).toContain("opacity-100");
+    });
+
+    // Click hanging bulb to turn back OFF
+    fireEvent.click(bulbButton);
+    revealedElements.forEach((el) => {
+      expect(el.closest("div")?.className).toContain("opacity-0");
     });
   });
 
   it("opens operative dossier modal when an illuminated card is clicked", () => {
     render(<TeamSection />);
+
+    // Turn ON light first
+    const bulbButton = screen.getByTestId("hanging-bulb");
+    fireEvent.click(bulbButton);
 
     // Click on the first member card
     const memberName = screen.getAllByText("Mayur P")[0];

@@ -27,6 +27,7 @@ import {
 import { BlackoutPassCard } from "@/components/BlackoutPassCard";
 import { Lanyard } from "@/components/Lanyard";
 import { generateBadgeFrontSvg, generateBadgeBackSvg } from "@/lib/badgeTexture";
+import { blackoutAudio } from "@/lib/blackout-audio";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -99,6 +100,37 @@ export function RegisterPage() {
 
   // Wizard Step: 1 = Pass, 2 = Details, 3 = Payment, 4 = Success Pass
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
+
+  // Audio Engine State
+  const [isAudioMuted, setIsAudioMuted] = useState(blackoutAudio.getIsMuted());
+
+  useEffect(() => {
+    // Attempt ambient music immediately on mount
+    blackoutAudio.startAmbientMusic();
+
+    const unlockAudio = () => {
+      blackoutAudio.startAmbientMusic();
+      setIsAudioMuted(blackoutAudio.getIsMuted());
+      window.removeEventListener("pointerdown", unlockAudio, { capture: true });
+      window.removeEventListener("touchstart", unlockAudio, { capture: true });
+      window.removeEventListener("keydown", unlockAudio, { capture: true });
+    };
+
+    window.addEventListener("pointerdown", unlockAudio, { capture: true });
+    window.addEventListener("touchstart", unlockAudio, { capture: true, passive: true });
+    window.addEventListener("keydown", unlockAudio, { capture: true });
+
+    return () => {
+      window.removeEventListener("pointerdown", unlockAudio, { capture: true });
+      window.removeEventListener("touchstart", unlockAudio, { capture: true });
+      window.removeEventListener("keydown", unlockAudio, { capture: true });
+    };
+  }, []);
+
+  const handleToggleAudio = () => {
+    const muted = blackoutAudio.toggleMute();
+    setIsAudioMuted(muted);
+  };
 
   // Form States - Early Bird is the active open tier
   const [selectedPass, setSelectedPass] = useState<PassTier>(PASS_TIERS[0]);
@@ -462,10 +494,10 @@ export function RegisterPage() {
         <div className="mb-10">
           <div className="grid grid-cols-4 gap-2 sm:gap-4 font-pixel text-[8px] sm:text-[10px] text-center">
             {[
-              { num: 1, label: "01 // PASS" },
-              { num: 2, label: "02 // INTEL" },
-              { num: 3, label: "03 // CLEARANCE" },
-              { num: 4, label: "04 // RECEIPT" },
+              { num: 1, label: "01 // TICKET TIER" },
+              { num: 2, label: "02 // BUILDER INFO" },
+              { num: 3, label: "03 // PAYMENT PROOF" },
+              { num: 4, label: "04 // ACCESS BADGE" },
             ].map((s) => (
               <div
                 key={s.num}
@@ -1229,6 +1261,32 @@ export function RegisterPage() {
         {/* ============================================================== */}
         {step === 4 && confirmedRecord && (
           <section className="animate-fade-in max-w-4xl mx-auto space-y-8">
+            {/* WHATSAPP COMMUNITY CTA BANNER */}
+            <div className="border-2 border-[#25D366] bg-[#25D366]/10 p-4 sm:p-5 text-center shadow-[4px_4px_0_0_#25D366] flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-left">
+                <span className="font-pixel text-[9px] text-[#25D366] uppercase tracking-wider block">
+                  ✦ OFFICIAL BUILDER COMM PROTOCOL ✦
+                </span>
+                <h3 className="font-pixel text-sm sm:text-base text-foreground mt-0.5">
+                  JOIN THE OFFICIAL BLACKOUT WHATSAPP COMMUNITY
+                </h3>
+                <p className="font-mono text-xs text-muted-foreground mt-1">
+                  Connect with fellow hackers, find teammates, and receive secret challenge drops.
+                </p>
+              </div>
+              <a
+                href="https://chat.whatsapp.com/HkVymLAsg5dFZlcwstg9xK?s=cl&p=a&mlu=4&ilr=4"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="shrink-0 flex items-center gap-2 border-2 border-[#25D366] bg-[#25D366] px-5 py-3 font-pixel text-xs text-black font-bold shadow-[3px_3px_0_0_#000] hover:bg-[#25D366]/90 transition active:scale-95 cursor-pointer"
+              >
+                <svg className="h-4 w-4 fill-current shrink-0" viewBox="0 0 24 24">
+                  <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c4.55 0 8.24 3.7 8.24 8.24 0 2.2-.86 4.28-2.42 5.84a8.18 8.18 0 0 1-5.82 2.41c-1.43 0-2.83-.37-4.07-1.08l-.29-.17-3.03.8 1.05-2.96-.19-.3a8.214 8.214 0 0 1-1.21-4.34c0-4.54 3.7-8.24 8.24-8.24m4.54 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.4-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.45 1.03 2.62.13.17 1.78 2.72 4.31 3.81.6.26 1.07.42 1.44.54.61.19 1.16.17 1.6.1.49-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.17-.48-.29z" />
+                </svg>
+                <span>JOIN WHATSAPP COMMUNITY ▶</span>
+              </a>
+            </div>
+
             <BlackoutPassCard
               record={confirmedRecord}
               badgeTopSlot={
@@ -1258,6 +1316,27 @@ export function RegisterPage() {
           </section>
         )}
       </main>
+
+      {/* FLOATING CYBERPUNK AUDIO CONTROLLER */}
+      <button
+        type="button"
+        onClick={handleToggleAudio}
+        className="fixed bottom-4 right-4 z-50 flex items-center gap-2 border-2 border-foreground bg-background/95 px-2.5 py-1.5 font-pixel text-[8px] md:text-[9px] tracking-wider text-foreground shadow-[4px_4px_0_0_var(--primary)] backdrop-blur-md transition hover:-translate-y-0.5 hover:shadow-[6px_6px_0_0_var(--signal)] active:translate-y-0 active:shadow-none cursor-pointer"
+        title="Toggle Sound"
+      >
+        <span className="flex items-center gap-0.5">
+          {!isAudioMuted ? (
+            <>
+              <span className="inline-block h-3 w-0.5 bg-primary animate-pulse" />
+              <span className="inline-block h-4 w-0.5 bg-primary animate-[pulse_0.8s_ease-in-out_infinite]" />
+              <span className="inline-block h-2 w-0.5 bg-primary animate-pulse" />
+            </>
+          ) : (
+            <span className="text-muted-foreground font-bold">✕</span>
+          )}
+        </span>
+        <span>{!isAudioMuted ? "AUDIO: ON" : "AUDIO: MUTED"}</span>
+      </button>
     </div>
   );
 }

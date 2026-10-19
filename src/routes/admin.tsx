@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import {
   CheckCircle2,
   AlertTriangle,
+  AlertCircle,
   XCircle,
   Search,
   Users,
@@ -89,6 +90,7 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
 
   // Fullscreen zoom for payment screenshot lightbox
   const [isZoomedScreenshot, setIsZoomedScreenshot] = useState(false);
+  const [attendeeToDelete, setAttendeeToDelete] = useState<RegistrationRecord | null>(null);
 
   // Close modal on Escape key
   useEffect(() => {
@@ -436,19 +438,20 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
     }
   };
 
-  // Delete single attendee
-  const handleDeleteAttendee = async (registrationId: string, fullName: string) => {
-    if (!window.confirm(`Delete record for ${fullName} (${registrationId})?`)) {
-      return;
-    }
+  // Request deletion with confirmation dialog
+  const requestDeleteAttendee = (record: RegistrationRecord) => {
+    setAttendeeToDelete(record);
+  };
 
+  // Execute deletion after confirmation
+  const executeDeleteAttendee = async (registrationId: string, fullName: string) => {
     const res = await deleteRegistration(registrationId);
     if (res.success) {
       setRegistrations((prev) => prev.filter((r) => r.registration_id !== registrationId));
       if (selectedAttendee?.registration_id === registrationId) {
         setSelectedAttendee(null);
       }
-      setActionSuccessMsg(`Deleted record: ${fullName}`);
+      setActionSuccessMsg(`Deleted record: ${fullName} (${registrationId})`);
       playBeep("success");
     } else {
       setActionErrorMsg(res.error || "Failed to delete record.");
@@ -1038,12 +1041,13 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleDeleteAttendee(record.registration_id, record.full_name);
+                              requestDeleteAttendee(record);
                             }}
-                            className="border border-destructive/40 bg-destructive/10 px-2 py-1 font-pixel text-[7px] text-destructive hover:bg-destructive hover:text-white transition cursor-pointer"
+                            className="flex items-center gap-1 border border-destructive/60 bg-destructive/15 px-2 py-1 font-pixel text-[7px] text-destructive hover:bg-destructive hover:text-white transition cursor-pointer"
                             title="Delete / Purge this attendee record"
                           >
                             <Trash2 className="h-3 w-3" />
+                            <span>DELETE</span>
                           </button>
                         </div>
                       </td>
@@ -1390,13 +1394,8 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                   <div className="pt-3 border-t border-border/40 mt-3 flex items-center justify-between">
                     <button
                       type="button"
-                      onClick={() =>
-                        handleDeleteAttendee(
-                          selectedAttendee.registration_id,
-                          selectedAttendee.full_name
-                        )
-                      }
-                      className="border border-destructive/60 bg-destructive/10 hover:bg-destructive hover:text-white px-3 py-1.5 font-pixel text-[8px] text-destructive transition flex items-center gap-1"
+                      onClick={() => requestDeleteAttendee(selectedAttendee)}
+                      className="border border-destructive/60 bg-destructive/10 hover:bg-destructive hover:text-white px-3 py-1.5 font-pixel text-[8px] text-destructive transition flex items-center gap-1 cursor-pointer"
                     >
                       <Trash2 className="h-3 w-3" />
                       <span>DELETE RECORD</span>
@@ -1447,6 +1446,84 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                 alt={`Zoomed payment screenshot for ${selectedAttendee.full_name}`}
                 className="max-h-[82vh] max-w-full object-contain border-2 border-primary shadow-2xl"
               />
+            </div>
+          </div>
+        )}
+
+        {/* DELETE CONFIRMATION DIALOG MODAL */}
+        {attendeeToDelete && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in"
+            onClick={() => setAttendeeToDelete(null)}
+          >
+            <div
+              className="relative w-full max-w-md border-4 border-destructive bg-[#0f0408] p-6 shadow-[8px_8px_0_0_var(--destructive)] text-foreground"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center gap-3 border-b border-destructive/40 pb-3">
+                <AlertCircle className="h-6 w-6 text-destructive shrink-0 animate-pulse" />
+                <div>
+                  <h3 className="font-pixel text-sm text-destructive font-bold uppercase tracking-wider">
+                    CONFIRM RECORD PURGE
+                  </h3>
+                  <span className="font-mono text-[10px] text-muted-foreground">
+                    Action cannot be undone
+                  </span>
+                </div>
+              </div>
+
+              <div className="mt-4 space-y-2.5 font-mono text-xs">
+                <p className="text-foreground">
+                  Are you sure you want to permanently delete this registration record?
+                </p>
+
+                <div className="border border-border/80 bg-background/80 p-3 space-y-1 text-muted-foreground">
+                  <div>
+                    <span className="text-foreground font-bold">Operative: </span>
+                    <span className="text-signal font-bold">{attendeeToDelete.full_name}</span>
+                  </div>
+                  <div>
+                    <span className="text-foreground font-bold">Registration ID: </span>
+                    <span className="text-primary">{attendeeToDelete.registration_id}</span>
+                  </div>
+                  <div>
+                    <span className="text-foreground font-bold">Pass Tier: </span>
+                    <span>{attendeeToDelete.pass_name}</span>
+                  </div>
+                  <div>
+                    <span className="text-foreground font-bold">UTR / Ref: </span>
+                    <span>{attendeeToDelete.utr_number || "N/A"}</span>
+                  </div>
+                </div>
+
+                <p className="text-[11px] text-destructive/90">
+                  ⚠️ This will permanently erase the record from the Supabase registrations table and local cache.
+                </p>
+              </div>
+
+              <div className="mt-6 flex items-center justify-end gap-3 pt-3 border-t border-border/40">
+                <button
+                  type="button"
+                  onClick={() => setAttendeeToDelete(null)}
+                  className="border-2 border-border px-4 py-2 font-pixel text-[9px] text-muted-foreground hover:text-foreground transition cursor-pointer"
+                >
+                  CANCEL
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const toDelete = attendeeToDelete;
+                    setAttendeeToDelete(null);
+                    await executeDeleteAttendee(toDelete.registration_id, toDelete.full_name);
+                  }}
+                  className="flex items-center gap-1.5 border-2 border-destructive bg-destructive px-5 py-2 font-pixel text-xs text-white shadow-[3px_3px_0_0_#000] hover:bg-destructive/90 transition active:scale-95 cursor-pointer font-bold"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  <span>PERMANENTLY DELETE</span>
+                </button>
+              </div>
             </div>
           </div>
         )}

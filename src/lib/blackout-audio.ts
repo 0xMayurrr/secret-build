@@ -29,21 +29,32 @@ class BlackoutAudioEngine {
   // Must be called synchronously inside a user gesture event handler
   public playGlitchIntro() {
     if (this.isMuted) return;
-    // Always create a fresh Audio element inside the gesture — most reliable on iOS/Android
-    const a = new Audio("/audio/blackout-glitch.wav");
-    a.volume = 0.3;
-    this.introAudio = a;
-    a.play().catch(() => {});
+    try {
+      const a = new Audio("/audio/blackout-glitch.wav");
+      a.volume = 0.3;
+      this.introAudio = a;
+      const p = a.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {});
+      }
+    } catch {}
   }
 
   public startAmbientMusic() {
     if (this.isMuted || !this.ambientAudio) return;
-    this.ambientAudio.currentTime = 0;
-    this.ambientAudio.play().catch(() => {});
+    try {
+      this.ambientAudio.currentTime = 0;
+      const p = this.ambientAudio.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {});
+      }
+    } catch {}
   }
 
   public stopAmbientMusic() {
-    this.ambientAudio?.pause();
+    try {
+      this.ambientAudio?.pause();
+    } catch {}
   }
 
   public playClick() {
@@ -53,7 +64,10 @@ class BlackoutAudioEngine {
       this.clickIndex = (this.clickIndex + 1) % this.clickPool.length;
       if (!a) return;
       a.currentTime = 0;
-      a.play().catch(() => {});
+      const p = a.play();
+      if (p && typeof p.catch === "function") {
+        p.catch(() => {});
+      }
     } catch {}
   }
 

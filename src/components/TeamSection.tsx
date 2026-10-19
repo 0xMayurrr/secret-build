@@ -6,7 +6,7 @@ interface TeamSectionProps {
 }
 
 export function TeamSection({ sectionHead }: TeamSectionProps) {
-  const [isLit, setIsLit] = useState(true);
+  const [isLit, setIsLit] = useState(false);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 

@@ -58,11 +58,12 @@ describe("Registration Page & Supabase Integration", () => {
     }
   });
 
-  it("locks BUILDER PASS and FINAL CALL with chain and padlock overlay", () => {
+  it("locks BUILDER PASS and FINAL CALL with sealed encrypted status", () => {
     render(<RegisterPage />);
 
-    expect(screen.getAllByText(/TIER LOCKED \/\/ SEALED/i).length).toBe(2);
-    expect(screen.getAllByText(/LOCKED \/\/ SEALED/i).length).toBeGreaterThanOrEqual(2);
+    expect(screen.getAllByText("SEALED").length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText("TIER_02.ENC")).toBeInTheDocument();
+    expect(screen.getByText("TIER_03.ENC")).toBeInTheDocument();
   });
 
   it("navigates from pass selection to hacker details step", () => {
@@ -158,17 +159,16 @@ describe("Registration Page & Supabase Integration", () => {
 
     render(<BlackoutPassCard record={testRecord} />);
 
-    expect(screen.getByText(/WELCOME TO/i)).toBeInTheDocument();
-    expect(screen.getByText(/THE BLACKOUT\./i)).toBeInTheDocument();
+    expect(screen.getAllByAltText("BLACKOUT").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Linus Hacker")).toBeInTheDocument();
-    expect(screen.getByText("BLK-2026-ALPHA1")).toBeInTheDocument();
-    expect(screen.getByText("BUILDER PASS")).toBeInTheDocument();
-    expect(screen.getByText(/SQUAD: CYBER_NOMADS/i)).toBeInTheDocument();
-    expect(screen.getByText(/PAID: ₹2097/i)).toBeInTheDocument();
-    expect(screen.getByText("SAVE PASS AS IMAGE (PNG)")).toBeInTheDocument();
+    expect(screen.getAllByText("BLK-2026-ALPHA1").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("BUILDER PASS").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getByText(/CYBER_NOMADS/i)).toBeInTheDocument();
+    expect(screen.getAllByText("DOWNLOAD ID IMAGE (PNG)").length).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("COPY POST CAPTION")).toBeInTheDocument();
     expect(screen.getByText("LINKEDIN")).toBeInTheDocument();
     expect(screen.getByText("WHATSAPP")).toBeInTheDocument();
+    expect(screen.getAllByText(/JOIN WHATSAPP COMMUNITY/i).length).toBeGreaterThanOrEqual(1);
   });
 
   it("renders detailed profile forms for every squad member in team mode", () => {

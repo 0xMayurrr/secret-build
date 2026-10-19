@@ -32,7 +32,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Tech Mentors",
     squad: "TECH_MENTORS",
     clearance: "ALPHA_01",
-    bio: "CTO & Co-Founder at Buildicy. Architecting resilient distributed backends, microservices, and high-throughput systems. Mentoring builders on scalable architecture, cloud infra, and rock-solid production engineering.",
+    bio: "Codemaster on API tokens, resilient distributed backends, microservices, and cloud infra. Architecting high-throughput systems, event telemetry, and rock-solid production engineering.",
     skills: [
       "Distributed Systems",
       "Backend Architecture",
@@ -53,7 +53,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Tech Mentors",
     squad: "TECH_MENTORS",
     clearance: "ALPHA_00",
-    bio: "CEO & Founder at Buildicy. Full-stack architect specializing in ultra-fast modern web applications, reactive state pipelines, and system scalability. Guiding hackathon teams through zero-to-one product engineering.",
+    bio: "Zero-Day Architect & Fullstack Vanguard. Pioneering ultra-fast modern web applications, reactive state pipelines, system scalability, and guiding builders through zero-to-one engineering.",
     skills: [
       "Full-Stack Architecture",
       "React & Next.js",
@@ -74,7 +74,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Organizers",
     squad: "ORGANIZERS",
     clearance: "SIGMA_03",
-    bio: "Specializes in productionizing generative intelligence pipelines and edge model fine-tuning. Optimizing neural weights to evaluate autonomous hacker agents during the blackout.",
+    bio: "Neural Sentinel & Applied AI Architect. Productionizing generative intelligence pipelines, edge model fine-tuning, and evaluating autonomous hacker agents during the blackout.",
     skills: [
       "Applied AI",
       "LLM Fine-Tuning",
@@ -95,7 +95,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Organizers",
     squad: "ORGANIZERS",
     clearance: "SIGMA_04",
-    bio: "Architecting multimodal reasoning systems and latency-critical inference pipelines. Deploys resilient AI agents designed to operate in low-bandwidth, high-entropy challenge environments.",
+    bio: "Multimodal Reasoning Architect. Deploying latency-critical inference pipelines, agentic orchestration, and resilient AI systems engineered to excel in high-entropy challenge environments.",
     skills: [
       "Generative AI",
       "Agentic Systems",
@@ -116,7 +116,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Organizers",
     squad: "ORGANIZERS",
     clearance: "DELTA_05",
-    bio: "Engineering high-performance fullstack interfaces and reactive services. Building tactile attendee interfaces, live submission trackers, and real-time event telemetry.",
+    bio: "Fullstack Tactician & Interactive Systems Engineer. Crafting reactive submission telemetry, tactile attendee interfaces, live ranking trackers, and sub-second event services.",
     skills: [
       "Full Stack",
       "TypeScript",
@@ -137,7 +137,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Organizers",
     squad: "ORGANIZERS",
     clearance: "DELTA_06",
-    bio: "Focused on robust backend services, secure transaction validation, and database reliability. Ensuring high-availability data channels during peak hacker traffic spikes.",
+    bio: "Backend Sentry & Cryptographic Data Engineer. Safeguarding high-availability database channels, secure transaction validation, and resilient services under extreme hacker traffic.",
     skills: [
       "Software Engineering",
       "PostgreSQL",
@@ -158,7 +158,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Organizers",
     squad: "ORGANIZERS",
     clearance: "DELTA_07",
-    bio: "Crafting responsive user interfaces, real-time portal interactions, and edge client features. Translating complex evaluation metrics into seamless digital experiences.",
+    bio: "Frontend Artisan & Dynamic Interface Engineer. Sculpting responsive edge portals, tactile interaction mechanics, and glitch-resistant visual experiences for thousands of builders.",
     skills: [
       "Frontend Dev",
       "React / Next.js",
@@ -179,7 +179,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Organizers",
     squad: "ORGANIZERS",
     clearance: "SIGMA_08",
-    bio: "Researching autonomous agent workflows and neural model inference. Crafting production-grade machine learning pipelines and fine-tuned evaluators.",
+    bio: "Autonomous Agent Operative & Deep Learning Specialist. Researching multi-agent reasoning workflows, neural model inference pipelines, and automated grading telemetry.",
     skills: [
       "AI Engineering",
       "Deep Learning",
@@ -200,7 +200,7 @@ export const TEAM_MEMBERS: TeamMember[] = [
     role: "Organizers",
     squad: "ORGANIZERS",
     clearance: "SIGMA_09",
-    bio: "Implementing computer vision solutions and real-time AI reasoning systems. Optimizing generative pipelines for low latency and high accuracy.",
+    bio: "Computer Vision Specialist & Neural Matrix Engineer. Building real-time vision pipelines, edge inferencing models, and low-latency generative reasoning systems.",
     skills: [
       "AI Research",
       "Computer Vision",

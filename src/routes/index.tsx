@@ -631,6 +631,19 @@ function Index() {
             aria-hidden="true"
           />
 
+          <div
+            className="mt-3 text-center"
+            style={{
+              opacity: intro === "done" ? 1 : 0,
+              transform: intro === "done" ? "none" : "translateY(12px)",
+              transition: "opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s",
+            }}
+          >
+            <span className="inline-block font-pixel text-xs sm:text-sm md:text-base tracking-[0.35em] text-primary drop-shadow-[0_0_14px_rgba(168,85,247,0.85)] uppercase">
+              // ANNUAL HACKATHON //
+            </span>
+          </div>
+
           <p
             className="mt-4 font-pixel text-[10px] tracking-[0.3em] text-muted-foreground md:text-sm"
             style={{
@@ -878,14 +891,11 @@ function Index() {
             >
               <div className="flex items-center justify-between">
                 <p className="font-pixel text-xs opacity-75">[{w.c}]</p>
-                <span className="font-pixel text-[8px] opacity-50 uppercase tracking-widest hidden sm:inline">
-                  MINECRAFT // OPERATIVE
-                </span>
               </div>
 
-              {/* Minecraft Idle Character Next to the Title */}
+              {/* Minecraft Idle Character Next to the Title without surrounding box */}
               <div className="my-auto flex items-center gap-3.5 py-2">
-                <div className="shrink-0 flex items-center justify-center p-1.5 rounded border border-border/40 bg-background/60 shadow-inner group-hover:border-signal/60 group-hover:bg-background/90 transition-all">
+                <div className="shrink-0 flex items-center justify-center">
                   <MinecraftIdleCharacter role={w.c} isFeatured={i === WHO.length - 1} />
                 </div>
                 <p className="font-term text-2xl md:text-3xl font-bold leading-tight">{w.t}</p>
