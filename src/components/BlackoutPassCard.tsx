@@ -5,17 +5,16 @@ import {
   Copy,
   Check,
   ShieldCheck,
-  QrCode,
   Sparkles,
-  Calendar,
-  MapPin,
-  ExternalLink,
   Users,
   CreditCard,
   Building,
   CheckCircle2,
   Loader2,
-  Info,
+  ExternalLink,
+  Receipt,
+  Eye,
+  X,
 } from "lucide-react";
 import { toPng } from "html-to-image";
 import QRCode from "qrcode";
@@ -25,17 +24,24 @@ import type { RegistrationRecord } from "@/lib/supabase";
 interface BlackoutPassCardProps {
   record: RegistrationRecord;
   badgeTopSlot?: React.ReactNode;
+  initialShowModal?: boolean;
 }
 
-export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps) {
+export function BlackoutPassCard({
+  record,
+  badgeTopSlot,
+  initialShowModal = true,
+}: BlackoutPassCardProps) {
   const cardRef = useRef<HTMLDivElement>(null);
-  const canvasRef = useRef<HTMLCanvasElement>(null);
 
   // 3D Tilt and glare positions
   const [tilt, setTilt] = useState({ rotateX: 0, rotateY: 0, glareX: 50, glareY: 50 });
   const [isHovered, setIsHovered] = useState(false);
   const [copiedId, setCopiedId] = useState(false);
   const [copiedDossier, setCopiedDossier] = useState(false);
+
+  // Registration Success Popup Modal State
+  const [showSuccessModal, setShowSuccessModal] = useState<boolean>(initialShowModal);
 
   // QR Code State
   const [qrDataUrl, setQrDataUrl] = useState<string>("");
@@ -108,92 +114,6 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
     }
   }, []);
 
-  // Cyber confetti canvas animation on mount
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    let ctx: CanvasRenderingContext2D | null = null;
-    try {
-      ctx = canvas.getContext("2d");
-    } catch {
-      return;
-    }
-    if (!ctx) return;
-
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
-
-    const colors = ["#a855f7", "#d946ef", "#22c55e", "#ffffff", "#e879f9"];
-    const particles: {
-      x: number;
-      y: number;
-      size: number;
-      color: string;
-      speedX: number;
-      speedY: number;
-      spin: number;
-      opacity: number;
-    }[] = [];
-
-    for (let i = 0; i < 75; i++) {
-      particles.push({
-        x: Math.random() * canvas.width,
-        y: Math.random() * (canvas.height * 0.4),
-        size: Math.random() * 8 + 4,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        speedX: (Math.random() - 0.5) * 5,
-        speedY: Math.random() * 3 + 2,
-        spin: Math.random() * 0.2 - 0.1,
-        opacity: 1,
-      });
-    }
-
-    let frameId: number;
-    let elapsed = 0;
-
-    const render = () => {
-      if (!ctx || !canvas) return;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      elapsed++;
-
-      particles.forEach((p) => {
-        p.x += p.speedX;
-        p.y += p.speedY;
-        p.speedY += 0.05;
-
-        if (elapsed > 120) {
-          p.opacity = Math.max(0, p.opacity - 0.015);
-        }
-
-        ctx.save();
-        ctx.fillStyle = p.color;
-        ctx.globalAlpha = p.opacity;
-        ctx.fillRect(p.x, p.y, p.size, p.size);
-        ctx.restore();
-      });
-
-      if (elapsed < 240) {
-        frameId = requestAnimationFrame(render);
-      } else {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-      }
-    };
-
-    render();
-
-    const handleResize = () => {
-      if (!canvas) return;
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    };
-    window.addEventListener("resize", handleResize);
-
-    return () => {
-      cancelAnimationFrame(frameId);
-      window.removeEventListener("resize", handleResize);
-    };
-  }, []);
-
   // 3D Card Hover & Tilt calculation
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     if (!cardRef.current) return;
@@ -204,8 +124,8 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotateX = ((y - centerY) / centerY) * -10;
-    const rotateY = ((x - centerX) / centerX) * 10;
+    const rotateX = ((y - centerY) / centerY) * -8;
+    const rotateY = ((x - centerX) / centerX) * 8;
 
     const glareX = (x / rect.width) * 100;
     const glareY = (y / rect.height) * 100;
@@ -229,7 +149,7 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
     if (!cardRef.current) return null;
     const cardEl = cardRef.current;
 
-    // Temporarily save & disable tilt styling for a crystal clear, flat image capture
+    // Temporarily save & disable tilt styling for crystal clear image capture
     const originalTransform = cardEl.style.transform;
     const originalTransition = cardEl.style.transition;
     cardEl.style.transform = "none";
@@ -244,14 +164,13 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
     });
 
     try {
-      // Small pause to let DOM flush layout and unmount moving laser bar
       await new Promise((r) => setTimeout(r, 120));
 
       const dataUrl = await toPng(cardEl, {
         cacheBust: true,
         pixelRatio: 3, // Ultra-sharp 3x retina quality
         quality: 1,
-        backgroundColor: "#07020d",
+        backgroundColor: "#050508",
         filter: (node) => {
           if (node instanceof HTMLElement) {
             if (
@@ -280,7 +199,7 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
     }
   };
 
-  // 1. SAVE PASS AS NATIVE VISUAL PNG IMAGE (WITH FULL IPHONE / IOS SUPPORT)
+  // Save Pass as native high-res PNG image
   const handleDownloadPass = async () => {
     setIsDownloading(true);
     try {
@@ -290,247 +209,354 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
         return;
       }
 
-      // Convert dataUrl to a real Blob & File for iOS Web Share & cross-platform downloads
       const res = await fetch(dataUrl);
       const blob = await res.blob();
       const fileName = `BLACKOUT-PASS-${record.registration_id}.png`;
       const file = new File([blob], fileName, { type: "image/png" });
       const blobUrl = URL.createObjectURL(blob);
 
-      // Detect iOS Safari / WebKit or mobile devices where programmatic <a> downloads fail
+      // Check if Web Share API with files is supported (e.g. mobile Safari / Chrome)
+      const navAny = navigator as unknown as {
+        canShare?: (data: { files?: File[] }) => boolean;
+        share?: (data: { files?: File[]; title?: string; text?: string }) => Promise<void>;
+      };
+
+      const isTouchDevice =
+        typeof window !== "undefined" &&
+        ("ontouchstart" in window || navigator.maxTouchPoints > 0);
       const isIOS =
         typeof navigator !== "undefined" &&
-        (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
-          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1));
+        /iPad|iPhone|iPod/.test(navigator.userAgent || "");
 
-      // On iOS: Try Web Share API which brings up the native iOS Share sheet with "Save Image" to Photos
-      if (isIOS) {
-        if (typeof navigator !== "undefined" && navigator.canShare && navigator.canShare({ files: [file] })) {
-          try {
-            await navigator.share({
-              files: [file],
-              title: `BLACKOUT 2026 Pass - ${record.full_name}`,
-              text: `BLACKOUT 2026 Operative Pass // ${record.full_name} (${record.registration_id})`,
-            });
-            setDownloadSuccess(true);
-            setTimeout(() => setDownloadSuccess(false), 3500);
-            return;
-          } catch (err: unknown) {
-            if ((err as Error)?.name === "AbortError") {
-              // User dismissed the iOS share sheet, don't show alert
-              return;
-            }
-            console.warn("iOS native share failed, falling back to image modal:", err);
-          }
+      if (isTouchDevice && isIOS && navAny.canShare && navAny.canShare({ files: [file] })) {
+        try {
+          await navAny.share({
+            files: [file],
+            title: `BLACKOUT 2026 Pass - ${record.full_name}`,
+            text: `My verified clearance pass for BLACKOUT 2026 Hackathon! #BLACKOUT2026`,
+          });
+          setDownloadSuccess(true);
+          setTimeout(() => setDownloadSuccess(false), 5000);
+          return;
+        } catch (shareErr) {
+          if ((shareErr as Error)?.name === "AbortError") return;
         }
-
-        // If Web Share isn't supported or failed, open the preview modal with tap & hold to save
-        setPassImageModal({ open: true, dataUrl, blobUrl });
-        return;
       }
 
-      // Desktop & Android: Trigger direct file download with blob URL
+      // Standard desktop or mobile download anchor trigger
       const link = document.createElement("a");
       link.download = fileName;
       link.href = blobUrl;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
 
+      // Mobile fall-back preview modal
+      if (isTouchDevice) {
+        setPassImageModal({ open: true, dataUrl, blobUrl });
+      }
+
       setDownloadSuccess(true);
-      setTimeout(() => setDownloadSuccess(false), 3500);
+      setTimeout(() => setDownloadSuccess(false), 5000);
     } catch (err) {
-      console.error("Pass download error:", err);
-      // Fallback: render dataUrl in preview modal
-      try {
-        const dataUrl = await generatePassImageData();
-        if (dataUrl) {
-          setPassImageModal({ open: true, dataUrl, blobUrl: dataUrl });
-        }
-      } catch {}
+      console.error("Pass image download error:", err);
+      alert("Unable to download image automatically. Please take a screenshot of your pass.");
     } finally {
       setIsDownloading(false);
     }
   };
 
-  // Helper for saving from the iOS preview modal
+  // Mobile Web Share for pass image preview modal
   const handleSharePassImage = async () => {
     if (!passImageModal.dataUrl) return;
     try {
       const res = await fetch(passImageModal.dataUrl);
       const blob = await res.blob();
-      const fileName = `BLACKOUT-PASS-${record.registration_id}.png`;
-      const file = new File([blob], fileName, { type: "image/png" });
+      const file = new File([blob], `BLACKOUT-PASS-${record.registration_id}.png`, {
+        type: "image/png",
+      });
 
-      if (typeof navigator !== "undefined" && navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({
+      const navAny = navigator as unknown as {
+        canShare?: (data: { files?: File[] }) => boolean;
+        share?: (data: { files?: File[]; title?: string; text?: string }) => Promise<void>;
+      };
+
+      if (navAny.canShare && navAny.canShare({ files: [file] })) {
+        await navAny.share({
           files: [file],
-          title: `BLACKOUT 2026 Pass - ${record.full_name}`,
+          title: "BLACKOUT 2026 Arena Pass",
+          text: `My authenticated clearance pass for BLACKOUT 2026 Hackathon! #BLACKOUT2026`,
         });
-      } else if (passImageModal.blobUrl) {
-        window.open(passImageModal.blobUrl, "_blank");
+      } else {
+        window.open(passImageModal.blobUrl || passImageModal.dataUrl, "_blank");
       }
     } catch (err) {
       if ((err as Error)?.name !== "AbortError") {
-        console.warn("Share modal failed:", err);
+        window.open(passImageModal.blobUrl || passImageModal.dataUrl, "_blank");
       }
     }
   };
 
-  // Operative Initials
-  const initials =
-    record.full_name
-      .split(" ")
-      .map((n) => n[0])
-      .filter(Boolean)
-      .slice(0, 2)
-      .join("")
-      .toUpperCase() || "OP";
+  // Pre-formatted social caption
+  const dossierCaption = `🚨 CLEARANCE UNLOCKED: I am officially registered for BLACKOUT 2026 — the 12-hour surprise-challenge hackathon by Buildicy in Coimbatore!
 
-  // Share Content Text Templates with Hashtags
-  const linkedInCaption = `🚨 I just secured my operative pass for BLACKOUT 2026! ⚡👾\n\n12 hours. Complete darkness. Problem statement sealed until the lights go out.\n\n👤 Operative: ${record.full_name}\n🎟️ Pass Tier: ${record.pass_name} (₹${record.pass_price})\n🆔 Clearance ID: ${record.registration_id}\n👥 Division: ${record.participation_type === "team" ? `Squad ${record.team_name || "Team"} (${record.team_size || 1} Builders)` : "Solo Infiltrator"}\n👕 Swag Allocation: Official Hoodie Size ${record.tshirt_size || "L"}\n📍 Venue: Coimbatore, Tamil Nadu\n📅 Date: November 28, 2026\n\nVerified Security Desk Check-in Link:\n${verificationUrl}\n\nReady to build in the dark. See you on the grid!\n\n#BLACKOUT2026 #Buildicy #Hackathon #BuildInTheDark #Coimbatore #Cyberpunk #SoftwareEngineering #TechEvent #SecretHackathon`;
+🔥 Problem statement sealed until lights out.
+⚡ Pass ID: ${record.registration_id}
+🎯 Division: ${
+    record.participation_type === "team"
+      ? `Squad (${record.team_size || 2} Builders)`
+      : "Solo Infiltrator"
+  }
+🏛️ Org: ${record.organization}
 
-  const whatsAppMessage = `⚡ *BLACKOUT 2026 // PASS CONFIRMED* ⚡\n\nI just registered for BLACKOUT 2026, the 12-hour secret challenge hackathon in Coimbatore!\n\n👤 *Operative:* ${record.full_name}\n🎟️ *Pass:* ${record.pass_name}\n🆔 *Clearance ID:* ${record.registration_id}\n${record.team_name ? `👥 *Squad:* ${record.team_name}\n` : ""}\n🔍 *Verify Pass & Security Clearance:*\n${verificationUrl}\n\n#BLACKOUT2026 #Buildicy #BuildInTheDark`;
+Claim your pass before early bird runs out: https://buildicy.com/register
 
-  const twitterMessage = `⚡ Just secured my operative pass for @Buildicy's #BLACKOUT2026! 12 hours of coding in the dark with secret challenges in Coimbatore.\n\nOperative ID: ${record.registration_id}\n\nClearance verification: ${verificationUrl}\n\n#BLACKOUT2026 #Buildicy #BuildInTheDark #Hackathon`;
+#BLACKOUT2026 #Buildicy #Hackathon #Coimbatore #CodeUnderDarkness #DevCommunity #BuildInPublic`;
 
-  const redditTitle = `Secured my operative pass for BLACKOUT 2026 (12-Hour Secret Hackathon in Coimbatore)! Anyone else building?`;
-
-  // 2. SOCIAL SHARING HANDLERS
-  const handleShareLinkedIn = async () => {
-    setIsDownloading(true);
-
-    // Step A: Auto-generate and download the PNG badge image so the user has the image ready
-    let dataUrl: string | null = null;
-    try {
-      dataUrl = await generatePassImageData();
-      if (dataUrl) {
-        const link = document.createElement("a");
-        link.download = `BLACKOUT-PASS-${record.registration_id}.png`;
-        link.href = dataUrl;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-      }
-    } catch {
-      // ignore
-    } finally {
-      setIsDownloading(false);
-    }
-
-    // Step B: Copy post content with hashtags to clipboard
-    try {
-      await navigator.clipboard.writeText(linkedInCaption);
-    } catch {
-      // ignore
-    }
-
-    // Step C: Try Web Share API with file if supported on mobile
-    if (dataUrl && typeof navigator !== "undefined" && navigator.canShare) {
-      try {
-        const res = await fetch(dataUrl);
-        const blob = await res.blob();
-        const file = new File([blob], `BLACKOUT-PASS-${record.registration_id}.png`, {
-          type: "image/png",
-        });
-
-        if (navigator.canShare({ files: [file] })) {
-          await navigator.share({
-            title: "BLACKOUT 2026 Pass",
-            text: linkedInCaption,
-            files: [file],
-            url: verificationUrl,
-          });
-          return;
-        }
-      } catch {
-        // Fall back to direct LinkedIn browser intent
-      }
-    }
-
-    // Step D: Open LinkedIn's feed composer with pre-filled content
-    const linkedInIntentUrl = `https://www.linkedin.com/feed/?shareActive=true&text=${encodeURIComponent(linkedInCaption)}`;
-    window.open(linkedInIntentUrl, "_blank", "noopener,noreferrer");
-
-    // Step E: Display guide modal so the user knows their image is in downloads & text in clipboard
-    setSocialModal({
-      open: true,
-      platform: "LinkedIn",
-      message:
-        "1. Pass badge image has been downloaded to your device.\n2. Caption with hashtags has been copied to your clipboard.\n3. LinkedIn feed is opened in a new tab! Simply paste (Ctrl+V) and attach your downloaded pass image to publish.",
-    });
-  };
-
-  const handleShareWhatsApp = () => {
-    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(whatsAppMessage)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  const handleShareTwitter = () => {
-    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(twitterMessage)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  const handleShareReddit = () => {
-    const url = `https://reddit.com/submit?url=${encodeURIComponent(verificationUrl)}&title=${encodeURIComponent(redditTitle)}`;
-    window.open(url, "_blank", "noopener,noreferrer");
-  };
-
-  // Copy Clearance Dossier
   const handleCopyDossier = () => {
-    navigator.clipboard.writeText(linkedInCaption);
+    navigator.clipboard.writeText(dossierCaption);
     setCopiedDossier(true);
     setTimeout(() => setCopiedDossier(false), 2500);
   };
 
+  // 1-Click Social Sharing Handlers
+  const handleShareLinkedIn = async () => {
+    navigator.clipboard.writeText(dossierCaption);
+    const linkedInUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+      "https://buildicy.com/register"
+    )}`;
+    window.open(linkedInUrl, "_blank", "width=600,height=600,noopener,noreferrer");
+
+    try {
+      await handleDownloadPass();
+    } catch {
+      // ignore
+    }
+
+    setSocialModal({
+      open: true,
+      platform: "LINKEDIN",
+      message:
+        "1. Your badge PNG image has been downloaded!\n2. Your post caption + hashtags have been copied to clipboard.\n3. Simply paste (Ctrl+V) in LinkedIn and attach your downloaded badge image!",
+    });
+  };
+
+  const handleShareWhatsApp = () => {
+    const text = `🚨 I just registered for *BLACKOUT 2026* — the 12-hour secret challenge hackathon by Buildicy!
+
+🔥 Pass ID: *${record.registration_id}*
+⚡ Tier: *${record.pass_name}*
+📍 Coimbatore Arena · Nov 28, 2026
+
+Get your pass before tickets sell out:
+👉 https://buildicy.com/register`;
+
+    window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, "_blank");
+  };
+
+  const handleShareTwitter = () => {
+    const text = `Clearance unlocked for @buildicy BLACKOUT 2026! 🚨\n\n12-hour secret challenge hackathon in Coimbatore. Something big is coming.\n\nPass: ${record.registration_id}\n\nRegister now:`;
+    const url = "https://buildicy.com/register";
+    window.open(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(
+        url
+      )}&hashtags=BLACKOUT2026,Buildicy,Hackathon`,
+      "_blank"
+    );
+  };
+
+  const handleShareReddit = () => {
+    const title = `Registered for BLACKOUT 2026 — 12-Hour Secret Hackathon in Coimbatore!`;
+    const url = "https://buildicy.com/register";
+    window.open(
+      `https://www.reddit.com/submit?url=${encodeURIComponent(url)}&title=${encodeURIComponent(
+        title
+      )}`,
+      "_blank"
+    );
+  };
+
   return (
-    <div className="relative">
-      {/* Background Cyber Confetti Canvas */}
-      <canvas
-        ref={canvasRef}
-        className="pointer-events-none fixed inset-0 z-40 h-full w-full"
-      />
+    <div className="w-full">
+      {/* ========================================================= */}
+      {/* 1. REGISTRATION SUCCESS POPUP MODAL (SHOWS IMMEDIATELY) */}
+      {/* ========================================================= */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-fade-in no-print">
+          <div className="relative w-full max-w-xl border-4 border-signal bg-[#0a0314] p-6 sm:p-8 shadow-[0_0_60px_rgba(34,197,94,0.35),8px_8px_0_0_var(--primary)] text-foreground">
+            {/* Close Button */}
+            <button
+              type="button"
+              onClick={() => setShowSuccessModal(false)}
+              className="absolute top-4 right-4 p-2 text-muted-foreground hover:text-white transition"
+              aria-label="Close modal"
+            >
+              <X className="h-6 w-6" />
+            </button>
 
-      {/* ========================================================= */}
-      {/* SUCCESS HERO BANNER: UNIQUE "WELCOME TO THE BLACKOUT" */}
-      {/* ========================================================= */}
-      <div className="text-center mb-10 animate-fade-in">
-        {/* Pulsing Status Badge */}
-        <div className="inline-flex items-center gap-2 border-2 border-signal bg-signal/15 px-4 py-1.5 font-pixel text-[10px] text-signal shadow-[0_0_20px_rgba(34,197,94,0.4)]">
-          <span className="animate-blink">●</span>
-          <span>CLEARANCE CONFIRMED // LIVE GRID REGISTERED</span>
+            {/* Modal Header: Big Logo */}
+            <div className="text-center pt-2">
+              <img
+                src={blackoutLogo}
+                alt="BLACKOUT"
+                className="h-16 sm:h-20 w-auto object-contain mx-auto drop-shadow-[0_0_30px_rgba(168,85,247,0.9)]"
+              />
+
+              <div className="inline-flex items-center gap-2 border border-signal/60 bg-signal/15 px-4 py-1.5 rounded-full mt-3 font-pixel text-[10px] sm:text-xs text-signal tracking-widest">
+                <CheckCircle2 className="h-4 w-4" />
+                <span>REGISTRATION CONFIRMED // ARENA CLEARANCE GRANTED</span>
+              </div>
+            </div>
+
+            {/* Operative Registration Summary Card */}
+            <div className="mt-6 border-2 border-primary/40 bg-black/60 p-4 sm:p-5 font-mono text-xs space-y-3">
+              <div className="flex flex-wrap items-center justify-between border-b border-white/10 pb-2.5">
+                <span className="text-muted-foreground uppercase text-[10px] font-pixel">
+                  OPERATIVE NAME:
+                </span>
+                <span className="font-pixel text-sm text-white font-bold">
+                  {record.full_name}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between border-b border-white/10 pb-2.5">
+                <span className="text-muted-foreground uppercase text-[10px] font-pixel">
+                  REGISTRATION ID:
+                </span>
+                <span className="font-mono text-sm text-signal font-bold tracking-wider">
+                  {record.registration_id}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between border-b border-white/10 pb-2.5">
+                <span className="text-muted-foreground uppercase text-[10px] font-pixel">
+                  PASS TIER & DIVISION:
+                </span>
+                <span className="text-white font-bold">
+                  {record.pass_name} (
+                  {record.participation_type === "team"
+                    ? `Squad of ${record.team_size || 2}`
+                    : "Solo Infiltrator"}
+                  )
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between border-b border-white/10 pb-2.5">
+                <span className="text-muted-foreground uppercase text-[10px] font-pixel">
+                  INSTITUTION / COMPANY:
+                </span>
+                <span className="text-white/90">{record.organization}</span>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between border-b border-white/10 pb-2.5">
+                <span className="text-muted-foreground uppercase text-[10px] font-pixel">
+                  OFFICIAL SWAG SIZE:
+                </span>
+                <span className="text-signal font-bold">
+                  HOODIE / TEE SIZE {record.tshirt_size || "L"}
+                </span>
+              </div>
+
+              <div className="flex flex-wrap items-center justify-between pt-1">
+                <span className="text-muted-foreground uppercase text-[10px] font-pixel">
+                  TOTAL AMOUNT PAID:
+                </span>
+                <span className="font-pixel text-base text-signal font-bold">
+                  ₹{record.total_price || record.pass_price}
+                </span>
+              </div>
+            </div>
+
+            {/* Modal Primary Action Buttons */}
+            <div className="mt-6 flex flex-col sm:flex-row items-center justify-center gap-3">
+              {/* DOWNLOAD ID PASS NOW BUTTON */}
+              <button
+                type="button"
+                onClick={handleDownloadPass}
+                disabled={isDownloading}
+                className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 border-2 border-signal bg-signal px-6 py-3.5 font-pixel text-xs text-black shadow-[4px_4px_0_0_var(--primary)] hover:bg-signal/90 transition active:scale-95 disabled:opacity-50"
+              >
+                {isDownloading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>GENERATING ID PASS...</span>
+                  </>
+                ) : (
+                  <>
+                    <Download className="h-4 w-4" />
+                    <span>DOWNLOAD ID PASS (PNG)</span>
+                  </>
+                )}
+              </button>
+
+              {/* CLOSE POPUP & VIEW LANYARD + ID CARD */}
+              <button
+                type="button"
+                onClick={() => setShowSuccessModal(false)}
+                className="w-full sm:w-auto flex-1 flex items-center justify-center gap-2 border-2 border-primary bg-primary/20 px-6 py-3.5 font-pixel text-xs text-primary-foreground shadow-[3px_3px_0_0_var(--signal)] hover:bg-primary hover:text-white transition active:scale-95"
+              >
+                <Eye className="h-4 w-4 text-signal" />
+                <span>VIEW 3D LANYARD & ID CARD ▶</span>
+              </button>
+            </div>
+
+            <p className="mt-4 text-center font-mono text-[10px] text-muted-foreground">
+              Closing this popup reveals your 3D interactive physics lanyard and share deck.
+            </p>
+          </div>
         </div>
+      )}
 
-        {/* Dramatic Blackout Welcome Headline */}
-        <h1 className="mt-5 font-pixel text-3xl sm:text-5xl text-foreground tracking-tight leading-tight">
-          WELCOME TO <br />
-          <span className="text-primary drop-shadow-[0_0_35px_rgba(168,85,247,0.9)] animate-pulse">
-            THE BLACKOUT.
-          </span>
-        </h1>
+      {/* ========================================================= */}
+      {/* 2. HERO HEADLINE: BIG BLACKOUT LOGO (NO CONFETTI POPPER) */}
+      {/* ========================================================= */}
+      <div className="text-center pt-2 pb-6 max-w-3xl mx-auto px-4">
+        {/* Prominent Large BLACKOUT Logo (Replaces "WELCOME TO THE BLACKOUT" text) */}
+        <div className="flex flex-col items-center justify-center">
+          <img
+            src={blackoutLogo}
+            alt="BLACKOUT"
+            className="h-20 sm:h-28 md:h-32 w-auto object-contain mx-auto drop-shadow-[0_0_40px_rgba(168,85,247,0.9)] animate-pulse"
+          />
 
-        <p className="mt-3 font-term text-2xl text-signal max-w-xl mx-auto">
-          &gt; operative_{record.full_name.toLowerCase().replace(/\s+/g, "_")}: ARENA_CLEARANCE_UNLOCKED
-        </p>
+          <div className="inline-flex items-center gap-2 border border-signal/60 bg-signal/15 px-4 py-1.5 rounded-full mt-4 font-pixel text-[10px] sm:text-xs text-signal tracking-widest shadow-[0_0_15px_rgba(34,197,94,0.2)]">
+            <span className="h-2 w-2 rounded-full bg-signal animate-ping" />
+            <span>OPERATIVE CLEARANCE UNLOCKED // ARENA ADMISSION VERIFIED</span>
+          </div>
 
-        <p className="mt-2 text-xs sm:text-sm text-muted-foreground font-mono max-w-lg mx-auto">
-          12-Hour Secret Hackathon · Nov 28, 2026 · Coimbatore. Problem statement sealed until lights out.
-        </p>
+          <p className="mt-3 font-mono text-xs sm:text-sm text-muted-foreground max-w-lg mx-auto">
+            12-Hour Secret Hackathon · Nov 28, 2026 · Coimbatore. Problem statement sealed until lights out.
+          </p>
+
+          {/* Quick Button to Re-Open Registration Receipt Details if needed */}
+          <button
+            type="button"
+            onClick={() => setShowSuccessModal(true)}
+            className="mt-3 inline-flex items-center gap-1.5 font-mono text-xs text-primary hover:text-signal transition border border-primary/30 px-3 py-1 rounded bg-primary/10"
+          >
+            <Receipt className="h-3.5 w-3.5" />
+            <span>View Registration Summary Receipt</span>
+          </button>
+        </div>
       </div>
 
       {/* Download Success Notice */}
       {downloadSuccess && (
         <div className="max-w-xl mx-auto mb-4 border-2 border-signal bg-signal/15 p-3 text-center font-mono text-xs text-signal flex items-center justify-center gap-2 shadow-[0_0_20px_rgba(34,197,94,0.3)] animate-fade-in">
           <CheckCircle2 className="h-4 w-4 shrink-0" />
-          <span>✓ Holographic Cyber Pass badge downloaded as high-res PNG image!</span>
+          <span>✓ Holographic ID Card Pass downloaded as high-res PNG image!</span>
         </div>
       )}
 
-      {/* TOP 3D EVENT LANYARD BADGE (AT THE TOP) */}
+      {/* ========================================================= */}
+      {/* 3. 3D EVENT LANYARD BADGE (AT THE TOP) */}
+      {/* ========================================================= */}
       {badgeTopSlot && <div className="w-full mb-8">{badgeTopSlot}</div>}
 
       {/* ========================================================= */}
-      {/* INTERACTIVE 3D HOLOGRAPHIC CYBER PASS ID CARD (AT THE BOTTOM) */}
+      {/* 4. REDESIGNED ID CARD (ACRYLIC VINYL HOLDER AESTHETIC) */}
       {/* ========================================================= */}
       <div className="flex justify-center px-2 py-4">
         <div
@@ -545,221 +571,159 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
               : "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
             transition: isHovered ? "transform 0.1s ease-out" : "transform 0.5s ease-out",
           }}
-          className="relative w-full max-w-xl rounded-2xl border border-white/20 bg-gradient-to-b from-[#130722] via-[#090312] to-[#05010a] p-6 sm:p-8 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95),0_0_40px_rgba(168,85,247,0.2)] overflow-hidden select-none backdrop-blur-xl"
+          className="relative w-full max-w-md sm:max-w-lg rounded-3xl border-2 border-white/30 bg-gradient-to-b from-[#08080c] via-[#050508] to-[#020204] p-5 sm:p-7 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95),0_0_35px_rgba(168,85,247,0.25)] overflow-hidden select-none backdrop-blur-xl"
         >
-          {/* Subtle Cyber Corner Accents */}
-          <div className="absolute top-3 left-3 font-mono text-[9px] text-white/25 select-none pointer-events-none">⌜</div>
-          <div className="absolute top-3 right-3 font-mono text-[9px] text-white/25 select-none pointer-events-none">⌝</div>
-          <div className="absolute bottom-3 left-3 font-mono text-[9px] text-white/25 select-none pointer-events-none">⌞</div>
-          <div className="absolute bottom-3 right-3 font-mono text-[9px] text-white/25 select-none pointer-events-none">⌟</div>
+          {/* Subtle Crease / Fold Lines simulating weathered vinyl pouch */}
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-white/10 via-transparent to-transparent opacity-40" />
 
-          {/* Dynamic Holographic Glare Sheen that moves with mouse (Suppressed on download) */}
+          {/* Environmental Lime Streaks in background */}
+          <div className="pointer-events-none absolute -left-12 top-28 h-8 w-64 bg-[#bef264]/10 blur-xl rotate-12" />
+          <div className="pointer-events-none absolute -right-12 bottom-36 h-10 w-72 bg-[#bef264]/10 blur-xl -rotate-6" />
+
+          {/* Dynamic Glare Sheen (Suppressed during download) */}
           {!isDownloading && (
             <div
               data-no-download="true"
-              className="pointer-events-none absolute inset-0 opacity-25 mix-blend-color-dodge transition-opacity duration-300"
+              className="pointer-events-none absolute inset-0 opacity-20 mix-blend-color-dodge transition-opacity duration-300"
               style={{
-                background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(216, 180, 254, 0.5) 0%, rgba(34, 197, 94, 0.2) 45%, transparent 70%)`,
+                background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(216, 180, 254, 0.45) 0%, rgba(190, 242, 100, 0.25) 45%, transparent 70%)`,
               }}
             />
           )}
 
-          {/* Diagonal Holographic Rainbow Edge Lines */}
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(135deg,transparent_0%,rgba(168,85,247,0.06)_50%,transparent_100%)]" />
+          {/* Top Lanyard Attachment Simulation (Purple strap + Swivel clasp + Oval cutout) */}
+          <div className="flex flex-col items-center -mt-3 mb-4">
+            {/* Purple Ribbon Lanyard Segment */}
+            <div className="h-6 w-8 bg-gradient-to-b from-[#7e22ce] to-[#6b21a8] rounded-t-sm shadow-md border-x border-purple-400/30" />
+            {/* Silver Metal Swivel Clasp */}
+            <div className="h-4 w-3 bg-gradient-to-b from-gray-300 via-white to-gray-400 rounded-sm shadow-inner -mt-0.5" />
+            <div className="h-2 w-4 bg-gray-400 rounded-full border border-gray-600 -mt-0.5" />
 
-          {/* Minimalist Lanyard Cutout Slot at Top */}
-          <div className="flex justify-center -mt-2 mb-6">
-            <div className="relative flex items-center gap-3 rounded-full border border-white/10 bg-black/60 px-5 py-1 backdrop-blur-md shadow-inner">
-              <div className="h-1.5 w-6 rounded-full bg-white/20" />
-              <span className="font-mono text-[9px] tracking-[0.25em] text-white/60 uppercase font-semibold">
-                VIP_ALL_ACCESS
-              </span>
-              <div className="h-1.5 w-1.5 rounded-full bg-signal animate-pulse" />
+            {/* Oval Cutout Slot in the Acrylic Card Holder */}
+            <div className="mt-2 flex items-center gap-2">
+              <div className="h-2 w-2 rounded-full border border-white/30 bg-black" />
+              <div className="h-3 w-28 rounded-full border border-white/40 bg-black/90 shadow-inner flex items-center justify-center">
+                <span className="font-mono text-[7px] text-white/50 tracking-widest uppercase">
+                  VIP_CARD_HOLDER
+                </span>
+              </div>
+              <div className="h-2 w-2 rounded-full border border-white/30 bg-black" />
             </div>
           </div>
 
-          {/* Pass Header Row */}
-          <div className="flex items-center justify-between border-b border-white/10 pb-4">
-            <div className="flex items-center gap-3">
-              <img
-                src={blackoutLogo}
-                alt="BLACKOUT"
-                className="h-8 w-auto drop-shadow-[0_0_16px_rgba(168,85,247,0.8)]"
-              />
-              <div className="border-l border-white/10 pl-3">
-                <span className="font-pixel text-[11px] text-white tracking-widest block font-bold">
-                  BLACKOUT 2026
-                </span>
-                <span className="font-mono text-[9px] text-signal/90 tracking-wider block mt-0.5">
-                  SURPRISE-CHALLENGE ARENA
-                </span>
-              </div>
-            </div>
-
-            {/* Token Pill with 1-Click Copy */}
-            <button
-              type="button"
-              onClick={handleCopyId}
-              className="flex items-center gap-2 rounded-lg border border-white/15 bg-white/5 px-3 py-1.5 font-mono text-xs text-white hover:border-signal hover:text-signal transition-all active:scale-95"
-              title="Click to copy registration ID"
-            >
-              <span className="font-bold tracking-wider">{record.registration_id}</span>
-              {copiedId ? <Check className="h-3.5 w-3.5 text-signal" /> : <Copy className="h-3.5 w-3.5 text-white/50" />}
-            </button>
+          {/* Top Right Graffiti "(??)" Mark */}
+          <div className="absolute top-8 right-6 font-mono text-xl sm:text-2xl font-black text-[#a855f7] rotate-12 drop-shadow-[0_0_8px_rgba(168,85,247,0.8)] select-none">
+            (??)
           </div>
 
-          {/* Operative Identity & Tier Badge */}
-          <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/10 pb-6">
-            <div className="flex items-center gap-4">
-              {/* Operative Initials Monogram */}
-              <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-xl border border-primary/40 bg-gradient-to-br from-primary/25 to-black/80 text-foreground shadow-[0_0_20px_rgba(168,85,247,0.25)]">
-                <span className="font-pixel text-lg font-bold text-signal">{initials}</span>
-                <div className="scanline pointer-events-none absolute inset-0 opacity-20" />
-              </div>
+          {/* Bottom Left Purple Scribble Tag */}
+          <div className="absolute bottom-16 left-5 text-[#9333ea] opacity-80 pointer-events-none select-none font-pixel text-xl -rotate-12">
+            ⚡
+          </div>
 
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="font-pixel text-[8px] text-muted-foreground uppercase">
-                    OPERATIVE NAME
-                  </span>
-                  <span className="h-1.5 w-1.5 rounded-full bg-signal animate-ping" />
-                </div>
-                <h2 className="font-pixel text-xl sm:text-2xl text-foreground font-bold leading-tight mt-1">
-                  {record.full_name}
-                </h2>
-                <p className="font-mono text-xs text-muted-foreground mt-0.5">
-                  {record.organization}
-                </p>
-              </div>
-            </div>
+          {/* Cyber Crosshairs */}
+          <div className="absolute top-12 left-4 font-mono text-[9px] text-white/30 select-none">
+            +
+          </div>
+          <div className="absolute bottom-28 right-5 font-mono text-[9px] text-white/30 select-none">
+            +
+          </div>
 
-            {/* Pass Tier Pill */}
-            <div className="rounded-xl border border-primary/40 bg-gradient-to-br from-primary/20 via-purple-950/30 to-black/60 px-4 py-2.5 text-right shadow-[0_0_25px_rgba(168,85,247,0.2)] self-start sm:self-center">
-              <span className="font-term text-2xl text-signal block leading-none font-bold">
-                {record.pass_name}
-              </span>
-              <span className="font-pixel text-[8px] text-foreground font-bold block mt-1 tracking-wider">
-                PAID: ₹{record.total_price || record.pass_price}
-              </span>
-              {record.team_size && record.team_size > 1 && (
-                <span className="font-mono text-[9px] text-muted-foreground block mt-0.5">
-                  (₹{record.pass_price} × {record.team_size})
-                </span>
-              )}
+          {/* ========================================================= */}
+          {/* CARD BODY 1: OFFICIAL BLACKOUT 3D GRAFFITI LOGO */}
+          {/* ========================================================= */}
+          <div className="mt-2 flex justify-center">
+            <img
+              src={blackoutLogo}
+              alt="BLACKOUT"
+              className="h-14 sm:h-18 w-auto object-contain drop-shadow-[0_0_25px_rgba(168,85,247,0.95)]"
+            />
+          </div>
+
+          {/* ========================================================= */}
+          {/* CARD BODY 2: GIANT DISTRESSED QUESTION MARK "?" */}
+          {/* ========================================================= */}
+          <div className="my-2 sm:my-3 text-center select-none">
+            <span className="font-sans font-black text-8xl sm:text-9xl text-white tracking-tighter drop-shadow-[0_8px_20px_rgba(0,0,0,0.95)]">
+              ?
+            </span>
+          </div>
+
+          {/* ========================================================= */}
+          {/* CARD BODY 3: TILTED FLUORESCENT NEON-LIME WARNING TAPE */}
+          {/* ========================================================= */}
+          <div className="flex justify-center my-3 transform -rotate-2">
+            <div className="bg-[#bef264] text-black px-6 py-2.5 shadow-[0_10px_25px_rgba(0,0,0,0.9)] border border-black/30 inline-block text-center select-none">
+              <div className="font-mono font-black text-sm sm:text-base tracking-widest uppercase leading-tight text-black">
+                SOMETHING BIG
+              </div>
+              <div className="font-mono font-black text-sm sm:text-base tracking-[0.25em] uppercase leading-tight text-black mt-0.5">
+                IS COMING.
+              </div>
             </div>
           </div>
 
-          {/* Dossier Grid */}
-          <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-6 font-mono text-xs">
-            <div className="space-y-4">
-              <div>
-                <span className="font-pixel text-[8px] text-muted-foreground uppercase block font-semibold">
-                  PARTICIPATION DIVISION
-                </span>
-                <p className="font-term text-2xl text-foreground font-bold mt-1 flex items-center gap-2">
-                  {record.participation_type === "team" ? (
-                    <>
-                      <Users className="h-4 w-4 text-primary shrink-0" />
-                      <span>SQUAD: {record.team_name || "TEAM BUILDERS"}</span>
-                    </>
+          {/* ========================================================= */}
+          {/* CARD BODY 4: OPERATIVE IDENTITY & CLEARANCE DETAILS */}
+          {/* ========================================================= */}
+          <div className="mt-4 border-t border-white/10 pt-4 text-center">
+            {/* Operative Full Name */}
+            <h2 className="font-pixel text-xl sm:text-2xl text-white font-bold tracking-wide uppercase leading-tight">
+              {record.full_name}
+            </h2>
+
+            {/* Division & Tier */}
+            <p className="font-mono text-xs sm:text-sm text-[#bef264] font-bold tracking-widest mt-1 uppercase">
+              {record.participation_type === "team"
+                ? `TEAM: ${record.team_name || "SQUAD BUILDERS"}`
+                : "SOLO OPERATIVE"}{" "}
+              · {record.pass_name}
+            </p>
+
+            {/* Institution / College */}
+            <p className="font-mono text-xs text-white/70 tracking-wide mt-0.5">
+              {record.organization}
+            </p>
+
+            {/* Registration ID Badge Box */}
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <div className="rounded-lg border border-[#bef264] bg-black/80 px-4 py-1.5 font-mono text-xs sm:text-sm text-[#bef264] font-bold tracking-widest flex items-center gap-2.5 shadow-inner">
+                <span>{record.registration_id}</span>
+                <button
+                  type="button"
+                  onClick={handleCopyId}
+                  className="hover:text-white transition p-0.5"
+                  title="Click to copy registration ID"
+                >
+                  {copiedId ? (
+                    <Check className="h-3.5 w-3.5 text-signal" />
                   ) : (
-                    <span>SOLO INFILTRATOR</span>
+                    <Copy className="h-3.5 w-3.5 text-[#bef264]/70" />
                   )}
-                </p>
-              </div>
-
-              {/* Team Members List (if applicable) */}
-              {record.team_members && record.team_members.length > 0 && (
-                <div>
-                  <span className="font-pixel text-[8px] text-muted-foreground uppercase block mb-1.5 font-semibold">
-                    SQUAD OPERATIVES ({record.team_members.length + 1})
-                  </span>
-                  <div className="flex flex-wrap gap-1.5">
-                    <span className="rounded-md border border-signal/60 bg-signal/15 px-2.5 py-0.5 text-[10px] text-signal font-bold">
-                      ★ {record.full_name} (Lead)
-                    </span>
-                    {record.team_members.map((m, idx) => (
-                      <span
-                        key={idx}
-                        className="rounded-md border border-white/10 bg-white/5 px-2 py-0.5 text-[10px] text-foreground/90"
-                      >
-                        {m}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <div>
-                <span className="font-pixel text-[8px] text-muted-foreground uppercase block font-semibold">
-                  COMMUNICATION UPLINK
-                </span>
-                <p className="text-foreground mt-0.5">{record.email}</p>
-                <p className="text-muted-foreground text-[11px]">{record.phone}</p>
-              </div>
-
-              <div>
-                <span className="font-pixel text-[8px] text-muted-foreground uppercase block font-semibold">
-                  SWAG ALLOCATION
-                </span>
-                <div className="mt-1 inline-flex items-center gap-2 rounded-lg border border-signal/40 bg-signal/10 px-3 py-1 text-signal font-pixel text-xs font-bold">
-                  <span>OFFICIAL HOODIE / TEE: SIZE {record.tshirt_size || "L"}</span>
-                </div>
+                </button>
               </div>
             </div>
 
-            {/* Check-in QR Code Box with Laser Sweep (Laser hidden during download) */}
-            <div className="flex flex-col items-center justify-center rounded-2xl border border-white/10 bg-black/40 p-5 text-center backdrop-blur-sm shadow-inner">
-              <div className="relative rounded-xl bg-white p-3 shadow-[0_15px_35px_rgba(0,0,0,0.7)] overflow-hidden">
-                {qrDataUrl ? (
-                  <img
-                    src={qrDataUrl}
-                    alt="BLACKOUT Clearance Check-in QR"
-                    className="h-36 w-36 object-contain"
-                  />
-                ) : (
-                  <div className="h-36 w-36 flex items-center justify-center bg-white text-black font-mono text-[9px]">
-                    GENERATING QR...
-                  </div>
-                )}
-
-                {/* Animated Green/Purple Scanning Laser Beam - STRICTLY HIDDEN DURING DOWNLOAD */}
-                {!isDownloading && (
-                  <div
-                    data-no-download="true"
-                    className="scan-laser-line pointer-events-none absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-signal to-transparent shadow-[0_0_12px_rgba(34,197,94,1)] animate-laser-sweep"
-                  />
-                )}
-              </div>
-
-              <div className="mt-3 flex items-center gap-1.5 font-pixel text-[8px] text-signal uppercase font-bold tracking-wider">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                <span>ENTRY CLEARANCE QR</span>
-              </div>
-              <p className="mt-0.5 font-mono text-[9px] text-muted-foreground">
-                Scan with Mobile Camera at Event Desk
-              </p>
+            {/* Swag Size Allocation */}
+            <div className="mt-2 text-[10px] font-mono text-white/60 uppercase">
+              OFFICIAL HOODIE / TEE: SIZE {record.tshirt_size || "L"}
             </div>
           </div>
 
-          {/* Authentic Barcode at the Bottom */}
-          <div className="mt-8 border-t border-white/10 pt-5">
-            <div className="flex flex-wrap items-center justify-between text-muted-foreground font-mono text-[10px] tracking-wider gap-2">
-              <span>EVENT: BLACKOUT_2026</span>
-              <span>12-HR SPRINT</span>
-              <span>DATE: 28.11.2026</span>
-            </div>
-
-            {/* Barcode Graphic Representation */}
-            <div className="mt-3.5 flex items-center justify-center">
-              <div className="flex items-end gap-[2px] h-9 opacity-85">
+          {/* ========================================================= */}
+          {/* CARD BODY 5: BARCODE, CHECK-IN QR & WIREFRAME GLOBE */}
+          {/* ========================================================= */}
+          <div className="mt-6 border-t border-white/10 pt-4 flex flex-wrap items-center justify-between gap-4">
+            {/* Vertical Barcode */}
+            <div className="flex flex-col items-start">
+              <div className="flex items-end gap-[2px] h-10 opacity-90">
                 {[
                   3, 1, 4, 2, 1, 3, 2, 4, 1, 2, 3, 1, 4, 1, 2, 3, 2, 4, 1, 3, 2, 1, 4, 2, 3, 1,
-                  2, 4, 1, 3, 2, 4, 1, 2, 3, 1, 4, 2, 1, 3, 2, 4, 1, 2, 3,
+                  2, 4, 1, 3, 2, 4, 1, 2, 3,
                 ].map((w, i) => (
                   <div
                     key={i}
-                    className="bg-foreground"
+                    className="bg-white"
                     style={{
                       width: `${w}px`,
                       height: i % 2 === 0 ? "100%" : "85%",
@@ -767,24 +731,62 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
                   />
                 ))}
               </div>
+              <span className="font-mono text-[8px] text-white/40 tracking-widest mt-1">
+                AUTHENTICATED_PASS
+              </span>
             </div>
-            <p className="text-center font-mono text-[10px] text-muted-foreground tracking-[0.25em] mt-1.5">
-              * {record.registration_id} *
-            </p>
-            <p className="text-center font-mono text-[8px] text-white/35 tracking-[0.2em] uppercase mt-2 select-none">
-              ISSUED BY BUILDICY TECH // CRYPTOGRAPHIC ARENA PASS
-            </p>
+
+            {/* Check-in QR Code */}
+            <div className="flex items-center gap-3">
+              <div className="relative rounded-lg bg-white p-1.5 shadow-md">
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt="BLACKOUT Check-in QR"
+                    className="h-16 w-16 object-contain"
+                  />
+                ) : (
+                  <div className="h-16 w-16 bg-white flex items-center justify-center text-[7px] text-black">
+                    QR...
+                  </div>
+                )}
+              </div>
+
+              {/* Wireframe Globe Icon & Cyber Coordinates */}
+              <div className="flex flex-col items-center">
+                <svg
+                  className="h-7 w-7 text-white opacity-85"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <ellipse cx="12" cy="12" rx="5" ry="10" />
+                  <path d="M2 12h20" />
+                  <path d="M4 6h16" />
+                  <path d="M4 18h16" />
+                </svg>
+                <span className="font-mono text-[10px] text-white font-bold mt-0.5">73</span>
+                <span className="font-mono text-[8px] text-[#bef264]">BLCK</span>
+              </div>
+            </div>
           </div>
+
+          {/* Footer Notice */}
+          <p className="mt-4 text-center font-mono text-[8px] text-white/40 tracking-widest uppercase">
+            COIMBATORE ARENA // NOV 28, 2026 // ADMIT ONE
+          </p>
         </div>
       </div>
 
       {/* ========================================================= */}
-      {/* PRIMARY ACTION DECK: DOWNLOAD PNG (NO A4 SHEET), 1-CLICK SOCIAL */}
+      {/* 5. DIRECTLY BELOW ID CARD: DOWNLOAD & 1-CLICK SHARE ON PLATFORMS */}
       {/* ========================================================= */}
-      <div className="mt-8 max-w-2xl mx-auto space-y-4 no-print">
-        {/* Main Badge Actions */}
+      <div className="mt-8 max-w-2xl mx-auto space-y-4 no-print px-4">
+        {/* Main Action Buttons: Download Pass & Copy Post Caption */}
         <div className="flex flex-wrap items-center justify-center gap-3">
-          {/* 1. DOWNLOAD PASS (PNG - EXACT SCREEN VISUAL) */}
+          {/* Download ID Pass PNG */}
           <button
             type="button"
             onClick={handleDownloadPass}
@@ -799,12 +801,12 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
             ) : (
               <>
                 <Download className="h-4 w-4" />
-                <span>SAVE PASS AS IMAGE (PNG)</span>
+                <span>DOWNLOAD ID PASS (PNG)</span>
               </>
             )}
           </button>
 
-          {/* 2. COPY DOSSIER */}
+          {/* Copy Post Caption */}
           <button
             type="button"
             onClick={handleCopyDossier}
@@ -813,7 +815,7 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
             {copiedDossier ? (
               <>
                 <Check className="h-4 w-4 text-signal" />
-                <span>COPIED WITH HASHTAGS!</span>
+                <span>CAPTION COPIED WITH HASHTAGS!</span>
               </>
             ) : (
               <>
@@ -824,19 +826,17 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
           </button>
         </div>
 
-        {/* ========================================================= */}
-        {/* 1-CLICK SOCIAL SHARING NETWORK (LINKEDIN, WHATSAPP, X, REDDIT) */}
-        {/* ========================================================= */}
+        {/* 1-Click Social Sharing Network (LinkedIn, WhatsApp, X / Twitter, Reddit) */}
         <div className="border-2 border-border bg-card/60 p-4 shadow-[4px_4px_0_0_var(--primary)]">
           <div className="flex items-center justify-between border-b border-border/80 pb-2 mb-3">
             <div className="flex items-center gap-2">
               <Share2 className="h-4 w-4 text-signal" />
               <span className="font-pixel text-[10px] text-foreground tracking-wider uppercase font-bold">
-                1-CLICK SOCIAL BROADCAST // BRAGGING RIGHTS
+                SHARE ON SOCIAL PLATFORMS // BRAGGING RIGHTS
               </span>
             </div>
             <span className="font-mono text-[9px] text-muted-foreground hidden sm:inline">
-              Pre-filled caption + #BLACKOUT2026 hashtags
+              Pre-filled caption + #BLACKOUT2026 tags
             </span>
           </div>
 
@@ -860,7 +860,7 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
               type="button"
               onClick={handleShareWhatsApp}
               className="flex items-center justify-center gap-2 border border-[#25D366] bg-[#25D366]/15 hover:bg-[#25D366] hover:text-black p-2.5 font-mono text-xs text-[#25D366] transition active:scale-95"
-              title="Share ticket link and squad invite on WhatsApp"
+              title="Share ticket link on WhatsApp"
             >
               <svg className="h-4 w-4 fill-current shrink-0" viewBox="0 0 24 24">
                 <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2m.01 1.67c4.55 0 8.24 3.7 8.24 8.24 0 2.2-.86 4.28-2.42 5.84a8.18 8.18 0 0 1-5.82 2.41c-1.43 0-2.83-.37-4.07-1.08l-.29-.17-3.03.8 1.05-2.96-.19-.3a8.214 8.214 0 0 1-1.21-4.34c0-4.54 3.7-8.24 8.24-8.24m4.54 11.66c-.25-.13-1.47-.72-1.7-.81-.23-.08-.39-.13-.56.13-.17.25-.64.81-.79.97-.14.17-.29.19-.54.06-.25-.13-1.06-.39-2.02-1.25-.75-.67-1.26-1.5-1.4-1.75-.15-.25-.02-.39.11-.51.11-.11.25-.29.37-.44.13-.14.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.13-.56-1.35-.77-1.85-.2-.49-.41-.42-.56-.43h-.48c-.17 0-.44.06-.67.31-.23.25-.88.86-.88 2.1 0 1.24.9 2.45 1.03 2.62.13.17 1.78 2.72 4.31 3.81.6.26 1.07.42 1.44.54.61.19 1.16.17 1.6.1.49-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.15-1.18-.07-.1-.23-.17-.48-.29z" />
@@ -909,7 +909,7 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
       </div>
 
       {/* ========================================================= */}
-      {/* SOCIAL SHARE MODAL / GUIDE */}
+      {/* 6. SOCIAL SHARE GUIDE MODAL */}
       {/* ========================================================= */}
       {socialModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fade-in no-print">
@@ -968,7 +968,7 @@ export function BlackoutPassCard({ record, badgeTopSlot }: BlackoutPassCardProps
       )}
 
       {/* ========================================================= */}
-      {/* PASS IMAGE PREVIEW & IPHONE SAVE MODAL */}
+      {/* 7. PASS IMAGE PREVIEW & IPHONE SAVE MODAL */}
       {/* ========================================================= */}
       {passImageModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 p-4 backdrop-blur-md animate-fade-in no-print">
