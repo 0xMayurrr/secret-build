@@ -277,6 +277,21 @@
   animation: lock-rattle 0.4s ease-in-out;
 }
 
+@keyframes chain-rattle-heavy {
+  0% { transform: scale(1) translate(0, 0) rotate(0deg); }
+  10% { transform: scale(1.04) translate(-9px, -5px) rotate(-6deg); }
+  22% { transform: scale(1.04) translate(10px, 6px) rotate(6deg); }
+  36% { transform: scale(1.02) translate(-7px, 3px) rotate(-4deg); }
+  50% { transform: scale(1.02) translate(6px, -4px) rotate(3deg); }
+  65% { transform: scale(1.01) translate(-4px, 2px) rotate(-2deg); }
+  80% { transform: scale(1) translate(2px, -1px) rotate(1deg); }
+  100% { transform: scale(1) translate(0, 0) rotate(0deg); }
+}
+@utility animate-chain-rattle {
+  animation: chain-rattle-heavy 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+
 @media print {
   body {
     background: #000000 !important;
