@@ -1236,7 +1236,7 @@ export function RegisterPage() {
                   <div className="h-[680px] sm:h-[760px] md:h-[840px] w-full flex items-center justify-center relative overflow-visible">
                     <Lanyard
                       frontImage={generateBadgeFrontSvg(confirmedRecord)}
-                      backImage={generateBadgeBackSvg()}
+                      backImage={generateBadgeBackSvg(confirmedRecord)}
                       cardColor="#0a0314"
                       finish="glossy"
                       metal="silver"

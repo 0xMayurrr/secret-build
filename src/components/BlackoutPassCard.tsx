@@ -213,7 +213,7 @@ export function BlackoutPassCard({
   const handleDownloadIdBadge = async () => {
     setIsDownloadingBadge(true);
     try {
-      const svgDataUri = generateBadgeFrontSvg(record);
+      const svgDataUri = generateBadgeFrontSvg(record, qrDataUrl || undefined);
       const img = new Image();
       img.crossOrigin = "anonymous";
 

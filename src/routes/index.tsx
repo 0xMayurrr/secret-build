@@ -9,6 +9,7 @@ import { blackoutAudio } from "@/lib/blackout-audio";
 import Silk from "@/components/Silk";
 import BlurText from "@/components/BlurText";
 import { MinecraftIdleCharacter } from "@/components/MinecraftIdleCharacter";
+import MoltenMetal from "@/components/MoltenMetal";
 
 
 export const Route = createFileRoute("/")({
