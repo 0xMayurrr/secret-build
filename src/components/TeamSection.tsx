@@ -48,9 +48,11 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
   };
 
   const handleToggleLight = () => {
-    const nextState = !isLit;
-    playClickSound(nextState);
-    setIsLit(nextState);
+    setIsLit((prev) => {
+      const nextState = !prev;
+      playClickSound(nextState);
+      return nextState;
+    });
   };
 
   // Close dossier modal on ESC key

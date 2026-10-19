@@ -4,56 +4,58 @@ import { TeamSection } from "@/components/TeamSection";
 import { TEAM_MEMBERS } from "@/components/team-data";
 
 describe("TeamSection", () => {
-  it("contains all 21 members in team-data with Prajwal N and Mayur P at the helm", () => {
-    expect(TEAM_MEMBERS).toHaveLength(21);
-    expect(TEAM_MEMBERS[0].name).toBe("Prajwal N");
-    expect(TEAM_MEMBERS[0].role).toBe("CEO and Founder");
-    expect(TEAM_MEMBERS[1].name).toBe("Mayur P");
-    expect(TEAM_MEMBERS[1].role).toBe("CTO and co founder");
-    expect(TEAM_MEMBERS.find((m) => m.name === "Mohammed Parish Khan K")?.role).toBe("AI Engineer Intern");
-    expect(TEAM_MEMBERS.find((m) => m.name === "ShivaSakthivel L")?.role).toBe("AI Engineer Intern");
-    expect(TEAM_MEMBERS.find((m) => m.name === "Tamil TM")?.role).toBe("Applied AI Engineer");
-    expect(TEAM_MEMBERS.find((m) => m.name === "Nivethitha Ramesh")?.role).toBe("Applied AI Engineer");
-    expect(TEAM_MEMBERS.find((m) => m.name === "Jamuna Rani")?.role).toBe("SDE Intern");
-    expect(TEAM_MEMBERS.find((m) => m.name === "Rajeshwari M")?.role).toBe("SDE Intern");
-    expect(TEAM_MEMBERS.find((m) => m.name === "Bhuvana Sree S")?.role).toBe("SDE Intern");
+  it("contains all 9 members in team-data with Mayur P and Prajwal N at the helm", () => {
+    expect(TEAM_MEMBERS).toHaveLength(9);
+    expect(TEAM_MEMBERS[0].name).toBe("Mayur P");
+    expect(TEAM_MEMBERS[0].role).toBe("Tech Mentors");
+    expect(TEAM_MEMBERS[1].name).toBe("Prajwal N");
+    expect(TEAM_MEMBERS[1].role).toBe("Tech Mentors");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Mohammed Parish Khan K")?.role).toBe("Organizers");
+    expect(TEAM_MEMBERS.find((m) => m.name === "ShivaSakthivel L")?.role).toBe("Organizers");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Tamil TM")?.role).toBe("Organizers");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Nivethitha Ramesh")?.role).toBe("Organizers");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Jamuna Rani")?.role).toBe("Organizers");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Rajeshwari M")?.role).toBe("Organizers");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Bhuvana Sree S")?.role).toBe("Organizers");
   });
 
-  it("renders in OFF state by default showing CLASSIFIED and IDENTITY_LOCKED", () => {
+  it("renders in ON state by default revealing real member names and profiles", () => {
     render(<TeamSection />);
 
-    // Expect classified indicators
-    const classifiedHeadings = screen.getAllByText("CLASSIFIED");
-    expect(classifiedHeadings.length).toBeGreaterThan(0);
-
-    const lockedLabels = screen.getAllByText("IDENTITY_LOCKED");
-    expect(lockedLabels.length).toBeGreaterThan(0);
+    // Real team members appear by default
+    expect(screen.getAllByText("Prajwal N").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Mayur P").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Tamil TM").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Mohammed Parish Khan K").length).toBeGreaterThan(0);
   });
 
-  it("toggles to ON state revealing real member names and profiles when bulb is clicked", () => {
+  it("toggles to OFF state when bulb is clicked and back to ON", () => {
     render(<TeamSection />);
 
-    // Click the hanging bulb
+    // Click hanging bulb to turn OFF
     const bulbButton = screen.getByTestId("hanging-bulb");
     fireEvent.click(bulbButton);
 
-    // Real team members appear
-    expect(screen.getAllByText("Prajwal N").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Mayur P").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Karthick Mayur").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Tamil TM").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Mohammed Parish Khan K").length).toBeGreaterThan(0);
+    // Profile elements have opacity-0 when light is off
+    const revealedElements = screen.getAllByText("Mayur P");
+    revealedElements.forEach((el) => {
+      expect(el.closest("div")?.className).toContain("opacity-0");
+    });
+
+    // Click hanging bulb to turn back ON
+    fireEvent.click(bulbButton);
+
+    // Profile elements have opacity-100 when light is on
+    revealedElements.forEach((el) => {
+      expect(el.closest("div")?.className).toContain("opacity-100");
+    });
   });
 
   it("opens operative dossier modal when an illuminated card is clicked", () => {
     render(<TeamSection />);
 
-    // Turn light on first
-    const bulbButton = screen.getByTestId("hanging-bulb");
-    fireEvent.click(bulbButton);
-
     // Click on the first member card
-    const memberName = screen.getAllByText("Karthick Mayur")[0];
+    const memberName = screen.getAllByText("Mayur P")[0];
     fireEvent.click(memberName);
 
     // Modal opens with dossier info
@@ -64,28 +66,6 @@ describe("TeamSection", () => {
     const closeBtn = screen.getByText("✕ ESC");
     fireEvent.click(closeBtn);
     expect(screen.queryByText(/STATUS: CONFIRMED_BUILDER/i)).not.toBeInTheDocument();
-  });
-
-  it("toggles back to OFF state when clicked again, reverting to same as before", () => {
-    render(<TeamSection />);
-
-    const bulbButton = screen.getByTestId("hanging-bulb");
-    // Turn ON
-    fireEvent.click(bulbButton);
-    expect(screen.getAllByText("Karthick Mayur").length).toBeGreaterThan(0);
-
-    // Turn back OFF
-    fireEvent.click(bulbButton);
-
-    // Should show CLASSIFIED again
-    const classifiedHeadings = screen.getAllByText("CLASSIFIED");
-    expect(classifiedHeadings.length).toBeGreaterThan(0);
-
-    // Profile elements have opacity-0 when light is off
-    const revealedElements = screen.getAllByText("Karthick Mayur");
-    revealedElements.forEach((el) => {
-      expect(el.closest("div")).toHaveClass("opacity-0");
-    });
   });
 
   it("removes 'CLICK TO REVEAL THE PEOPLE' badge and 'CLICK TO REVEAL' button", () => {
