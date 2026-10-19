@@ -170,7 +170,6 @@ export function RegisterPage() {
   const [utrNumber, setUtrNumber] = useState("");
   const [paymentProofBase64, setPaymentProofBase64] = useState<string>("");
   const [paymentProofName, setPaymentProofName] = useState<string>("");
-  const [copiedUpi, setCopiedUpi] = useState(false);
 
   // Submitting state
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -197,11 +196,6 @@ export function RegisterPage() {
     }
   }, []);
 
-  const handleCopyUpi = () => {
-    navigator.clipboard.writeText(DEFAULT_UPI_ID);
-    setCopiedUpi(true);
-    setTimeout(() => setCopiedUpi(false), 2000);
-  };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1074,7 +1068,7 @@ export function RegisterPage() {
                     UPI PAYMENT
                   </h2>
                   <p className="font-mono text-xs text-muted-foreground mt-1">
-                    Scan QR or use UPI ID · Attach transaction screenshot
+                    Scan QR with any UPI app · Attach transaction screenshot
                   </p>
                 </div>
                 <div className="border-2 border-signal bg-signal/10 px-3.5 py-1.5 font-pixel text-xs text-signal font-bold shadow-[2px_2px_0_0_var(--signal)]">
@@ -1083,7 +1077,7 @@ export function RegisterPage() {
               </div>
 
               <div className="grid gap-8 md:grid-cols-2">
-                {/* LEFT: QR CODE DISPLAY & UPI DETAILS */}
+                {/* LEFT: QR CODE DISPLAY */}
                 <div className="flex flex-col items-center justify-center border-2 border-primary/40 bg-card/60 p-6 text-center">
                   <div className="flex items-center gap-2 font-pixel text-[9px] text-primary mb-3">
                     <QrCode className="h-4 w-4" />
@@ -1092,7 +1086,7 @@ export function RegisterPage() {
 
                   {/* QR Code Container */}
                   <div className="relative rounded-2xl border-4 border-foreground bg-white p-3.5 shadow-[6px_6px_0_0_var(--primary)] group overflow-hidden">
-                    <div className="relative flex flex-col items-center justify-center h-52 w-52 bg-white">
+                    <div className="relative flex flex-col items-center justify-center h-60 w-60 bg-white">
                       <img
                         src={paymentQr}
                         alt="BLACKOUT Payment QR Code (9843315832@superyes)"
@@ -1100,34 +1094,6 @@ export function RegisterPage() {
                       />
                     </div>
                     <div className="scanline pointer-events-none absolute inset-0 opacity-20" />
-                  </div>
-
-                  {/* Payee Info & UPI ID Copy Pill */}
-                  <div className="mt-5 w-full rounded-lg border-2 border-border bg-background p-3.5 text-left font-mono text-xs">
-                    <div className="flex items-center justify-between text-[10px] text-muted-foreground uppercase font-pixel mb-1.5">
-                      <span>PAYEE: PRAJWAL N</span>
-                      <span className="text-signal font-bold">VERIFIED UPI</span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2 pt-1.5 border-t border-border/60">
-                      <span className="text-foreground select-all font-bold tracking-wider">
-                        {DEFAULT_UPI_ID}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={handleCopyUpi}
-                        className="flex items-center gap-1 border border-signal/60 bg-signal/15 px-2.5 py-1 font-pixel text-[8px] text-signal hover:bg-signal hover:text-black transition active:scale-95"
-                      >
-                        {copiedUpi ? (
-                          <>
-                            <Check className="h-3 w-3" /> COPIED!
-                          </>
-                        ) : (
-                          <>
-                            <Copy className="h-3 w-3" /> COPY UPI ID
-                          </>
-                        )}
-                      </button>
-                    </div>
                   </div>
                 </div>
 

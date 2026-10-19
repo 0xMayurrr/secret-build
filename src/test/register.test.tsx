@@ -107,7 +107,7 @@ describe("Registration Page & Supabase Integration", () => {
     // Step 3 should now be visible
     expect(screen.getByText("UPI PAYMENT")).toBeInTheDocument();
     expect(screen.getByText(/SCAN & PAY/i)).toBeInTheDocument();
-    expect(screen.getByText(/9843315832@superyes/i)).toBeInTheDocument();
+    expect(screen.getByAltText(/9843315832@superyes/i)).toBeInTheDocument();
     expect(screen.getByText(/TOTAL DUE: ₹499/i)).toBeInTheDocument();
   });
 
