@@ -88,17 +88,12 @@ describe("TeamSection", () => {
     });
   });
 
-  it("renders 'CLICK TO REVEAL THE PEOPLE' badge and toggles light when badge is clicked", () => {
+  it("removes 'CLICK TO REVEAL THE PEOPLE' badge and 'CLICK TO REVEAL' button", () => {
     render(<TeamSection />);
 
-    const badge = screen.getByTestId("reveal-people-badge");
-    expect(badge).toBeInTheDocument();
-    expect(screen.getByText("CLICK TO REVEAL THE PEOPLE")).toBeInTheDocument();
-
-    // Click the badge to reveal the people
-    fireEvent.click(badge);
-    expect(screen.getByText("LIGHTS ON // CLICK TO DIM")).toBeInTheDocument();
-    expect(screen.getAllByText("Karthick Mayur").length).toBeGreaterThan(0);
+    expect(screen.queryByTestId("reveal-people-badge")).not.toBeInTheDocument();
+    expect(screen.queryByText("CLICK TO REVEAL THE PEOPLE")).not.toBeInTheDocument();
+    expect(screen.queryByText("CLICK TO REVEAL")).not.toBeInTheDocument();
   });
 
   it("removes manual scroll buttons (PREV, NEXT, PAUSE) and supports touch-to-stop on marquee track", () => {

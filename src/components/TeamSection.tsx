@@ -225,51 +225,6 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
         }}
       />
 
-      {/* CALLOUT BADGE POINTING TO THE BULB: "CLICK TO REVEAL THE PEOPLE" */}
-      <div
-        data-testid="reveal-people-badge"
-        role="button"
-        tabIndex={0}
-        onClick={handleToggleLight}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            handleToggleLight();
-          }
-        }}
-        className={`absolute top-20 right-24 sm:right-36 md:right-52 z-30 cursor-pointer flex items-center gap-2.5 rounded-sm border-2 px-3 py-2 transition-all duration-300 hover:scale-105 active:scale-95 ${
-          isLit
-            ? "border-amber-400 bg-black/90 text-amber-300 shadow-[4px_4px_0_0_#f59e0b]"
-            : "border-primary bg-background/95 text-foreground shadow-[5px_5px_0_0_var(--primary)] hover:border-signal hover:shadow-[6px_6px_0_0_var(--signal)] animate-bounce"
-        }`}
-        title={isLit ? "Click light to turn off" : "Click to reveal the people"}
-      >
-        <span className="font-pixel text-xs text-signal">
-          {isLit ? "💡" : "⚡"}
-        </span>
-        <div className="flex flex-col text-left">
-          <span className="font-pixel text-[9px] sm:text-[10px] tracking-wider text-foreground">
-            {isLit ? "LIGHTS ON // CLICK TO DIM" : "CLICK TO REVEAL THE PEOPLE"}
-          </span>
-          <span className="font-term text-[12px] text-signal font-bold leading-none mt-0.5">
-            {isLit ? "Operatives Revealed" : "Turn on the hanging light"}
-          </span>
-        </div>
-        <span
-          className={`font-pixel text-xs text-signal transition-transform ml-1 ${
-            isLit ? "text-amber-400 rotate-90" : "animate-pulse"
-          }`}
-        >
-          ➔
-        </span>
-      </div>
-
-      {/* Decorative pointer line from callout badge to the bulb */}
-      <div
-        className={`hidden sm:block absolute top-[104px] right-14 sm:right-24 md:right-36 w-10 sm:w-14 h-[2px] border-b-2 border-dashed transition-colors duration-500 z-20 pointer-events-none ${
-          isLit ? "border-amber-400/80" : "border-primary/80 animate-pulse"
-        }`}
-      />
 
       {/* HANGING EDISON BULB — single pivot at ceiling so wire + bulb sway together */}
       <div
@@ -469,23 +424,6 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
               <br />
               <span className="text-primary">BEHIND BLACKOUT.</span>
             </h2>
-          </div>
-
-          {/* INTERACTIVE CONTROLS BAR: Light status toggle */}
-          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 z-20">
-            {/* Quick Light Switcher */}
-            <button
-              type="button"
-              onClick={handleToggleLight}
-              className={`flex items-center gap-2 border-2 px-3 py-1.5 font-pixel text-[9px] sm:text-[10px] transition-all duration-200 active:scale-95 ${
-                isLit
-                  ? "border-amber-400 bg-amber-400/10 text-amber-300 shadow-[3px_3px_0_0_#f59e0b]"
-                  : "border-primary bg-primary/10 text-foreground shadow-[3px_3px_0_0_var(--primary)] hover:border-signal hover:text-signal hover:shadow-[3px_3px_0_0_var(--signal)]"
-              }`}
-            >
-              <span>{isLit ? "💡" : "⚡"}</span>
-              <span>{isLit ? "LIGHT: ON (REVEALED)" : "CLICK TO REVEAL"}</span>
-            </button>
           </div>
         </div>
       </div>

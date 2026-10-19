@@ -35,7 +35,9 @@ describe("Footer Component", () => {
     expect(screen.getByText("About")).toBeInTheDocument();
     expect(screen.getByText("Passes")).toBeInTheDocument();
     expect(screen.getByText("Team")).toBeInTheDocument();
-    expect(screen.getByText(/© 2026 Buildicy/i)).toBeInTheDocument();
-    expect(screen.getByText(/contact@buildicy.com/i)).toBeInTheDocument();
+    expect(screen.getByText(/buildicy@gmail.com/i)).toBeInTheDocument();
+    expect(screen.getByText(/9843315832/i)).toBeInTheDocument();
+    expect(screen.queryByText("Coimbatore Arena")).not.toBeInTheDocument();
+    expect(screen.queryByText("Privacy")).not.toBeInTheDocument();
   });
 });

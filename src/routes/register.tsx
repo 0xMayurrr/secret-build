@@ -1202,6 +1202,20 @@ export function RegisterPage() {
                   )}
                 </button>
               </div>
+
+              {/* Assistance & Helpline */}
+              <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded border border-border/60 bg-card/40 px-4 py-2.5 font-mono text-xs text-muted-foreground">
+                <span className="text-foreground">Need registration or payment assistance?</span>
+                <div className="flex flex-wrap items-center gap-4">
+                  <a href="mailto:buildicy@gmail.com" className="text-primary hover:underline">
+                    buildicy@gmail.com
+                  </a>
+                  <span>·</span>
+                  <a href="tel:+919843315832" className="text-signal hover:underline">
+                    +91 9843315832
+                  </a>
+                </div>
+              </div>
             </div>
           </section>
         )}

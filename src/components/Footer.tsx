@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { ArrowUp, Instagram, Linkedin, MessageSquare, Twitter, Mail } from "lucide-react";
+import { ArrowUp, Instagram, Linkedin, MessageSquare, Twitter, Mail, Phone } from "lucide-react";
 import blackoutLogo from "@/assets/blackout-logo.png";
 
 // 5x7 Dot-Matrix Font Definitions for the illuminated LED light element
@@ -216,11 +216,18 @@ export function Footer() {
             FAQ
           </a>
           <a
-            href="mailto:contact@buildicy.com"
-            className="flex items-center gap-1.5 hover:text-foreground transition text-primary"
+            href="mailto:buildicy@gmail.com"
+            className="flex items-center gap-1.5 hover:text-signal transition text-primary"
           >
             <Mail className="h-4 w-4" />
-            <span>contact@buildicy.com</span>
+            <span>buildicy@gmail.com</span>
+          </a>
+          <a
+            href="tel:+919843315832"
+            className="flex items-center gap-1.5 hover:text-foreground transition text-signal"
+          >
+            <Phone className="h-4 w-4" />
+            <span>+91 9843315832</span>
           </a>
         </div>
       </div>
@@ -274,9 +281,6 @@ export function Footer() {
                 <span className="font-pixel text-2xl sm:text-3xl text-white font-bold tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.7)]">
                   {activeBrand === "BLACKOUT" ? "The Blackout" : "The Buildicy"}
                 </span>
-                <span className="font-pixel text-[9px] rounded-full bg-primary/30 border border-primary/60 px-2.5 py-0.5 text-primary-foreground uppercase tracking-widest shadow-[0_0_10px_rgba(168,85,247,0.6)]">
-                  {activeBrand === "BLACKOUT" ? "ARENA" : "COMMUNITY"}
-                </span>
               </div>
               <p className="mt-1.5 font-term text-xl text-purple-100/90 drop-shadow-[0_0_10px_rgba(168,85,247,0.6)]">
                 {activeBrand === "BLACKOUT"
@@ -300,12 +304,6 @@ export function Footer() {
             <p>© 2026 Buildicy · All rights reserved.</p>
 
             <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
-              <span>Coimbatore Arena</span>
-              <span>·</span>
-              <a href="#about" className="hover:text-white transition">
-                Privacy
-              </a>
-              <span>·</span>
               <span>Made with love in Coimbatore</span>
             </div>
 

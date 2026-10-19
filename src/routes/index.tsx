@@ -530,20 +530,59 @@ function Index() {
             READY FOR THE UNKNOWN?
           </h1>
 
+          {/* HIGH-TECH CYBER COUNTDOWN TIMER WITH NEON GLOW & SPLIT HORIZON NOTCHES */}
           <div
-            className="mx-auto mt-8 grid max-w-xl grid-cols-4 gap-1.5 md:gap-3"
+            className="mx-auto mt-10 max-w-2xl px-2"
             style={{
               opacity: intro === "done" ? 1 : 0,
               transform: intro === "done" ? "none" : "translateY(20px)",
               transition: "opacity 0.7s ease 0.55s, transform 0.7s ease 0.55s",
             }}
           >
-            {cd.map(([l, v]) => (
-              <div key={l} className="border-2 border-border bg-card py-2 md:py-4">
-                <div className="font-pixel text-base text-foreground md:text-3xl">{v}</div>
-                <div className="mt-1 font-term text-sm text-muted-foreground md:text-lg">{l}</div>
-              </div>
-            ))}
+            {/* Ambient cyber header badge */}
+            <div className="mb-3 flex items-center justify-center gap-2 font-pixel text-[8px] md:text-[9px] text-primary tracking-widest uppercase">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
+              <span>T-MINUS // INITIATION PROTOCOL</span>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2 sm:gap-3 md:gap-4 relative">
+              {cd.map(([l, v]) => (
+                <div
+                  key={l}
+                  className="group relative flex flex-col items-center justify-center rounded-sm border-2 border-primary/50 bg-[#0d0718]/90 py-3 sm:py-4 md:py-6 shadow-[0_0_20px_rgba(168,85,247,0.25)] backdrop-blur-md transition-all duration-300 hover:-translate-y-1 hover:border-signal hover:shadow-[0_0_30px_rgba(168,85,247,0.5)] overflow-hidden"
+                >
+                  {/* Subtle top laser scan reflection */}
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-1/2 bg-gradient-to-b from-white/[0.08] to-transparent" />
+
+                  {/* Horizontal split-flap line divider */}
+                  <div className="pointer-events-none absolute inset-x-0 top-1/2 h-[1px] bg-black/80 shadow-[0_1px_0_0_rgba(168,85,247,0.3)]" />
+
+                  {/* High-tech corner bracket notches */}
+                  <div className="pointer-events-none absolute top-1 left-1 h-1.5 w-1.5 border-t-2 border-l-2 border-primary/70" />
+                  <div className="pointer-events-none absolute top-1 right-1 h-1.5 w-1.5 border-t-2 border-r-2 border-primary/70" />
+                  <div className="pointer-events-none absolute bottom-1 left-1 h-1.5 w-1.5 border-b-2 border-l-2 border-primary/70" />
+                  <div className="pointer-events-none absolute bottom-1 right-1 h-1.5 w-1.5 border-b-2 border-r-2 border-primary/70" />
+
+                  {/* Digit Display */}
+                  <div className="relative z-10 font-pixel text-xl sm:text-2xl md:text-4xl text-white font-bold tracking-tight drop-shadow-[0_0_14px_rgba(168,85,247,0.85)] group-hover:scale-105 transition-transform duration-200">
+                    {v}
+                  </div>
+
+                  {/* Unit Label */}
+                  <div className="relative z-10 mt-1.5 sm:mt-2 font-term text-xs sm:text-sm md:text-lg text-primary tracking-wider font-bold">
+                    {l}
+                  </div>
+
+                  {/* Seconds live pulsing LED dot */}
+                  {l === "SEC" && (
+                    <span className="absolute top-2 right-2 flex h-1.5 w-1.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-signal opacity-75" />
+                      <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-signal" />
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
           </div>
 
           <div
@@ -570,17 +609,56 @@ function Index() {
         </div>
       </section>
 
-      {/* MARQUEE */}
-      <div className="-rotate-1 overflow-hidden border-y-2 border-foreground bg-signal py-3 text-accent-foreground">
-        <div className="animate-marquee flex w-max gap-10 whitespace-nowrap font-pixel text-xs">
-          {Array.from({ length: 2 }).map((_, k) => (
-            <div key={k} className="flex gap-10">
-              {["SURPRISE CHALLENGE", "★", "NO SPOILERS", "★", "NO BRIEF", "★", "NO HINTS", "★", "JUST BUILD", "★", "NOV 28", "★"].map((s, i) => (
-                <span key={i}>{s}</span>
-              ))}
-            </div>
-          ))}
+      {/* MARQUEE WITH PURPLE-STRIPED CAUTION RAILS */}
+      <div className="-rotate-1 overflow-hidden border-y-2 border-primary bg-white shadow-[0_0_30px_rgba(168,85,247,0.45)]">
+        {/* Top Purple-Striped Hazard Rail */}
+        <div className="h-1.5 sm:h-2 w-full bg-[repeating-linear-gradient(45deg,#7e22ce,#7e22ce_12px,#ffffff_12px,#ffffff_24px)]" />
+
+        {/* Center High-Contrast White Ticker Tape with subtle purple accent */}
+        <div className="py-2.5 sm:py-3 bg-gradient-to-r from-white via-purple-50/70 to-white text-[#0a0314] relative">
+          <div
+            className="pointer-events-none absolute inset-0 opacity-[0.07]"
+            style={{
+              backgroundImage:
+                "repeating-linear-gradient(-45deg, #7e22ce 0, #7e22ce 4px, transparent 0, transparent 12px)",
+            }}
+          />
+
+          <div className="animate-marquee flex w-max gap-8 sm:gap-12 whitespace-nowrap font-pixel text-[11px] sm:text-xs font-bold relative z-10">
+            {Array.from({ length: 2 }).map((_, k) => (
+              <div key={k} className="flex items-center gap-8 sm:gap-12">
+                {[
+                  "SURPRISE CHALLENGE",
+                  "★",
+                  "NO SPOILERS",
+                  "★",
+                  "NO BRIEF",
+                  "★",
+                  "NO HINTS",
+                  "★",
+                  "JUST BUILD",
+                  "★",
+                  "NOV 28",
+                  "★",
+                ].map((s, i) => (
+                  <span
+                    key={i}
+                    className={
+                      s === "★"
+                        ? "text-primary text-sm sm:text-base animate-pulse drop-shadow-[0_0_6px_rgba(168,85,247,0.8)]"
+                        : "tracking-wider text-[#080210] hover:text-primary transition-colors"
+                    }
+                  >
+                    {s}
+                  </span>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
+
+        {/* Bottom Purple-Striped Hazard Rail */}
+        <div className="h-1.5 sm:h-2 w-full bg-[repeating-linear-gradient(-45deg,#7e22ce,#7e22ce_12px,#ffffff_12px,#ffffff_24px)]" />
       </div>
 
       {/* ABOUT */}
