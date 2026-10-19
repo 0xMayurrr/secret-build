@@ -1,3 +1,7 @@
+import prajwalNImg from "@/assets/team/prajwal-n.png";
+import mayurPImg from "@/assets/team/mayur-p.png";
+import mohammedParishKhanImg from "@/assets/team/mohammed-parish-khan.png";
+import shivasakthivelLImg from "@/assets/team/shivasakthivel-l.png";
 import tamilTmImg from "@/assets/team/tamil-tm.png";
 import nivethithaRameshImg from "@/assets/team/nivethitha-ramesh.png";
 import jamunaRaniImg from "@/assets/team/jamuna-rani.png";
@@ -20,12 +24,40 @@ export interface TeamMember {
   avatarSvg: string;
 }
 
-// 17 Team Members for BLACKOUT Hackathon
+// 21 Team Members for BLACKOUT Hackathon
 export const TEAM_MEMBERS: TeamMember[] = [
   {
     id: "ID_001",
+    name: "Prajwal N",
+    role: "CEO and Founder",
+    squad: "EXECUTIVE_CORE",
+    clearance: "ALPHA_00",
+    bio: "Founder & Chief Executive Officer of Buildicy and BLACKOUT. Pioneering covert challenge frameworks, autonomous evaluation engines, and builder ecosystems.",
+    skills: ["Executive Strategy", "Fullstack Systems", "AI Product Vision", "Cloud Infrastructure", "Dev Ecosystems"],
+    avatarBg: "oklch(0.2 0.08 270)",
+    accentColor: "#8a31fb",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com/PrajwaL-N-TECHIE",
+    avatarSvg: prajwalNImg,
+  },
+  {
+    id: "ID_002",
+    name: "Mayur P",
+    role: "CTO and co founder",
+    squad: "EXECUTIVE_CORE",
+    clearance: "ALPHA_01",
+    bio: "Co-Founder & Chief Technology Officer. Architecting core distributed infrastructure, real-time benchmark evaluation engines, and high-concurrency event telemetry.",
+    skills: ["System Architecture", "High Concurrency", "Distributed Systems", "Cloud Platforms", "Engineering Strategy"],
+    avatarBg: "oklch(0.2 0.08 190)",
+    accentColor: "#06b6d4",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    avatarSvg: mayurPImg,
+  },
+  {
+    id: "ID_003",
     name: "Karthick Mayur",
-    role: "Founder & Lead Architect",
+    role: "Lead Architect",
     squad: "LEAD_CORE",
     clearance: "ALPHA_01",
     bio: "Visionary behind BLACKOUT's surprise architecture and challenge mechanics. Directs covert infrastructure and engineering.",
@@ -366,5 +398,34 @@ export const TEAM_MEMBERS: TeamMember[] = [
     github: "https://github.com",
     avatarSvg: bhuvanaSreeImg,
   },
+  {
+    id: "ID_018",
+    name: "Mohammed Parish Khan K",
+    role: "AI Engineer Intern",
+    squad: "NEURAL_LABS",
+    clearance: "SIGMA_18",
+    bio: "Researching autonomous agent workflows and neural model inference. Crafting production-grade machine learning pipelines and fine-tuned evaluators.",
+    skills: ["AI Engineering", "Deep Learning", "Python", "Neural Networks", "NLP"],
+    avatarBg: "oklch(0.2 0.08 290)",
+    accentColor: "#a855f7",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    avatarSvg: mohammedParishKhanImg,
+  },
+  {
+    id: "ID_019",
+    name: "ShivaSakthivel L",
+    role: "AI Engineer Intern",
+    squad: "NEURAL_LABS",
+    clearance: "SIGMA_19",
+    bio: "Implementing computer vision solutions and real-time AI reasoning systems. Optimizing generative pipelines for low latency and high accuracy.",
+    skills: ["AI Research", "Computer Vision", "Model Deployment", "PyTorch", "Generative AI"],
+    avatarBg: "oklch(0.2 0.08 240)",
+    accentColor: "#3b82f6",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    avatarSvg: shivasakthivelLImg,
+  },
 ];
+
 

@@ -4,10 +4,14 @@ import { TeamSection } from "@/components/TeamSection";
 import { TEAM_MEMBERS } from "@/components/team-data";
 
 describe("TeamSection", () => {
-  it("contains all 17 members in team-data", () => {
-    expect(TEAM_MEMBERS).toHaveLength(17);
-    expect(TEAM_MEMBERS[0].name).toBe("Karthick Mayur");
-    expect(TEAM_MEMBERS[0].role).toBe("Founder & Lead Architect");
+  it("contains all 21 members in team-data with Prajwal N and Mayur P at the helm", () => {
+    expect(TEAM_MEMBERS).toHaveLength(21);
+    expect(TEAM_MEMBERS[0].name).toBe("Prajwal N");
+    expect(TEAM_MEMBERS[0].role).toBe("CEO and Founder");
+    expect(TEAM_MEMBERS[1].name).toBe("Mayur P");
+    expect(TEAM_MEMBERS[1].role).toBe("CTO and co founder");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Mohammed Parish Khan K")?.role).toBe("AI Engineer Intern");
+    expect(TEAM_MEMBERS.find((m) => m.name === "ShivaSakthivel L")?.role).toBe("AI Engineer Intern");
     expect(TEAM_MEMBERS.find((m) => m.name === "Tamil TM")?.role).toBe("Applied AI Engineer");
     expect(TEAM_MEMBERS.find((m) => m.name === "Nivethitha Ramesh")?.role).toBe("Applied AI Engineer");
     expect(TEAM_MEMBERS.find((m) => m.name === "Jamuna Rani")?.role).toBe("SDE Intern");
@@ -34,11 +38,11 @@ describe("TeamSection", () => {
     fireEvent.click(bulbButton);
 
     // Real team members appear
+    expect(screen.getAllByText("Prajwal N").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Mayur P").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Karthick Mayur").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Harish Kumar").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Tamil TM").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Nivethitha Ramesh").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Jamuna Rani").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Mohammed Parish Khan K").length).toBeGreaterThan(0);
   });
 
   it("opens operative dossier modal when an illuminated card is clicked", () => {
