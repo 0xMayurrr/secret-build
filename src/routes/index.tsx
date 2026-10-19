@@ -10,6 +10,8 @@ import { PaperCrumple } from "@/components/PaperCrumple";
 import { CLASSIFIED_BRIEF_DATA_URL } from "@/assets/classifiedDossierData";
 import { Lock, ArrowUp } from "lucide-react";
 import { blackoutAudio } from "@/lib/blackout-audio";
+import MoltenMetal from "@/components/MoltenMetal";
+import Silk from "@/components/Silk";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -621,9 +623,25 @@ function Index() {
       </div>
 
       {/* HERO */}
-      <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-20 pb-12 md:pt-24 md:pb-16">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_75%)]" />
-        <div className="relative mx-auto w-full max-w-6xl px-5 text-center">
+      <section id="top" className="pixel-grid relative flex min-h-screen items-center pt-20 pb-12 md:pt-24 md:pb-16 overflow-hidden">
+        {/* WEBGL2 MOLTEN METAL REACTOR CORE FLUID EFFECT */}
+        <div className="absolute inset-0 z-0 overflow-hidden opacity-35 pointer-events-auto">
+          <MoltenMetal
+            colors={['#5227FF', '#9333ea', '#c084fc', '#06b6d4']}
+            coreColor="#ffffff"
+            backgroundColor="transparent"
+            speed={0.28}
+            scale={3.6}
+            swirl={1.2}
+            turbulence={0.2}
+            glow={1.8}
+            thickness={1.1}
+            mouseInteraction={true}
+            flareOnClick={true}
+          />
+        </div>
+        <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_75%)]" />
+        <div className="relative z-10 mx-auto w-full max-w-6xl px-5 text-center">
 
           <p
             className="font-term text-lg text-signal md:text-2xl"
@@ -917,8 +935,26 @@ function Index() {
       </section>
 
       {/* PASSES */}
-      <section id="passes" className="pixel-grid border-y-2 border-border py-28">
-        <div className="mx-auto max-w-6xl px-5">
+      <section id="passes" className="pixel-grid border-y-2 border-border py-28 relative overflow-hidden">
+        {/* WEBGL2 INTERACTIVE SILK CLOTH BACKGROUND EFFECT */}
+        <div className="absolute inset-0 z-0 overflow-hidden opacity-30 pointer-events-auto">
+          <Silk
+            color="#2a0845"
+            sheenColor="#a855f7"
+            speed={3.2}
+            scale={1.2}
+            noiseIntensity={1.2}
+            depth={0.5}
+            sheen={0.7}
+            glow={0.35}
+            ripple={1.4}
+            wave={1.1}
+            mouseInteraction={true}
+            clickRipple={true}
+            fade={0.3}
+          />
+        </div>
+        <div className="relative z-10 mx-auto max-w-6xl px-5">
           <SectionHead n="04" k="registration passes" title="Pick your pass." />
           <div className="mt-8 grid gap-5 md:grid-cols-3">
             {PASSES.map((p, i) => (
