@@ -8,7 +8,6 @@ interface TeamSectionProps {
 export function TeamSection({ sectionHead }: TeamSectionProps) {
   const [isLit, setIsLit] = useState(false);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
-  const [isManuallyPaused, setIsManuallyPaused] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -16,7 +15,6 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
   const startXRef = useRef(0);
   const scrollStartRef = useRef(0);
   const hasDraggedRef = useRef(false);
-  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Play retro mechanical switch sound with Web Audio API
   const playClickSound = (turnOn: boolean) => {
@@ -93,18 +91,19 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-scrolling requestAnimationFrame loop with pause support
+  // Auto-scrolling marquee requestAnimationFrame loop
+  // Moves continuously; stops only when touched or clicked/dragged
   useEffect(() => {
     let animationFrameId: number;
     let lastTime = performance.now();
-    const speed = 0.045; // pixels per ms (~45px per second, smooth continuous glide)
+    const speed = 0.055; // pixels per ms (~55px/sec smooth continuous marquee glide)
 
     const tick = (time: number) => {
       const dt = time - lastTime;
       lastTime = time;
 
       const container = scrollContainerRef.current;
-      if (container && !isUserInteractingRef.current && !isManuallyPaused) {
+      if (container && !isUserInteractingRef.current) {
         container.scrollLeft += speed * Math.min(dt, 50);
         checkInfiniteBounds();
       }
@@ -114,14 +113,34 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
 
     animationFrameId = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(animationFrameId);
-  }, [isManuallyPaused, checkInfiniteBounds]);
+  }, [checkInfiniteBounds]);
 
-  const resetResumeTimer = () => {
-    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+  // Touch handlers for mobile/tablet: stops marquee immediately when touched, resumes when touch ends
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container || e.touches.length === 0) return;
     isUserInteractingRef.current = true;
-    resumeTimeoutRef.current = setTimeout(() => {
-      isUserInteractingRef.current = false;
-    }, 1800);
+    setIsDragging(true);
+    hasDraggedRef.current = false;
+    startXRef.current = e.touches[0].pageX - container.offsetLeft;
+    scrollStartRef.current = container.scrollLeft;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container || e.touches.length === 0) return;
+    const currentX = e.touches[0].pageX - container.offsetLeft;
+    const delta = (currentX - startXRef.current) * 1.3;
+    if (Math.abs(delta) > 5) {
+      hasDraggedRef.current = true;
+    }
+    container.scrollLeft = scrollStartRef.current - delta;
+    checkInfiniteBounds();
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    isUserInteractingRef.current = false;
   };
 
   // Drag-to-scroll Handlers for Mouse
@@ -133,7 +152,6 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
     startXRef.current = e.pageX - container.offsetLeft;
     scrollStartRef.current = container.scrollLeft;
     isUserInteractingRef.current = true;
-    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
   };
 
   const handleMouseMove = (e: React.MouseEvent) => {
@@ -152,41 +170,14 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
 
   const handleMouseUp = () => {
     setIsDragging(false);
-    resetResumeTimer();
+    isUserInteractingRef.current = false;
   };
 
   const handleMouseLeave = () => {
     if (isDragging) {
       setIsDragging(false);
-      resetResumeTimer();
+      isUserInteractingRef.current = false;
     }
-  };
-
-  // Touch handlers for mobile / tablet drag
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const container = scrollContainerRef.current;
-    if (!container || e.touches.length === 0) return;
-    hasDraggedRef.current = false;
-    startXRef.current = e.touches[0].pageX - container.offsetLeft;
-    scrollStartRef.current = container.scrollLeft;
-    isUserInteractingRef.current = true;
-    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
-  };
-
-  const handleTouchMove = (e: React.TouchEvent) => {
-    const container = scrollContainerRef.current;
-    if (!container || e.touches.length === 0) return;
-    const currentX = e.touches[0].pageX - container.offsetLeft;
-    const delta = (currentX - startXRef.current) * 1.3;
-    if (Math.abs(delta) > 5) {
-      hasDraggedRef.current = true;
-    }
-    container.scrollLeft = scrollStartRef.current - delta;
-    checkInfiniteBounds();
-  };
-
-  const handleTouchEnd = () => {
-    resetResumeTimer();
   };
 
   // Wheel horizontal scrolling handler
@@ -197,21 +188,7 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
     if (Math.abs(delta) > 0) {
       container.scrollLeft += delta;
       checkInfiniteBounds();
-      resetResumeTimer();
     }
-  };
-
-  // Manual button step scrolling
-  const scrollManual = (direction: "left" | "right") => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-    resetResumeTimer();
-    const scrollAmount = 320;
-    container.scrollBy({
-      left: direction === "left" ? -scrollAmount : scrollAmount,
-      behavior: "smooth",
-    });
-    setTimeout(checkInfiniteBounds, 350);
   };
 
   // 4 sets guarantee a seamless infinite scroll canvas with ample room for forward and backward scrolling
@@ -494,7 +471,7 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
             </h2>
           </div>
 
-          {/* INTERACTIVE CONTROLS BAR: Light status toggle + Marquee Scroll Controls */}
+          {/* INTERACTIVE CONTROLS BAR: Light status toggle */}
           <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 z-20">
             {/* Quick Light Switcher */}
             <button
@@ -509,45 +486,11 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
               <span>{isLit ? "💡" : "⚡"}</span>
               <span>{isLit ? "LIGHT: ON (REVEALED)" : "CLICK TO REVEAL"}</span>
             </button>
-
-            {/* Manual Scroll: Prev */}
-            <button
-              type="button"
-              onClick={() => scrollManual("left")}
-              aria-label="Scroll left"
-              className="border-2 border-foreground bg-background px-2.5 py-1.5 font-pixel text-[10px] text-foreground shadow-[3px_3px_0_0_var(--primary)] hover:border-signal hover:text-signal hover:shadow-[3px_3px_0_0_var(--signal)] active:scale-95 transition"
-            >
-              ◀ PREV
-            </button>
-
-            {/* Auto-scroll Pause / Resume Toggle */}
-            <button
-              type="button"
-              onClick={() => setIsManuallyPaused(!isManuallyPaused)}
-              aria-label={isManuallyPaused ? "Resume auto scroll" : "Pause auto scroll"}
-              className="border-2 border-foreground bg-background px-2.5 py-1.5 font-pixel text-[10px] text-foreground shadow-[3px_3px_0_0_var(--primary)] hover:border-signal hover:text-signal hover:shadow-[3px_3px_0_0_var(--signal)] active:scale-95 transition"
-            >
-              {isManuallyPaused ? "▶ AUTO" : "❚❚ PAUSE"}
-            </button>
-
-            {/* Manual Scroll: Next */}
-            <button
-              type="button"
-              onClick={() => scrollManual("right")}
-              aria-label="Scroll right"
-              className="border-2 border-foreground bg-background px-2.5 py-1.5 font-pixel text-[10px] text-foreground shadow-[3px_3px_0_0_var(--primary)] hover:border-signal hover:text-signal hover:shadow-[3px_3px_0_0_var(--signal)] active:scale-95 transition"
-            >
-              NEXT ▶
-            </button>
-
-            <span className="hidden lg:inline-block font-term text-base text-muted-foreground ml-1">
-              ⇄ DRAG OR SCROLL
-            </span>
           </div>
         </div>
       </div>
 
-      {/* CONTINUOUS MARQUEE TRACK WITH FULL DRAG & WHEEL MANUAL SCROLLING */}
+      {/* CONTINUOUS MARQUEE TRACK (STOPS ONLY WHEN TOUCHED) */}
       <div className="relative mt-8 w-full overflow-hidden py-10 md:py-14">
         {/* Left Edge CRT Fade Mask */}
         <div
@@ -569,9 +512,10 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
           }}
         />
 
-        {/* Interactive Infinite Scrolling Container with Drag-to-Scroll & Mousewheel Support */}
+        {/* Interactive Infinite Scrolling Container with Touch-to-Stop & Drag Support */}
         <div
           ref={scrollContainerRef}
+          data-testid="team-marquee-track"
           onMouseDown={handleMouseDown}
           onMouseMove={handleMouseMove}
           onMouseUp={handleMouseUp}
@@ -579,10 +523,8 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onTouchCancel={handleTouchEnd}
           onWheel={handleWheel}
-          onMouseEnter={() => {
-            isUserInteractingRef.current = true;
-          }}
           className={`flex w-full overflow-x-auto items-start gap-5 px-3 select-none pb-8 pt-4 ${
             isDragging ? "cursor-grabbing" : "cursor-grab"
           }`}

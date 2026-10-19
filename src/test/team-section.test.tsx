@@ -91,21 +91,20 @@ describe("TeamSection", () => {
     expect(screen.getAllByText("Karthick Mayur").length).toBeGreaterThan(0);
   });
 
-  it(
-    "renders manual scroll controls (PREV, NEXT, PAUSE/AUTO)",
-    () => {
-      render(<TeamSection />);
+  it("removes manual scroll buttons (PREV, NEXT, PAUSE) and supports touch-to-stop on marquee track", () => {
+    render(<TeamSection />);
 
-      expect(screen.getByRole("button", { name: /scroll left/i })).toBeInTheDocument();
-      expect(screen.getByRole("button", { name: /scroll right/i })).toBeInTheDocument();
-      const pauseBtn = screen.getByRole("button", { name: /pause auto scroll/i });
-      expect(pauseBtn).toBeInTheDocument();
+    // PREV, NEXT, and PAUSE buttons must not exist
+    expect(screen.queryByRole("button", { name: /scroll left/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /scroll right/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /pause auto scroll/i })).not.toBeInTheDocument();
 
-      // Clicking pause toggles state
-      fireEvent.click(pauseBtn);
-      expect(screen.getByRole("button", { name: /resume auto scroll/i })).toBeInTheDocument();
-    },
-    15000
-  );
+    // Marquee track exists and handles touch events
+    const track = screen.getByTestId("team-marquee-track");
+    expect(track).toBeInTheDocument();
+
+    fireEvent.touchStart(track, { touches: [{ pageX: 100 }] });
+    fireEvent.touchEnd(track);
+  });
 });
 
