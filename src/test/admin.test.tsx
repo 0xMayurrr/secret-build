@@ -194,4 +194,83 @@ describe("Admin Registration Desk & QR Check-in System", () => {
       expect(screen.getByText("LIVE CHECK-IN & ATTENDANCE")).toBeInTheDocument();
     });
   });
+
+  it("restricts total revenue visibility by default and reveals it when admin toggles or opens vault", async () => {
+    render(<AdminDeskPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+    });
+
+    // By default, revenue logged should be masked and marked as ADMIN ONLY
+    expect(screen.getByText(/REVENUE LOGGED/i)).toBeInTheDocument();
+    expect(screen.getByText(/ADMIN ONLY/i)).toBeInTheDocument();
+    expect(screen.getByText(/RESTRICTED TO ADMIN/i)).toBeInTheDocument();
+
+    // Click reveal toggle button
+    const revealBtn = screen.getByTitle(/Reveal revenue \(Admin\)/i);
+    fireEvent.click(revealBtn);
+
+    // Now revenue amount should be revealed
+    await waitFor(() => {
+      expect(screen.getByText(/1,497/i)).toBeInTheDocument();
+    });
+
+    // Click hide button
+    const hideBtn = screen.getByTitle(/Hide revenue from desk/i);
+    fireEvent.click(hideBtn);
+    expect(screen.getByText(/RESTRICTED TO ADMIN/i)).toBeInTheDocument();
+
+    // Click lock icon to open Admin Financial Vault modal
+    const vaultBtn = screen.getByTitle(/Open Admin Financial Vault/i);
+    fireEvent.click(vaultBtn);
+
+    expect(screen.getByText("ADMIN FINANCIAL VAULT")).toBeInTheDocument();
+    expect(screen.getByText(/TOTAL REVENUE LODGED/i)).toBeInTheDocument();
+    expect(screen.getByText("CLOSE VAULT")).toBeInTheDocument();
+
+    // Close modal
+    fireEvent.click(screen.getByText("CLOSE VAULT"));
+    expect(screen.queryByText("ADMIN FINANCIAL VAULT")).not.toBeInTheDocument();
+  });
+
+  it("displays uploaded payment screenshot proof in dossier and opens lightbox modal", async () => {
+    render(<AdminDeskPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
+    });
+
+    // Select attendee row to open active dossier
+    const row = screen.getByText("Ada Lovelace").closest("tr");
+    expect(row).not.toBeNull();
+    fireEvent.click(row!);
+
+    // Check payment screenshot section in dossier
+    await waitFor(() => {
+      expect(screen.getByText("PAYMENT SCREENSHOT PROOF")).toBeInTheDocument();
+      expect(screen.getByText("✔ SCREENSHOT ATTACHED")).toBeInTheDocument();
+      expect(screen.getAllByText("987654321098").length).toBeGreaterThanOrEqual(1);
+    });
+
+    // Click "VIEW FULL SCREENSHOT" button to open lightbox
+    const viewProofBtn = screen.getByRole("button", { name: /VIEW FULL SCREENSHOT/i });
+    fireEvent.click(viewProofBtn);
+
+    // Lightbox modal should be open
+    expect(screen.getByText("PAYMENT VERIFICATION PROOF")).toBeInTheDocument();
+    const modalImg = screen.getByAltText(/Payment screenshot for Ada Lovelace/i);
+    expect(modalImg).toBeInTheDocument();
+    expect(modalImg).toHaveAttribute("src", "data:image/png;base64,mockproof");
+
+    // Close lightbox
+    const closeBtn = screen.getByRole("button", { name: "Close proof preview" });
+    fireEvent.click(closeBtn);
+    expect(screen.queryByText("PAYMENT VERIFICATION PROOF")).not.toBeInTheDocument();
+
+    // Also test table row quick PROOF button
+    const tableProofBtn = screen.getByTitle(/View uploaded payment screenshot proof/i);
+    fireEvent.click(tableProofBtn);
+    expect(screen.getByText("PAYMENT VERIFICATION PROOF")).toBeInTheDocument();
+  });
 });

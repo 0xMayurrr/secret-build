@@ -28,6 +28,9 @@ import {
   EyeOff,
   LogOut,
   User,
+  Image as ImageIcon,
+  Maximize2,
+  ExternalLink,
 } from "lucide-react";
 import blackoutLogo from "@/assets/blackout-logo.png";
 import {
@@ -90,6 +93,25 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
   const [activeDossier, setActiveDossier] = useState<RegistrationRecord | null>(null);
   const [actionSuccessMsg, setActionSuccessMsg] = useState("");
   const [actionErrorMsg, setActionErrorMsg] = useState("");
+
+  // Admin-only revenue display clearance
+  const [showRevenue, setShowRevenue] = useState(false);
+  const [showAdminRevenueModal, setShowAdminRevenueModal] = useState(false);
+
+  // Payment proof screenshot viewer lightbox
+  const [proofModalRecord, setProofModalRecord] = useState<RegistrationRecord | null>(null);
+
+  // Close modals on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setProofModalRecord(null);
+        setShowAdminRevenueModal(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   const scannerRef = useRef<any>(null);
   const fileScanInputRef = useRef<HTMLInputElement>(null);
@@ -783,6 +805,16 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
 
             <button
               type="button"
+              onClick={() => setShowAdminRevenueModal(true)}
+              title="Admin Financial Vault (Total Revenue & Sales)"
+              className="hidden sm:flex items-center gap-1.5 border border-primary/50 bg-primary/10 px-2.5 py-1 font-pixel text-[8px] text-primary hover:bg-primary hover:text-black transition active:scale-95"
+            >
+              <Lock className="h-3 w-3" />
+              <span>ADMIN REVENUE</span>
+            </button>
+
+            <button
+              type="button"
               onClick={() => loadData()}
               title="Refresh attendance records"
               className="flex items-center gap-1.5 border border-border px-2.5 py-1 font-mono text-xs text-muted-foreground hover:text-foreground hover:border-signal transition active:scale-95"
@@ -841,14 +873,54 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
             </div>
           </div>
 
-          <div className="border-2 border-primary/60 bg-primary/5 p-4 shadow-[4px_4px_0_0_var(--primary)]">
-            <span className="font-pixel text-[8px] text-primary uppercase block">
-              REVENUE LOGGED
-            </span>
-            <div className="mt-2 flex items-baseline gap-2">
-              <span className="font-pixel text-xl sm:text-2xl text-primary font-bold">
-                ₹{totalRevenue.toLocaleString("en-IN")}
+          {/* REVENUE LOGGED (RESTRICTED TO ADMIN ONLY) */}
+          <div className="border-2 border-primary/50 bg-primary/5 p-4 shadow-[4px_4px_0_0_var(--primary)] flex flex-col justify-between">
+            <div className="flex items-center justify-between">
+              <span className="font-pixel text-[8px] text-primary uppercase block font-bold">
+                REVENUE LOGGED
               </span>
+              <span className="border border-primary/50 bg-primary/15 px-1.5 py-0.5 font-pixel text-[7px] text-primary font-bold">
+                🔒 ADMIN ONLY
+              </span>
+            </div>
+
+            <div className="mt-2 flex items-center justify-between">
+              {showRevenue ? (
+                <div>
+                  <span className="font-pixel text-xl sm:text-2xl text-primary font-bold">
+                    ₹{totalRevenue.toLocaleString("en-IN")}
+                  </span>
+                  <span className="block font-mono text-[9px] text-muted-foreground">TOTAL LOGGED</span>
+                </div>
+              ) : (
+                <div>
+                  <span className="font-pixel text-base sm:text-lg text-muted-foreground font-bold tracking-widest block">
+                    ●●●●●●
+                  </span>
+                  <span className="block font-mono text-[9px] text-muted-foreground">
+                    RESTRICTED TO ADMIN
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => setShowRevenue((prev) => !prev)}
+                  title={showRevenue ? "Hide revenue from desk" : "Reveal revenue (Admin)"}
+                  className="border border-primary/60 bg-primary/20 p-1.5 font-pixel text-[8px] text-primary hover:bg-primary hover:text-black transition active:scale-95 shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]"
+                >
+                  {showRevenue ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAdminRevenueModal(true)}
+                  title="Open Admin Financial Vault"
+                  className="border border-border bg-card p-1.5 font-pixel text-[8px] text-muted-foreground hover:text-foreground hover:border-signal transition active:scale-95 shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]"
+                >
+                  <Lock className="h-3.5 w-3.5" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1143,6 +1215,109 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                     </div>
                   </div>
 
+                  {/* PAYMENT SCREENSHOT PROOF & UTR AUDIT */}
+                  <div className="border border-border/80 bg-background/70 p-3.5 space-y-2.5">
+                    <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                      <div className="flex items-center gap-2 font-pixel text-[9px] text-foreground font-bold">
+                        <ImageIcon className="h-3.5 w-3.5 text-primary" />
+                        <span>PAYMENT SCREENSHOT PROOF</span>
+                      </div>
+                      {activeDossier.payment_proof_url ? (
+                        <span className="border border-signal bg-signal/15 px-2 py-0.5 font-pixel text-[8px] text-signal font-bold">
+                          ✔ SCREENSHOT ATTACHED
+                        </span>
+                      ) : (
+                        <span className="border border-amber-500/60 bg-amber-500/10 px-2 py-0.5 font-pixel text-[8px] text-amber-400 font-bold">
+                          ⚠ NO IMAGE ATTACHED
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-3.5">
+                      {activeDossier.payment_proof_url ? (
+                        <>
+                          {/* Clickable interactive thumbnail */}
+                          <div
+                            onClick={() => setProofModalRecord(activeDossier)}
+                            className="relative group cursor-pointer border-2 border-primary/60 bg-black/80 p-1 w-full sm:w-36 h-28 flex items-center justify-center overflow-hidden hover:border-signal transition shrink-0 shadow-[2px_2px_0_0_var(--primary)]"
+                            title="Click to expand payment screenshot"
+                          >
+                            <img
+                              src={activeDossier.payment_proof_url}
+                              alt={`Payment proof for ${activeDossier.full_name}`}
+                              className="w-full h-full object-contain transition duration-200 group-hover:scale-105"
+                            />
+                            <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center backdrop-blur-[1px]">
+                              <div className="border border-signal bg-black/90 px-2 py-1 font-pixel text-[7px] text-signal flex items-center gap-1 shadow-md">
+                                <Maximize2 className="h-2.5 w-2.5" />
+                                <span>ZOOM</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Info & action buttons */}
+                          <div className="flex-1 space-y-2 text-left w-full">
+                            <div className="font-mono text-xs">
+                              <span className="text-muted-foreground block text-[10px]">
+                                SUBMITTED TRANSACTION UTR:
+                              </span>
+                              <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                <span className="font-bold text-signal font-mono text-sm bg-signal/10 px-2 py-0.5 border border-signal/40 tracking-wider">
+                                  {activeDossier.utr_number || "NO UTR ENTERED"}
+                                </span>
+                                {activeDossier.utr_number && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      navigator.clipboard?.writeText(activeDossier.utr_number);
+                                      setActionSuccessMsg("Copied UTR: " + activeDossier.utr_number);
+                                    }}
+                                    className="border border-border hover:border-signal px-2 py-0.5 font-pixel text-[8px] text-muted-foreground hover:text-signal transition"
+                                    title="Copy UTR number"
+                                  >
+                                    COPY
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap gap-2 pt-1">
+                              <button
+                                type="button"
+                                onClick={() => setProofModalRecord(activeDossier)}
+                                className="flex items-center gap-1.5 border border-primary bg-primary/20 px-3 py-1.5 font-pixel text-[8px] text-primary hover:bg-primary hover:text-primary-foreground transition active:scale-95 shadow-[2px_2px_0_0_var(--signal)] font-bold"
+                              >
+                                <Maximize2 className="h-3 w-3" />
+                                <span>VIEW FULL SCREENSHOT</span>
+                              </button>
+
+                              <a
+                                href={activeDossier.payment_proof_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-1 border border-border px-2.5 py-1.5 font-pixel text-[8px] text-muted-foreground hover:text-foreground hover:border-signal transition"
+                                title="Open screenshot in new tab"
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                                <span>OPEN IN NEW TAB</span>
+                              </a>
+                            </div>
+                          </div>
+                        </>
+                      ) : (
+                        <div className="w-full p-4 text-center border border-dashed border-border/80 bg-background/40">
+                          <p className="font-pixel text-[9px] text-amber-400">
+                            NO PAYMENT SCREENSHOT WAS UPLOADED DURING REGISTRATION
+                          </p>
+                          <p className="font-mono text-xs text-muted-foreground mt-1">
+                            Manual UTR:{" "}
+                            <strong className="text-foreground font-mono">{activeDossier.utr_number || "None"}</strong>
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
                   {/* CHECK-IN STATUS BADGE / TIMESTAMP */}
                   {activeDossier.checked_in && (
                     <div className="border border-signal/60 bg-signal/10 p-3 flex items-center justify-between text-signal">
@@ -1294,9 +1469,25 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                         <span className="text-[10px] text-muted-foreground block truncate">
                           {record.email} · {record.organization}
                         </span>
-                        <span className="font-mono text-[9px] text-signal font-bold">
-                          {record.registration_id}
-                        </span>
+                        <div className="flex items-center gap-2 mt-0.5">
+                          <span className="font-mono text-[9px] text-signal font-bold">
+                            {record.registration_id}
+                          </span>
+                          {record.payment_proof_url && (
+                            <button
+                              type="button"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setProofModalRecord(record);
+                              }}
+                              className="inline-flex items-center gap-1 border border-primary/60 bg-primary/15 px-1.5 py-0.5 font-pixel text-[7px] text-primary hover:bg-primary hover:text-black transition"
+                              title="View uploaded payment screenshot proof"
+                            >
+                              <ImageIcon className="h-2.5 w-2.5" />
+                              <span>PROOF</span>
+                            </button>
+                          )}
+                        </div>
                       </td>
 
                       <td className="px-4 py-3">
@@ -1368,6 +1559,232 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
             </table>
           </div>
         </section>
+
+        {/* ============================================================== */}
+        {/* ADMIN FINANCIAL VAULT MODAL (RESTRICTED TO ADMIN ONLY) */}
+        {/* ============================================================== */}
+        {showAdminRevenueModal && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in"
+            onClick={() => setShowAdminRevenueModal(false)}
+          >
+            <div
+              className="relative w-full max-w-lg border-2 border-primary bg-[#0d0417] p-6 shadow-[8px_8px_0_0_var(--signal)] text-foreground"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between border-b-2 border-border/80 pb-3 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded border border-primary bg-primary/20 flex items-center justify-center text-primary">
+                    <Lock className="h-4 w-4" />
+                  </div>
+                  <div>
+                    <h3 className="font-pixel text-sm text-foreground font-bold">
+                      ADMIN FINANCIAL VAULT
+                    </h3>
+                    <span className="font-mono text-[10px] text-signal">
+                      RESTRICTED EXECUTIVE CLEARANCE
+                    </span>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setShowAdminRevenueModal(false)}
+                  className="border-2 border-border p-1.5 font-pixel text-xs text-muted-foreground hover:border-destructive hover:text-destructive transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div className="space-y-4 font-mono text-xs">
+                <div className="border-2 border-primary/60 bg-primary/10 p-4 text-center shadow-[4px_4px_0_0_var(--primary)]">
+                  <span className="font-pixel text-[9px] text-primary uppercase block">
+                    TOTAL REVENUE LODGED
+                  </span>
+                  <span className="font-pixel text-3xl sm:text-4xl text-foreground font-bold block mt-1">
+                    ₹{totalRevenue.toLocaleString("en-IN")}
+                  </span>
+                  <span className="font-mono text-[10px] text-muted-foreground mt-1 block">
+                    Calculated from {registrations.length} verified participant registrations
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 pt-2">
+                  <div className="border border-border/80 bg-background/80 p-3">
+                    <span className="font-pixel text-[8px] text-muted-foreground uppercase block">
+                      SOLO PARTICIPANTS
+                    </span>
+                    <span className="font-pixel text-lg text-foreground font-bold block mt-1">
+                      {registrations.filter((r) => r.participation_type !== "team").length}
+                    </span>
+                    <span className="text-[10px] text-signal font-bold">
+                      ₹{registrations
+                        .filter((r) => r.participation_type !== "team")
+                        .reduce((acc, r) => acc + (r.total_price || r.pass_price || 0), 0)
+                        .toLocaleString("en-IN")}
+                    </span>
+                  </div>
+
+                  <div className="border border-border/80 bg-background/80 p-3">
+                    <span className="font-pixel text-[8px] text-muted-foreground uppercase block">
+                      TEAM SQUADS
+                    </span>
+                    <span className="font-pixel text-lg text-foreground font-bold block mt-1">
+                      {registrations.filter((r) => r.participation_type === "team").length}
+                    </span>
+                    <span className="text-[10px] text-signal font-bold">
+                      ₹{registrations
+                        .filter((r) => r.participation_type === "team")
+                        .reduce((acc, r) => acc + (r.total_price || r.pass_price || 0), 0)
+                        .toLocaleString("en-IN")}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="border border-border/60 bg-background/60 p-3 flex items-center justify-between">
+                  <div>
+                    <span className="font-pixel text-[8px] text-muted-foreground uppercase block">
+                      DESK DISPLAY TOGGLE
+                    </span>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">
+                      Keep revenue hidden from volunteers at check-in desk
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowRevenue((prev) => !prev);
+                      setShowAdminRevenueModal(false);
+                    }}
+                    className={`border px-3 py-1.5 font-pixel text-[8px] font-bold transition ${
+                      showRevenue
+                        ? "border-destructive/60 bg-destructive/15 text-destructive hover:bg-destructive hover:text-white"
+                        : "border-signal bg-signal/20 text-signal hover:bg-signal hover:text-black"
+                    }`}
+                  >
+                    {showRevenue ? "HIDE ON DESK" : "REVEAL ON DESK"}
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-5 pt-3 border-t border-border/60 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowAdminRevenueModal(false)}
+                  className="border-2 border-border px-5 py-2 font-pixel text-[9px] text-muted-foreground hover:text-foreground hover:border-signal transition"
+                >
+                  CLOSE VAULT
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ============================================================== */}
+        {/* PAYMENT PROOF SCREENSHOT LIGHTBOX MODAL */}
+        {/* ============================================================== */}
+        {proofModalRecord && (
+          <div
+            role="dialog"
+            aria-modal="true"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in"
+            onClick={() => setProofModalRecord(null)}
+          >
+            <div
+              className="relative w-full max-w-3xl border-2 border-primary bg-[#0d0417] p-5 shadow-[8px_8px_0_0_var(--signal)] max-h-[92vh] flex flex-col text-foreground"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b-2 border-border/80 pb-3 mb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="border border-signal bg-signal/20 px-2 py-0.5 font-pixel text-[8px] text-signal font-bold">
+                      PAYMENT VERIFICATION PROOF
+                    </span>
+                    <span className="font-mono text-xs text-muted-foreground">
+                      ID: {proofModalRecord.registration_id}
+                    </span>
+                  </div>
+                  <h3 className="font-pixel text-base sm:text-lg text-foreground font-bold mt-1">
+                    {proofModalRecord.full_name} · {proofModalRecord.pass_name} (₹
+                    {proofModalRecord.total_price || proofModalRecord.pass_price})
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setProofModalRecord(null)}
+                  className="border-2 border-border p-1.5 font-pixel text-xs text-muted-foreground hover:border-destructive hover:text-destructive transition"
+                  aria-label="Close proof preview"
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* Image Viewport */}
+              <div className="flex-1 overflow-auto bg-black/90 border-2 border-dashed border-border/80 p-2 flex items-center justify-center min-h-[300px]">
+                {proofModalRecord.payment_proof_url ? (
+                  <img
+                    src={proofModalRecord.payment_proof_url}
+                    alt={`Payment screenshot for ${proofModalRecord.full_name}`}
+                    className="max-h-[60vh] max-w-full object-contain rounded shadow-lg"
+                  />
+                ) : (
+                  <div className="text-center p-8">
+                    <p className="font-pixel text-[10px] text-amber-400">NO SCREENSHOT UPLOADED</p>
+                    <p className="font-mono text-xs text-muted-foreground mt-1">
+                      Manual UTR: {proofModalRecord.utr_number}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div className="mt-4 pt-3 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 font-mono text-xs">
+                <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+                  <span className="text-muted-foreground">TRANSACTION UTR:</span>
+                  <span className="font-bold text-signal font-mono bg-signal/15 px-2.5 py-1 border border-signal/40 tracking-wider">
+                    {proofModalRecord.utr_number || "NO UTR PROVIDED"}
+                  </span>
+                  {proofModalRecord.utr_number && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        navigator.clipboard?.writeText(proofModalRecord.utr_number);
+                        setActionSuccessMsg("Copied UTR: " + proofModalRecord.utr_number);
+                      }}
+                      className="border border-border hover:border-signal px-2 py-1 font-pixel text-[8px] text-muted-foreground hover:text-signal transition"
+                    >
+                      COPY UTR
+                    </button>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {proofModalRecord.payment_proof_url && (
+                    <a
+                      href={proofModalRecord.payment_proof_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 border border-primary bg-primary/20 px-3 py-1.5 font-pixel text-[9px] text-primary hover:bg-primary hover:text-black transition"
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                      <span>OPEN ORIGINAL</span>
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setProofModalRecord(null)}
+                    className="border-2 border-border px-4 py-1.5 font-pixel text-[9px] text-muted-foreground hover:text-foreground hover:border-signal transition"
+                  >
+                    CLOSE
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
