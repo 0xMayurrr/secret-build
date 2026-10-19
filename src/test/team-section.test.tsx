@@ -77,4 +77,35 @@ describe("TeamSection", () => {
       expect(el.closest("div")).toHaveClass("opacity-0");
     });
   });
+
+  it("renders 'CLICK TO REVEAL THE PEOPLE' badge and toggles light when badge is clicked", () => {
+    render(<TeamSection />);
+
+    const badge = screen.getByTestId("reveal-people-badge");
+    expect(badge).toBeInTheDocument();
+    expect(screen.getByText("CLICK TO REVEAL THE PEOPLE")).toBeInTheDocument();
+
+    // Click the badge to reveal the people
+    fireEvent.click(badge);
+    expect(screen.getByText("LIGHTS ON // CLICK TO DIM")).toBeInTheDocument();
+    expect(screen.getAllByText("Karthick Mayur").length).toBeGreaterThan(0);
+  });
+
+  it(
+    "renders manual scroll controls (PREV, NEXT, PAUSE/AUTO)",
+    () => {
+      render(<TeamSection />);
+
+      expect(screen.getByRole("button", { name: /scroll left/i })).toBeInTheDocument();
+      expect(screen.getByRole("button", { name: /scroll right/i })).toBeInTheDocument();
+      const pauseBtn = screen.getByRole("button", { name: /pause auto scroll/i });
+      expect(pauseBtn).toBeInTheDocument();
+
+      // Clicking pause toggles state
+      fireEvent.click(pauseBtn);
+      expect(screen.getByRole("button", { name: /resume auto scroll/i })).toBeInTheDocument();
+    },
+    15000
+  );
 });
+

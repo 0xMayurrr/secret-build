@@ -18,7 +18,7 @@ describe("Footer Component", () => {
 
     // Initially BLACKOUT logo is displayed
     expect(screen.getByAltText("BLACKOUT")).toBeInTheDocument();
-    expect(screen.getByText(/An 8-hour surprise-challenge hackathon/i)).toBeInTheDocument();
+    expect(screen.getByText(/12-hour surprise-challenge hackathon/i)).toBeInTheDocument();
 
     // Click the Buildicy dot to switch to Buildicy
     const buildicyDot = screen.getByTitle("View Buildicy");

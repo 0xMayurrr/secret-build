@@ -2,6 +2,38 @@ import { useState, useEffect } from "react";
 import { ArrowUp, Instagram, Linkedin, MessageSquare, Twitter, Mail } from "lucide-react";
 import blackoutLogo from "@/assets/blackout-logo.png";
 
+// 5x7 Dot-Matrix Font Definitions for the illuminated LED light element
+const FONT_5X7: Record<string, number[]> = {
+  B: [0b11110, 0b10001, 0b11110, 0b10001, 0b10001, 0b10001, 0b11110],
+  L: [0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b11111],
+  A: [0b01110, 0b10001, 0b10001, 0b11111, 0b10001, 0b10001, 0b10001],
+  C: [0b01111, 0b10000, 0b10000, 0b10000, 0b10000, 0b10000, 0b01111],
+  K: [0b10001, 0b10010, 0b10100, 0b11000, 0b10100, 0b10010, 0b10001],
+  O: [0b01110, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b01110],
+  U: [0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b01110],
+  T: [0b11111, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100],
+  I: [0b11111, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100, 0b11111],
+  D: [0b11110, 0b10001, 0b10001, 0b10001, 0b10001, 0b10001, 0b11110],
+  Y: [0b10001, 0b10001, 0b01010, 0b00100, 0b00100, 0b00100, 0b00100],
+  " ": [0, 0, 0, 0, 0, 0, 0],
+};
+
+const isDotLit = (row: number, col: number, word: string) => {
+  if (row < 1 || row > 7) return false;
+  const leftPad = 7;
+  const colInText = col - leftPad;
+  if (colInText < 0) return false;
+  const charIdx = Math.floor(colInText / 6);
+  if (charIdx >= word.length) return false;
+  const charCol = colInText % 6;
+  if (charCol >= 5) return false;
+  const char = word[charIdx];
+  const pattern = FONT_5X7[char];
+  if (!pattern) return false;
+  const rowBits = pattern[row - 1];
+  return ((rowBits >> (4 - charCol)) & 1) === 1;
+};
+
 export function Footer() {
   const [activeBrand, setActiveBrand] = useState<"BLACKOUT" | "BUILDICY">("BLACKOUT");
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -25,17 +57,21 @@ export function Footer() {
     }
   };
 
+  // 61 columns x 9 rows for the wide LED matrix
+  const totalCols = 61;
+  const totalRows = 9;
+
   return (
-    <footer className="relative overflow-hidden border-t-2 border-primary bg-[#08030f] text-foreground select-none">
-      {/* AMBIENT PURPLE GLOW (Subtle neon radiance at the bottom) */}
+    <footer className="relative overflow-hidden border-t-2 border-primary bg-[#06020c] text-foreground select-none">
+      {/* Subtle top ambient purple glow */}
       <div
-        className="pointer-events-none absolute inset-0 z-0 transition-opacity duration-1000"
+        className="pointer-events-none absolute inset-x-0 top-0 h-96 z-0"
         style={{
-          background: `radial-gradient(ellipse 900px 500px at 50% 100%, rgba(168, 85, 247, 0.18) 0%, rgba(147, 51, 234, 0.06) 50%, transparent 80%)`,
+          background: `radial-gradient(ellipse 900px 400px at 50% 0%, rgba(168, 85, 247, 0.15) 0%, rgba(147, 51, 234, 0.05) 50%, transparent 80%)`,
         }}
       />
 
-      <div className="relative z-10 mx-auto max-w-6xl px-6 pt-16 pb-12">
+      <div className="relative z-10 mx-auto max-w-6xl px-6 pt-16">
         {/* 1. TOP BAR: Status & Minimalist Social Pills */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 border-b border-border/40 pb-8">
           <div className="flex items-center gap-3">
@@ -95,7 +131,6 @@ export function Footer() {
 
         {/* 2. CENTERPIECE: CINEMATIC 2-SECOND LOGO DISPLAY (BLACKOUT <-> BUILDICY) */}
         <div className="py-16 md:py-20 flex flex-col items-center justify-center text-center">
-
           {/* Morphing Logo Frame */}
           <div
             className={`relative min-h-[120px] flex items-center justify-center transition-all duration-300 ${
@@ -111,7 +146,7 @@ export function Footer() {
                   className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_0_35px_rgba(168,85,247,0.8)] filter transition duration-500 hover:scale-105"
                 />
                 <p className="mt-4 font-term text-2xl text-muted-foreground tracking-wide">
-                  An 8-hour surprise-challenge hackathon.
+                  A 12-hour surprise-challenge hackathon.
                 </p>
               </div>
             ) : (
@@ -142,14 +177,18 @@ export function Footer() {
             <button
               onClick={() => setActiveBrand("BLACKOUT")}
               className={`h-2 transition-all duration-300 rounded-full ${
-                activeBrand === "BLACKOUT" ? "w-8 bg-primary shadow-[0_0_10px_#a855f7]" : "w-2 bg-neutral-700 hover:bg-neutral-500"
+                activeBrand === "BLACKOUT"
+                  ? "w-8 bg-primary shadow-[0_0_10px_#a855f7]"
+                  : "w-2 bg-neutral-700 hover:bg-neutral-500"
               }`}
               title="View Blackout"
             />
             <button
               onClick={() => setActiveBrand("BUILDICY")}
               className={`h-2 transition-all duration-300 rounded-full ${
-                activeBrand === "BUILDICY" ? "w-8 bg-signal shadow-[0_0_10px_#22c55e]" : "w-2 bg-neutral-700 hover:bg-neutral-500"
+                activeBrand === "BUILDICY"
+                  ? "w-8 bg-signal shadow-[0_0_10px_#22c55e]"
+                  : "w-2 bg-neutral-700 hover:bg-neutral-500"
               }`}
               title="View Buildicy"
             />
@@ -184,31 +223,172 @@ export function Footer() {
             <span>contact@buildicy.com</span>
           </a>
         </div>
-
-        {/* 4. BOTTOM COPYRIGHT & BACK TO TOP BAR */}
-        <div className="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4 border-t border-border/30 pt-6 font-mono text-xs text-muted-foreground">
-          <p>© 2026 Buildicy · All rights reserved.</p>
-
-          <p className="text-center">
-            Built for innovators in Coimbatore
-          </p>
-
-          <button
-            onClick={scrollToTop}
-            className="group flex items-center gap-1.5 font-pixel text-[8px] text-muted-foreground transition hover:text-signal"
-          >
-            <span>BACK TO TOP</span>
-            <ArrowUp className="h-3 w-3 transition-transform group-hover:-translate-y-0.5" />
-          </button>
-        </div>
       </div>
 
-      {/* 5. MASSIVE FAINT WATERMARK AT THE VERY BOTTOM */}
-      <div className="pointer-events-none w-full overflow-hidden text-center pb-2 opacity-[0.06] select-none">
-        <span className="font-pixel text-4xl sm:text-7xl md:text-8xl tracking-[0.3em] uppercase text-white whitespace-nowrap">
-          {activeBrand === "BLACKOUT" ? "BLACKOUT" : "BUILDICY"}
-        </span>
+      {/* ── THE GOOD FOLKS STYLE UPWARD RADIANT PURPLE LIGHT EFFECT ELEMENT ── */}
+      <div className="relative w-full overflow-hidden pt-16 md:pt-24 pb-8 mt-12 border-t border-primary/40">
+        {/* 1. Deep Royal Purple Radiant Wash that blooms upwards */}
+        <div
+          className="pointer-events-none absolute inset-0 z-0 animate-purple-glow"
+          style={{
+            background:
+              "radial-gradient(ellipse 135% 85% at 50% 100%, #581c87 0%, #7e22ce 25%, #9333ea 50%, rgba(147, 51, 234, 0.45) 75%, transparent 95%)",
+          }}
+        />
+
+        {/* 2. Intense Ultraviolet / Neon Violet Spotlight Core Flare */}
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[360px] z-0 animate-pulse"
+          style={{
+            background:
+              "radial-gradient(ellipse 75% 55% at 50% 100%, rgba(243, 232, 255, 0.95) 0%, rgba(216, 180, 254, 0.8) 25%, rgba(168, 85, 247, 0.5) 60%, transparent 92%)",
+          }}
+        />
+
+        {/* 3. Soft Upper Shading Mask for seamless fade into dark background */}
+        <div
+          className="pointer-events-none absolute inset-0 z-0"
+          style={{
+            background:
+              "linear-gradient(180deg, rgba(6, 2, 12, 0.95) 0%, rgba(6, 2, 12, 0.3) 25%, transparent 60%, rgba(216, 180, 254, 0.15) 100%)",
+          }}
+        />
+
+        {/* 4. Bottom Laser Horizon Line / Light Emitter Beam */}
+        <div
+          className="absolute bottom-0 inset-x-0 h-[2.5px] z-20 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(90deg, transparent 0%, rgba(168,85,247,0.3) 10%, rgba(243,232,255,1) 50%, rgba(168,85,247,0.3) 90%, transparent 100%)",
+            boxShadow:
+              "0 0 25px 4px rgba(243,232,255,1), 0 0 60px 14px rgba(168,85,247,0.9), 0 0 120px 30px rgba(126,34,206,0.65)",
+          }}
+        />
+
+        {/* Content Container Bathed in the Upward Purple Light */}
+        <div className="relative z-10 mx-auto max-w-6xl px-4 sm:px-6">
+          {/* Light Header Row */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-end justify-between gap-6 pb-6 border-b border-primary/30">
+            <div>
+              <div className="flex items-center gap-3">
+                <span className="font-pixel text-2xl sm:text-3xl text-white font-bold tracking-tight drop-shadow-[0_0_15px_rgba(255,255,255,0.7)]">
+                  {activeBrand === "BLACKOUT" ? "The Blackout" : "The Buildicy"}
+                </span>
+                <span className="font-pixel text-[9px] rounded-full bg-primary/30 border border-primary/60 px-2.5 py-0.5 text-primary-foreground uppercase tracking-widest shadow-[0_0_10px_rgba(168,85,247,0.6)]">
+                  {activeBrand === "BLACKOUT" ? "ARENA" : "COMMUNITY"}
+                </span>
+              </div>
+              <p className="mt-1.5 font-term text-xl text-purple-100/90 drop-shadow-[0_0_10px_rgba(168,85,247,0.6)]">
+                {activeBrand === "BLACKOUT"
+                  ? "A surprise-challenge hackathon by Buildicy in Coimbatore."
+                  : "Empowering, accelerating, and investing in builders."}
+              </p>
+            </div>
+
+            <div className="text-left sm:text-right">
+              <span className="font-pixel text-[9px] text-purple-300 tracking-widest uppercase drop-shadow-[0_0_8px_rgba(216,180,254,0.6)]">
+                BLACKOUT // ARENA 2026
+              </span>
+              <p className="mt-1 font-term text-lg text-purple-200/90">
+                Nov 28, 2026 · Coimbatore, Tamil Nadu
+              </p>
+            </div>
+          </div>
+
+          {/* Sub-bar with Copyright and Quick Links */}
+          <div className="py-5 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs text-purple-200/90">
+            <p>© 2026 Buildicy · All rights reserved.</p>
+
+            <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-5">
+              <span>Coimbatore Arena</span>
+              <span>·</span>
+              <a href="#about" className="hover:text-white transition">
+                Privacy
+              </a>
+              <span>·</span>
+              <span>Made with love in Coimbatore</span>
+            </div>
+
+            <button
+              onClick={scrollToTop}
+              className="group flex items-center gap-1.5 font-pixel text-[8px] text-purple-100 transition hover:text-white drop-shadow-[0_0_8px_rgba(216,180,254,0.6)]"
+            >
+              <span>BACK TO TOP</span>
+              <ArrowUp className="h-3 w-3 transition-transform group-hover:-translate-y-0.5" />
+            </button>
+          </div>
+
+          {/* ── THE ILLUMINATED LED DOT-MATRIX LIGHT ELEMENT (PURPLE NEON GLOW) ── */}
+          <div className="mt-4 md:mt-8 w-full flex items-center justify-center overflow-hidden">
+            <svg
+              viewBox="0 0 976 144"
+              className="w-full max-w-5xl h-auto overflow-visible select-none pointer-events-none drop-shadow-[0_0_24px_rgba(168,85,247,0.95)]"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <defs>
+                <radialGradient id="ledGlowCorePurple" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
+                  <stop offset="60%" stopColor="#f3e8ff" stopOpacity="0.95" />
+                  <stop offset="100%" stopColor="#c084fc" stopOpacity="0.85" />
+                </radialGradient>
+                <filter id="ledDropGlowPurple" x="-50%" y="-50%" width="200%" height="200%">
+                  <feGaussianBlur stdDeviation="3.2" result="blur" />
+                  <feMerge>
+                    <feMergeNode in="blur" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
+                </filter>
+              </defs>
+
+              {/* Render Matrix Dots */}
+              {Array.from({ length: totalRows }).map((_, row) =>
+                Array.from({ length: totalCols }).map((_, col) => {
+                  const x = col * 16 + 8;
+                  const y = row * 16 + 8;
+                  const lit = isDotLit(row, col, activeBrand);
+
+                  if (lit) {
+                    return (
+                      <g key={`dot-${row}-${col}`}>
+                        {/* Outer Glow Halo */}
+                        <circle
+                          cx={x}
+                          cy={y}
+                          r={4.2}
+                          fill="#c084fc"
+                          opacity={0.45}
+                          filter="url(#ledDropGlowPurple)"
+                        />
+                        {/* Core Lit LED Dot */}
+                        <circle
+                          cx={x}
+                          cy={y}
+                          r={2.8}
+                          fill="url(#ledGlowCorePurple)"
+                          filter="url(#ledDropGlowPurple)"
+                        />
+                      </g>
+                    );
+                  }
+
+                  // Unlit subtle background grid dot
+                  return (
+                    <circle
+                      key={`dot-${row}-${col}`}
+                      cx={x}
+                      cy={y}
+                      r={1.1}
+                      fill="#ffffff"
+                      opacity={0.12}
+                    />
+                  );
+                })
+              )}
+            </svg>
+          </div>
+        </div>
       </div>
     </footer>
   );
 }
+

@@ -2,7 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
 import blackoutLogo from "@/assets/blackout-logo.png";
 import { TeamSection } from "@/components/TeamSection";
+import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
+import { ChainedLockOverlay } from "@/components/ChainedLockOverlay";
+import { Lock } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -26,12 +29,49 @@ export const Route = createFileRoute("/")({
 });
 
 /* ============ EDITABLE CONTENT ============ */
-const REGISTER_URL = "#passes"; // replace with real registration link
+const REGISTER_URL = "/register";
 
 const PASSES = [
-  { name: "EARLY BIRD", price: "499", tag: "TIER_01", benefits: [] as string[], availability: "" },
-  { name: "BUILDER PASS", price: "699", tag: "TIER_02", benefits: [] as string[], availability: "", featured: true },
-  { name: "FINAL CALL", price: "799", tag: "TIER_03", benefits: [] as string[], availability: "" },
+  {
+    name: "EARLY BIRD",
+    price: "499",
+    tag: "TIER_01",
+    benefits: [
+      "12-Hour Secret Hackathon Entry",
+      "Meals, Energy Drinks & Snacks",
+      "Official BLACKOUT Hacker Kit",
+      "Mentorship & Venture Access",
+    ],
+    availability: "⚡ First 20 Members Only",
+    featured: true,
+    locked: false,
+  },
+  {
+    name: "BUILDER PASS",
+    price: "699",
+    tag: "TIER_02",
+    benefits: [
+      "12-Hour Secret Hackathon Entry",
+      "Meals, Energy Drinks & Snacks",
+      "Official BLACKOUT Hacker Kit",
+      "Mentorship & Venture Access",
+    ],
+    availability: "Standard Entry Slots",
+    locked: true,
+  },
+  {
+    name: "FINAL CALL",
+    price: "799",
+    tag: "TIER_03",
+    benefits: [
+      "12-Hour Secret Hackathon Entry",
+      "Meals, Energy Drinks & Snacks",
+      "Official BLACKOUT Hacker Kit",
+      "Mentorship & Venture Access",
+    ],
+    availability: "Late Registration Slots",
+    locked: true,
+  },
 ];
 
 const PRIZES: { title: string; detail: string }[] = []; // empty → COMING SOON
@@ -61,8 +101,8 @@ const FAQ = [
   ["What is BLACKOUT?", "A surprise-challenge hackathon by Buildicy. The problem statement stays sealed until the event begins — you discover it when you arrive."],
   ["Who can participate?", "Students, developers, designers, freelancers, professionals, founders — anyone passionate about building and innovation."],
   ["How do I register?", "Pick a pass in the Registration Passes section and hit Claim Your Pass. Registration details will be shared here as they go live."],
-  ["How much does it cost?", "Early Bird ₹499, Builder Pass ₹699, Final Call ₹799."],
-  ["Can I join as a team?", "Yes, BLACKOUT is built for teams. Team size details will be announced with registration."],
+  ["How much does it cost?", "Early Bird is ₹499 (for the first 20 members only), Builder Pass is ₹699, and Final Call is ₹799. All passes include the 12-hour hackathon experience."],
+  ["Can I join as a team?", "Yes! Register solo or as a team squad of 2 to 4 members. Pricing is calculated per member."],
   ["Where is the venue?", "Coimbatore, Tamil Nadu. The exact venue will be announced soon."],
   ["What should I bring?", "Your laptop, charger, and an open mind. Any further instructions will be sent to registered participants."],
   ["Is there a refund policy?", "The refund policy will be published before registration opens."],
@@ -518,9 +558,24 @@ function Index() {
             {PASSES.map((p, i) => (
               <article
                 key={p.name}
-                className={`reveal relative flex flex-col border-2 p-6 transition hover:-translate-x-1 hover:-translate-y-1 ${p.featured ? "border-foreground bg-primary text-primary-foreground shadow-[8px_8px_0_0_var(--signal)]" : "border-border bg-background hover:shadow-[6px_6px_0_0_var(--primary)]"}`}
+                className={`reveal relative flex flex-col border-2 p-6 transition overflow-hidden select-none ${
+                  p.locked
+                    ? "border-border/50 bg-[#090312]/60 cursor-not-allowed"
+                    : p.featured
+                    ? "border-foreground bg-primary text-primary-foreground shadow-[8px_8px_0_0_var(--signal)] hover:-translate-x-1 hover:-translate-y-1"
+                    : "border-border bg-background hover:shadow-[6px_6px_0_0_var(--primary)] hover:-translate-x-1 hover:-translate-y-1"
+                }`}
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
+                {/* Chained & Locked Overlay for Locked Passes */}
+                {p.locked && (
+                  <ChainedLockOverlay
+                    tierName={p.name}
+                    badgeText="TIER LOCKED // SEALED"
+                    subText="OPENS AFTER FIRST 20 EARLY BIRD PASSES SELL OUT"
+                  />
+                )}
+
                 <p className="font-term text-lg opacity-70">{p.tag}</p>
                 <h3 className="mt-2 font-pixel text-sm">{p.name}</h3>
                 <p className="mt-6 font-pixel text-4xl">
@@ -534,12 +589,23 @@ function Index() {
                   )}
                   {p.availability && <p className="mt-3">{p.availability}</p>}
                 </div>
-                <a
-                  href={REGISTER_URL}
-                  className={`mt-8 border-2 py-3 text-center font-pixel text-[10px] transition ${p.featured ? "border-foreground bg-background text-foreground hover:bg-signal hover:text-accent-foreground" : "border-primary text-primary hover:bg-primary hover:text-primary-foreground"}`}
-                >
-                  SELECT ▶
-                </a>
+                {p.locked ? (
+                  <div className="mt-8 border-2 border-amber-500/40 bg-amber-500/10 py-3 text-center font-pixel text-[9px] text-amber-400 flex items-center justify-center gap-1.5 cursor-not-allowed font-bold">
+                    <Lock className="h-3 w-3 text-amber-400" />
+                    <span>LOCKED // SEALED</span>
+                  </div>
+                ) : (
+                  <a
+                    href={REGISTER_URL}
+                    className={`mt-8 border-2 py-3 text-center font-pixel text-[10px] transition ${
+                      p.featured
+                        ? "border-foreground bg-background text-foreground hover:bg-signal hover:text-accent-foreground"
+                        : "border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                    }`}
+                  >
+                    CLAIM PASS ▶
+                  </a>
+                )}
               </article>
             ))}
           </div>
@@ -613,22 +679,7 @@ function Index() {
       </section>
 
       {/* FAQ */}
-      <section id="faq" className="border-t-2 border-border bg-card/40 py-28">
-        <div className="mx-auto max-w-4xl px-5">
-          <SectionHead n="08" k="faq" title="Questions?" />
-          <div className="mt-10 space-y-3">
-            {FAQ.map(([q, a]) => (
-              <details key={q} className="reveal group border-2 border-border bg-background open:border-primary">
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-5 font-term text-2xl">
-                  {q}
-                  <span className="font-pixel text-sm text-primary transition group-open:rotate-45">+</span>
-                </summary>
-                <p className="px-5 pb-5 text-muted-foreground">{a}</p>
-              </details>
-            ))}
-          </div>
-        </div>
-      </section>
+      <FAQSection />
 
       {/* FINAL CTA */}
       <section className="pixel-grid border-t-2 border-primary py-32 text-center">

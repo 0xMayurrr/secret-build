@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { TEAM_MEMBERS, type TeamMember } from "./team-data";
 
 interface TeamSectionProps {
@@ -8,6 +8,15 @@ interface TeamSectionProps {
 export function TeamSection({ sectionHead }: TeamSectionProps) {
   const [isLit, setIsLit] = useState(false);
   const [selectedMember, setSelectedMember] = useState<TeamMember | null>(null);
+  const [isManuallyPaused, setIsManuallyPaused] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const isUserInteractingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollStartRef = useRef(0);
+  const hasDraggedRef = useRef(false);
+  const resumeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Play retro mechanical switch sound with Web Audio API
   const playClickSound = (turnOn: boolean) => {
@@ -55,6 +64,164 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Check and maintain seamless infinite loop boundaries
+  const checkInfiniteBounds = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const segmentWidth = container.scrollWidth / 4;
+    if (segmentWidth <= 0) return;
+
+    if (container.scrollLeft >= segmentWidth * 2.5) {
+      container.scrollLeft -= segmentWidth;
+    } else if (container.scrollLeft <= segmentWidth * 0.5) {
+      container.scrollLeft += segmentWidth;
+    }
+  }, []);
+
+  // Initialize scroll position to the center set so users can drag left or right immediately
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const initScroll = () => {
+      const segmentWidth = container.scrollWidth / 4;
+      if (segmentWidth > 0 && container.scrollLeft === 0) {
+        container.scrollLeft = segmentWidth;
+      }
+    };
+    initScroll();
+    const timer = setTimeout(initScroll, 200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Auto-scrolling requestAnimationFrame loop with pause support
+  useEffect(() => {
+    let animationFrameId: number;
+    let lastTime = performance.now();
+    const speed = 0.045; // pixels per ms (~45px per second, smooth continuous glide)
+
+    const tick = (time: number) => {
+      const dt = time - lastTime;
+      lastTime = time;
+
+      const container = scrollContainerRef.current;
+      if (container && !isUserInteractingRef.current && !isManuallyPaused) {
+        container.scrollLeft += speed * Math.min(dt, 50);
+        checkInfiniteBounds();
+      }
+
+      animationFrameId = requestAnimationFrame(tick);
+    };
+
+    animationFrameId = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [isManuallyPaused, checkInfiniteBounds]);
+
+  const resetResumeTimer = () => {
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+    isUserInteractingRef.current = true;
+    resumeTimeoutRef.current = setTimeout(() => {
+      isUserInteractingRef.current = false;
+    }, 1800);
+  };
+
+  // Drag-to-scroll Handlers for Mouse
+  const handleMouseDown = (e: React.MouseEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    setIsDragging(true);
+    hasDraggedRef.current = false;
+    startXRef.current = e.pageX - container.offsetLeft;
+    scrollStartRef.current = container.scrollLeft;
+    isUserInteractingRef.current = true;
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return;
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    e.preventDefault();
+    const currentX = e.pageX - container.offsetLeft;
+    const delta = (currentX - startXRef.current) * 1.3;
+    if (Math.abs(delta) > 5) {
+      hasDraggedRef.current = true;
+    }
+    container.scrollLeft = scrollStartRef.current - delta;
+    checkInfiniteBounds();
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+    resetResumeTimer();
+  };
+
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      setIsDragging(false);
+      resetResumeTimer();
+    }
+  };
+
+  // Touch handlers for mobile / tablet drag
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container || e.touches.length === 0) return;
+    hasDraggedRef.current = false;
+    startXRef.current = e.touches[0].pageX - container.offsetLeft;
+    scrollStartRef.current = container.scrollLeft;
+    isUserInteractingRef.current = true;
+    if (resumeTimeoutRef.current) clearTimeout(resumeTimeoutRef.current);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container || e.touches.length === 0) return;
+    const currentX = e.touches[0].pageX - container.offsetLeft;
+    const delta = (currentX - startXRef.current) * 1.3;
+    if (Math.abs(delta) > 5) {
+      hasDraggedRef.current = true;
+    }
+    container.scrollLeft = scrollStartRef.current - delta;
+    checkInfiniteBounds();
+  };
+
+  const handleTouchEnd = () => {
+    resetResumeTimer();
+  };
+
+  // Wheel horizontal scrolling handler
+  const handleWheel = (e: React.WheelEvent) => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+    if (Math.abs(delta) > 0) {
+      container.scrollLeft += delta;
+      checkInfiniteBounds();
+      resetResumeTimer();
+    }
+  };
+
+  // Manual button step scrolling
+  const scrollManual = (direction: "left" | "right") => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    resetResumeTimer();
+    const scrollAmount = 320;
+    container.scrollBy({
+      left: direction === "left" ? -scrollAmount : scrollAmount,
+      behavior: "smooth",
+    });
+    setTimeout(checkInfiniteBounds, 350);
+  };
+
+  // 4 sets guarantee a seamless infinite scroll canvas with ample room for forward and backward scrolling
+  const quadrupledMembers = [
+    ...TEAM_MEMBERS,
+    ...TEAM_MEMBERS,
+    ...TEAM_MEMBERS,
+    ...TEAM_MEMBERS,
+  ];
+
   return (
     <section
       id="team"
@@ -79,6 +246,52 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
           opacity: isLit ? 0.75 : 0,
           background: "radial-gradient(circle, #fde047 0%, #f59e0b 50%, transparent 75%)",
         }}
+      />
+
+      {/* CALLOUT BADGE POINTING TO THE BULB: "CLICK TO REVEAL THE PEOPLE" */}
+      <div
+        data-testid="reveal-people-badge"
+        role="button"
+        tabIndex={0}
+        onClick={handleToggleLight}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            handleToggleLight();
+          }
+        }}
+        className={`absolute top-20 right-24 sm:right-36 md:right-52 z-30 cursor-pointer flex items-center gap-2.5 rounded-sm border-2 px-3 py-2 transition-all duration-300 hover:scale-105 active:scale-95 ${
+          isLit
+            ? "border-amber-400 bg-black/90 text-amber-300 shadow-[4px_4px_0_0_#f59e0b]"
+            : "border-primary bg-background/95 text-foreground shadow-[5px_5px_0_0_var(--primary)] hover:border-signal hover:shadow-[6px_6px_0_0_var(--signal)] animate-bounce"
+        }`}
+        title={isLit ? "Click light to turn off" : "Click to reveal the people"}
+      >
+        <span className="font-pixel text-xs text-signal">
+          {isLit ? "💡" : "⚡"}
+        </span>
+        <div className="flex flex-col text-left">
+          <span className="font-pixel text-[9px] sm:text-[10px] tracking-wider text-foreground">
+            {isLit ? "LIGHTS ON // CLICK TO DIM" : "CLICK TO REVEAL THE PEOPLE"}
+          </span>
+          <span className="font-term text-[12px] text-signal font-bold leading-none mt-0.5">
+            {isLit ? "Operatives Revealed" : "Turn on the hanging light"}
+          </span>
+        </div>
+        <span
+          className={`font-pixel text-xs text-signal transition-transform ml-1 ${
+            isLit ? "text-amber-400 rotate-90" : "animate-pulse"
+          }`}
+        >
+          ➔
+        </span>
+      </div>
+
+      {/* Decorative pointer line from callout badge to the bulb */}
+      <div
+        className={`hidden sm:block absolute top-[104px] right-14 sm:right-24 md:right-36 w-10 sm:w-14 h-[2px] border-b-2 border-dashed transition-colors duration-500 z-20 pointer-events-none ${
+          isLit ? "border-amber-400/80" : "border-primary/80 animate-pulse"
+        }`}
       />
 
       {/* HANGING EDISON BULB — single pivot at ceiling so wire + bulb sway together */}
@@ -112,9 +325,12 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
             aria-label={isLit ? "Turn light off" : "Turn light on"}
             onClick={handleToggleLight}
             onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleToggleLight(); }
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                handleToggleLight();
+              }
             }}
-            className="group cursor-pointer active:scale-95 transition-transform"
+            className="group cursor-pointer active:scale-95 transition-transform flex flex-col items-center"
           >
             <svg
               width="56"
@@ -123,105 +339,215 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
               className={`transition-all duration-500 ${
                 isLit
                   ? "drop-shadow-[0_0_14px_#fde047] drop-shadow-[0_0_36px_#f59e0b]"
-                  : "opacity-75 group-hover:opacity-100"
+                  : "opacity-75 group-hover:opacity-100 group-hover:drop-shadow-[0_0_10px_#a855f7]"
               }`}
             >
               <defs>
                 <radialGradient id="bulbLit" cx="50%" cy="60%" r="55%">
-                  <stop offset="0%"  stopColor="#ffffff" stopOpacity="1" />
+                  <stop offset="0%" stopColor="#ffffff" stopOpacity="1" />
                   <stop offset="20%" stopColor="#fef9c3" stopOpacity="0.95" />
                   <stop offset="55%" stopColor="#fbbf24" stopOpacity="0.8" />
                   <stop offset="85%" stopColor="#d97706" stopOpacity="0.5" />
                   <stop offset="100%" stopColor="#92400e" stopOpacity="0.15" />
                 </radialGradient>
                 <radialGradient id="bulbUnlit" cx="38%" cy="38%" r="60%">
-                  <stop offset="0%"  stopColor="#4b5563" stopOpacity="0.4" />
+                  <stop offset="0%" stopColor="#4b5563" stopOpacity="0.4" />
                   <stop offset="60%" stopColor="#1f2937" stopOpacity="0.6" />
                   <stop offset="100%" stopColor="#111827" stopOpacity="0.85" />
                 </radialGradient>
                 <filter id="fGlow" x="-60%" y="-60%" width="220%" height="220%">
                   <feGaussianBlur stdDeviation="2.5" result="b" />
-                  <feMerge><feMergeNode in="b" /><feMergeNode in="SourceGraphic" /></feMerge>
+                  <feMerge>
+                    <feMergeNode in="b" />
+                    <feMergeNode in="SourceGraphic" />
+                  </feMerge>
                 </filter>
               </defs>
 
               {/* ── SOCKET (brass collar at top) ── */}
-              {/* top ferrule */}
-              <rect x="20" y="0" width="16" height="6" rx="1"
-                fill="#44403c" stroke="#78716c" strokeWidth="0.8" />
-              {/* main socket body — slightly wider, tapers down */}
-              <path d="M18 6 L38 6 L36 22 L20 22 Z"
-                fill="url(#socketGrad)" stroke="#92400e" strokeWidth="0.8" />
+              <rect
+                x="20"
+                y="0"
+                width="16"
+                height="6"
+                rx="1"
+                fill="#44403c"
+                stroke="#78716c"
+                strokeWidth="0.8"
+              />
+              <path
+                d="M18 6 L38 6 L36 22 L20 22 Z"
+                fill="url(#socketGrad)"
+                stroke="#92400e"
+                strokeWidth="0.8"
+              />
               <defs>
                 <linearGradient id="socketGrad" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%"  stopColor="#78350f" />
+                  <stop offset="0%" stopColor="#78350f" />
                   <stop offset="40%" stopColor="#b45309" />
                   <stop offset="100%" stopColor="#78350f" />
                 </linearGradient>
               </defs>
-              {/* socket ring lines */}
               <line x1="18" y1="10" x2="38" y2="10" stroke="#92400e" strokeWidth="0.7" opacity="0.7" />
               <line x1="19" y1="15" x2="37" y2="15" stroke="#92400e" strokeWidth="0.7" opacity="0.7" />
-              {/* bottom collar */}
-              <rect x="19" y="20" width="18" height="4" rx="1"
-                fill="#57534e" stroke="#78716c" strokeWidth="0.6" />
+              <rect
+                x="19"
+                y="20"
+                width="18"
+                height="4"
+                rx="1"
+                fill="#57534e"
+                stroke="#78716c"
+                strokeWidth="0.6"
+              />
 
               {/* ── GLASS GLOBE (A19 pear shape) ── */}
-              {/*  neck  */}
-              <path d="M21 24 Q20 30 16 38 Q10 52 10 66 Q10 96 28 100 Q46 96 46 66 Q46 52 40 38 Q36 30 35 24 Z"
+              <path
+                d="M21 24 Q20 30 16 38 Q10 52 10 66 Q10 96 28 100 Q46 96 46 66 Q46 52 40 38 Q36 30 35 24 Z"
                 fill={isLit ? "url(#bulbLit)" : "url(#bulbUnlit)"}
                 stroke={isLit ? "#fef08a" : "#475569"}
                 strokeWidth="1.2"
               />
 
               {/* ── FILAMENT SUPPORT WIRES ── */}
-              <line x1="24" y1="26" x2="24" y2="82"
-                stroke={isLit ? "#fbbf24" : "#374151"} strokeWidth="0.8" opacity="0.7" />
-              <line x1="32" y1="26" x2="32" y2="82"
-                stroke={isLit ? "#fbbf24" : "#374151"} strokeWidth="0.8" opacity="0.7" />
+              <line
+                x1="24"
+                y1="26"
+                x2="24"
+                y2="82"
+                stroke={isLit ? "#fbbf24" : "#374151"}
+                strokeWidth="0.8"
+                opacity="0.7"
+              />
+              <line
+                x1="32"
+                y1="26"
+                x2="32"
+                y2="82"
+                stroke={isLit ? "#fbbf24" : "#374151"}
+                strokeWidth="0.8"
+                opacity="0.7"
+              />
 
               {/* ── TUNGSTEN COIL FILAMENT ── */}
               {isLit ? (
                 <path
                   d="M24 82 L24 52 Q24 44 28 40 Q32 44 32 52 L32 82"
-                  stroke="#fff" strokeWidth="2" fill="none"
-                  filter="url(#fGlow)" className="animate-filament-glow"
+                  stroke="#fff"
+                  strokeWidth="2"
+                  fill="none"
+                  filter="url(#fGlow)"
+                  className="animate-filament-glow"
                 />
               ) : (
                 <path
                   d="M24 82 L24 52 Q24 44 28 40 Q32 44 32 52 L32 82"
-                  stroke="#374151" strokeWidth="1.5" fill="none"
+                  stroke="#374151"
+                  strokeWidth="1.5"
+                  fill="none"
                 />
               )}
 
               {/* ── GLASS SPECULAR HIGHLIGHT ── */}
-              <path d="M15 42 Q14 58 15 74"
+              <path
+                d="M15 42 Q14 58 15 74"
                 stroke={isLit ? "#ffffff" : "#6b7280"}
-                strokeWidth="1.5" strokeLinecap="round"
+                strokeWidth="1.5"
+                strokeLinecap="round"
                 opacity={isLit ? 0.7 : 0.2}
               />
 
               {/* ── BASE TIP ── */}
-              <ellipse cx="28" cy="100" rx="8" ry="3"
+              <ellipse
+                cx="28"
+                cy="100"
+                rx="8"
+                ry="3"
                 fill={isLit ? "#fef08a" : "#374151"}
                 opacity={isLit ? 0.6 : 0.4}
               />
             </svg>
+
+            {/* Subtle bulb hint */}
+            <span
+              className={`mt-1 font-pixel text-[8px] tracking-wider uppercase transition-colors px-1.5 py-0.5 rounded ${
+                isLit
+                  ? "text-amber-400 bg-amber-950/70 border border-amber-500/40"
+                  : "text-signal/90 bg-black/70 border border-signal/30 group-hover:text-signal group-hover:border-signal"
+              }`}
+            >
+              {isLit ? "● ON" : "▲ CLICK"}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* SECTION HEADER (Always visible, clean, previous title restored) */}
+      {/* SECTION HEADER (With Interactive Light Toggle & Manual Marquee Controls) */}
       <div className="mx-auto max-w-6xl px-5">
-        <p className="font-term text-2xl text-signal">06 // meet the team</p>
-        <h2 className="mt-4 font-pixel text-2xl leading-relaxed md:text-4xl text-foreground">
-          THE PEOPLE
-          <br />
-          <span className="text-primary">BEHIND BLACKOUT.</span>
-        </h2>
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+          <div>
+            <p className="font-term text-2xl text-signal">06 // meet the team</p>
+            <h2 className="mt-4 font-pixel text-2xl leading-relaxed md:text-4xl text-foreground">
+              THE PEOPLE
+              <br />
+              <span className="text-primary">BEHIND BLACKOUT.</span>
+            </h2>
+          </div>
+
+          {/* INTERACTIVE CONTROLS BAR: Light status toggle + Marquee Scroll Controls */}
+          <div className="flex flex-wrap items-center gap-2.5 sm:gap-3 z-20">
+            {/* Quick Light Switcher */}
+            <button
+              type="button"
+              onClick={handleToggleLight}
+              className={`flex items-center gap-2 border-2 px-3 py-1.5 font-pixel text-[9px] sm:text-[10px] transition-all duration-200 active:scale-95 ${
+                isLit
+                  ? "border-amber-400 bg-amber-400/10 text-amber-300 shadow-[3px_3px_0_0_#f59e0b]"
+                  : "border-primary bg-primary/10 text-foreground shadow-[3px_3px_0_0_var(--primary)] hover:border-signal hover:text-signal hover:shadow-[3px_3px_0_0_var(--signal)]"
+              }`}
+            >
+              <span>{isLit ? "💡" : "⚡"}</span>
+              <span>{isLit ? "LIGHT: ON (REVEALED)" : "CLICK TO REVEAL"}</span>
+            </button>
+
+            {/* Manual Scroll: Prev */}
+            <button
+              type="button"
+              onClick={() => scrollManual("left")}
+              aria-label="Scroll left"
+              className="border-2 border-foreground bg-background px-2.5 py-1.5 font-pixel text-[10px] text-foreground shadow-[3px_3px_0_0_var(--primary)] hover:border-signal hover:text-signal hover:shadow-[3px_3px_0_0_var(--signal)] active:scale-95 transition"
+            >
+              ◀ PREV
+            </button>
+
+            {/* Auto-scroll Pause / Resume Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsManuallyPaused(!isManuallyPaused)}
+              aria-label={isManuallyPaused ? "Resume auto scroll" : "Pause auto scroll"}
+              className="border-2 border-foreground bg-background px-2.5 py-1.5 font-pixel text-[10px] text-foreground shadow-[3px_3px_0_0_var(--primary)] hover:border-signal hover:text-signal hover:shadow-[3px_3px_0_0_var(--signal)] active:scale-95 transition"
+            >
+              {isManuallyPaused ? "▶ AUTO" : "❚❚ PAUSE"}
+            </button>
+
+            {/* Manual Scroll: Next */}
+            <button
+              type="button"
+              onClick={() => scrollManual("right")}
+              aria-label="Scroll right"
+              className="border-2 border-foreground bg-background px-2.5 py-1.5 font-pixel text-[10px] text-foreground shadow-[3px_3px_0_0_var(--primary)] hover:border-signal hover:text-signal hover:shadow-[3px_3px_0_0_var(--signal)] active:scale-95 transition"
+            >
+              NEXT ▶
+            </button>
+
+            <span className="hidden lg:inline-block font-term text-base text-muted-foreground ml-1">
+              ⇄ DRAG OR SCROLL
+            </span>
+          </div>
+        </div>
       </div>
 
-      {/* CONTINUOUS LEFT-TO-RIGHT MARQUEE TRACK (With Organic 'Ups and Downs' Staggered Card Design) */}
+      {/* CONTINUOUS MARQUEE TRACK WITH FULL DRAG & WHEEL MANUAL SCROLLING */}
       <div className="relative mt-8 w-full overflow-hidden py-10 md:py-14">
         {/* Left Edge CRT Fade Mask */}
         <div
@@ -243,23 +569,37 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
           }}
         />
 
-        {/* Infinite Left-to-Right Scrolling Container with "Ups and Downs" */}
+        {/* Interactive Infinite Scrolling Container with Drag-to-Scroll & Mousewheel Support */}
         <div
-          className="group flex w-max items-start gap-5 px-3 hover:[animation-play-state:paused]"
+          ref={scrollContainerRef}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
+          onTouchStart={handleTouchStart}
+          onTouchMove={handleTouchMove}
+          onTouchEnd={handleTouchEnd}
+          onWheel={handleWheel}
+          onMouseEnter={() => {
+            isUserInteractingRef.current = true;
+          }}
+          className={`flex w-full overflow-x-auto items-start gap-5 px-3 select-none pb-8 pt-4 ${
+            isDragging ? "cursor-grabbing" : "cursor-grab"
+          }`}
           style={{
-            animation: "marquee-ltr 38s linear infinite",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
           }}
         >
-          {/* We duplicate the 12 members array to guarantee seamless 0% -> 100% infinite continuous loop */}
-          {[...TEAM_MEMBERS, ...TEAM_MEMBERS].map((m, idx) => {
+          {quadrupledMembers.map((m, idx) => {
             const isDown = idx % 2 === 1;
-
             const cardDelay = `${(idx % 6) * 60}ms`;
 
             return (
               <article
                 key={`${m.id}-${idx}`}
                 onClick={() => {
+                  if (hasDraggedRef.current) return;
                   if (isLit) {
                     setSelectedMember(m);
                   } else {
