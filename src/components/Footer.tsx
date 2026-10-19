@@ -67,7 +67,7 @@ export function Footer() {
       <div
         className="pointer-events-none absolute inset-x-0 top-0 h-96 z-0"
         style={{
-          background: `radial-gradient(ellipse 900px 400px at 50% 0%, rgba(168, 85, 247, 0.15) 0%, rgba(147, 51, 234, 0.05) 50%, transparent 80%)`,
+          background: `radial-gradient(ellipse 900px 500px at 50% 100%, rgba(95, 27, 202, 0.22) 0%, rgba(43, 4, 71, 0.08) 50%, transparent 80%)`,
         }}
       />
 
@@ -143,7 +143,7 @@ export function Footer() {
                 <img
                   src={blackoutLogo}
                   alt="BLACKOUT"
-                  className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_0_35px_rgba(168,85,247,0.8)] filter transition duration-500 hover:scale-105"
+                  className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_0_30px_rgba(138,49,251,0.85)] drop-shadow-[0_0_60px_rgba(95,27,202,0.5)] filter transition duration-500 hover:scale-105"
                 />
                 <p className="mt-4 font-term text-2xl text-muted-foreground tracking-wide">
                   A 12-hour surprise-challenge hackathon.
@@ -159,7 +159,7 @@ export function Footer() {
                     className="h-16 sm:h-20 md:h-24 w-auto object-contain drop-shadow-[0_0_35px_rgba(34,197,94,0.7)] filter transition duration-500 hover:scale-105"
                   />
                   <div className="text-left">
-                    <span className="font-pixel text-3xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-[0_0_20px_rgba(168,85,247,0.6)]">
+                    <span className="font-pixel text-3xl sm:text-5xl font-bold tracking-tight text-white drop-shadow-[0_0_20px_rgba(138,49,251,0.7)]">
                       BUILDICY
                     </span>
                     <p className="font-term text-xl text-signal">&gt; builders_first_ecosystem</p>
