@@ -5,7 +5,7 @@ import { TeamSection } from "@/components/TeamSection";
 import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
 import { ChainedLockOverlay } from "@/components/ChainedLockOverlay";
-import { Lock } from "lucide-react";
+import { Lock, ArrowUp } from "lucide-react";
 import { blackoutAudio } from "@/lib/blackout-audio";
 
 export const Route = createFileRoute("/")({
@@ -140,24 +140,74 @@ function useCountdown() {
 
 function useScrollFx() {
   const progressBarRef = useRef<HTMLDivElement | null>(null);
+  const [scrollPercent, setScrollPercent] = useState(0);
+  const [activeSection, setActiveSection] = useState("top");
+  const [scrollY, setScrollY] = useState(0);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
+    // 1. Reveal observer with fallback for elements already in view
     const els = document.querySelectorAll(".reveal");
-    const io = new IntersectionObserver(
-      (es) => es.forEach((e) => e.isIntersecting && e.target.classList.add("in")),
-      { threshold: 0.12 },
-    );
-    els.forEach((el) => io.observe(el));
 
+    els.forEach((el) => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top <= window.innerHeight * 0.95) {
+        el.classList.add("in");
+      }
+    });
+
+    let io: IntersectionObserver | null = null;
+    if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+      io = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("in");
+            }
+          });
+        },
+        { threshold: 0.08, rootMargin: "0px 0px -30px 0px" },
+      );
+      els.forEach((el) => io?.observe(el));
+    } else {
+      els.forEach((el) => el.classList.add("in"));
+    }
+
+    // 2. Section tracker observer
+    const sectionIds = ["top", "about", "mystery", "who", "passes", "prizes", "team", "info", "faq"];
+    const sectionEls = sectionIds
+      .map((id) => document.getElementById(id))
+      .filter((el): el is HTMLElement => Boolean(el));
+
+    let sectionObserver: IntersectionObserver | null = null;
+    if (typeof window !== "undefined" && "IntersectionObserver" in window) {
+      sectionObserver = new IntersectionObserver(
+        (entries) => {
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              setActiveSection(e.target.id);
+            }
+          });
+        },
+        { threshold: 0.2, rootMargin: "-10% 0px -40% 0px" },
+      );
+      sectionEls.forEach((sec) => sectionObserver?.observe(sec));
+    }
+
+    // 3. Scroll listener
     let ticking = false;
     const onScroll = () => {
       if (!ticking) {
         requestAnimationFrame(() => {
+          const sy = window.scrollY;
           const h = document.documentElement.scrollHeight - window.innerHeight;
-          const p = h > 0 ? (window.scrollY / h) * 100 : 0;
+          const p = h > 0 ? (sy / h) * 100 : 0;
           if (progressBarRef.current) {
             progressBarRef.current.style.width = `${p}%`;
           }
+          setScrollPercent(p);
+          setScrollY(sy);
+          setShowBackToTop(sy > 420);
           ticking = false;
         });
         ticking = true;
@@ -167,12 +217,13 @@ function useScrollFx() {
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
-      io.disconnect();
+      io?.disconnect();
+      sectionObserver?.disconnect();
       window.removeEventListener("scroll", onScroll);
     };
   }, []);
 
-  return progressBarRef;
+  return { progressBarRef, scrollPercent, activeSection, scrollY, showBackToTop };
 }
 
 type IntroPhase = "standby" | "flicker" | "surge" | "done";
@@ -306,7 +357,7 @@ function CTA({ children, className = "" }: { children: React.ReactNode; classNam
 function Index() {
   const { phase: intro, startSequence } = useBlackoutIntro();
   const cd = useCountdown();
-  const progressBarRef = useScrollFx();
+  const { progressBarRef, scrollPercent, activeSection, scrollY, showBackToTop } = useScrollFx();
   const [isMuted, setIsMuted] = useState(false);
 
   const handleToggleAudio = () => {
@@ -377,14 +428,101 @@ function Index() {
   const currentTop = (1 - scrollRatio) * anchorViewportTop + scrollRatio * targetTop;
 
   return (
-    <div className="crt min-h-screen overflow-x-hidden bg-background text-foreground">
+    <div className="crt min-h-screen overflow-x-hidden bg-background text-foreground relative">
       <BlackoutIntro phase={intro} logo={blackoutLogo} />
-      {/* progress (purple neon glow) */}
+
+      {/* PARALLAX PURPLE AMBIENT ATMOSPHERE */}
       <div
-        ref={progressBarRef}
-        className="fixed left-0 top-0 z-[60] h-1 bg-primary shadow-[0_0_12px_rgba(138,49,251,0.85)] will-change-[width]"
-        style={{ width: "0%" }}
-      />
+        className="pointer-events-none fixed inset-0 z-0 overflow-hidden select-none"
+        style={{
+          transform: `translateY(${Math.min(90, scrollY * 0.06)}px)`,
+          transition: "transform 0.1s linear",
+        }}
+      >
+        <div className="absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-primary/10 blur-[140px]" />
+        <div className="absolute top-1/3 right-10 h-[480px] w-[480px] rounded-full bg-purple-900/10 blur-[180px]" />
+        <div className="absolute top-2/3 left-10 h-[420px] w-[420px] rounded-full bg-fuchsia-950/10 blur-[160px]" />
+      </div>
+
+      {/* DUAL LASER NEON SCROLL PROGRESS BEAM WITH SPARK EMBER */}
+      <div className="fixed left-0 top-0 z-[70] h-[3px] w-full pointer-events-none">
+        <div
+          ref={progressBarRef}
+          className="relative h-full bg-gradient-to-r from-primary via-purple-400 to-signal shadow-[0_0_12px_rgba(168,85,247,0.9),0_0_24px_rgba(138,49,251,0.6)] will-change-[width]"
+          style={{ width: "0%" }}
+        >
+          {/* Leading Spark Ember */}
+          <div className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-1/2 h-2.5 w-2.5 rounded-full bg-white shadow-[0_0_8px_#ffffff,0_0_16px_#a855f7] animate-pulse" />
+        </div>
+      </div>
+
+      {/* FLOATING CYBERPUNK SCROLL SECTOR TRACKER (DESKTOP) */}
+      <aside
+        aria-label="Sector Navigation Tracker"
+        className="fixed right-3.5 top-1/2 -translate-y-1/2 z-40 hidden xl:flex flex-col items-end gap-3 pointer-events-auto select-none"
+      >
+        {/* Live scroll percentage gauge */}
+        <div className="flex items-center gap-1.5 font-pixel text-[8px] text-muted-foreground bg-black/85 border border-primary/40 px-2 py-1 shadow-[0_0_12px_rgba(168,85,247,0.3)] backdrop-blur-md">
+          <span className="h-1.5 w-1.5 rounded-full bg-primary animate-ping" />
+          <span className="text-primary font-bold">{Math.round(scrollPercent)}%</span>
+        </div>
+
+        {/* Vertical sector tracker */}
+        <div className="flex flex-col items-end gap-2 bg-black/75 border border-border/50 p-2 backdrop-blur-md">
+          {[
+            { id: "top", label: "00", name: "TOP" },
+            { id: "about", label: "01", name: "ABOUT" },
+            { id: "mystery", label: "02", name: "MYSTERY" },
+            { id: "who", label: "03", name: "WHO" },
+            { id: "passes", label: "04", name: "PASSES" },
+            { id: "prizes", label: "05", name: "PRIZES" },
+            { id: "team", label: "06", name: "TEAM" },
+            { id: "info", label: "07", name: "INFO" },
+            { id: "faq", label: "08", name: "FAQ" },
+          ].map((sec) => {
+            const isActive = activeSection === sec.id;
+            return (
+              <a
+                key={sec.id}
+                href={`#${sec.id}`}
+                className={`group flex items-center gap-2 font-pixel text-[8px] transition-all duration-200 ${
+                  isActive
+                    ? "text-signal font-bold"
+                    : "text-muted-foreground/70 hover:text-primary"
+                }`}
+                title={sec.name}
+              >
+                <span
+                  className={`hidden group-hover:inline text-[9px] font-term tracking-widest ${
+                    isActive ? "inline text-signal" : "text-muted-foreground"
+                  }`}
+                >
+                  {sec.name}
+                </span>
+                <span
+                  className={`h-1.5 transition-all duration-300 rounded-sm ${
+                    isActive
+                      ? "w-4 bg-signal shadow-[0_0_8px_var(--signal)]"
+                      : "w-1.5 bg-neutral-700 group-hover:bg-primary group-hover:w-2.5"
+                  }`}
+                />
+              </a>
+            );
+          })}
+        </div>
+      </aside>
+
+      {/* FLOATING QUICK BACK-TO-TOP RADAR BUTTON */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        className={`fixed bottom-14 right-4 z-50 flex items-center justify-center h-8 w-8 border-2 border-primary/70 bg-background/95 text-primary shadow-[0_0_15px_rgba(168,85,247,0.4)] backdrop-blur-md transition-all duration-300 hover:border-signal hover:text-signal hover:scale-110 active:scale-95 cursor-pointer ${
+          showBackToTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3 pointer-events-none"
+        }`}
+        title="Scroll to Top"
+        aria-label="Scroll to Top"
+      >
+        <ArrowUp className="h-3.5 w-3.5" />
+      </button>
 
       {/* FLOATING CYBERPUNK AUDIO CONTROLLER */}
       <button
@@ -746,7 +884,7 @@ function Index() {
             {PASSES.map((p, i) => (
               <article
                 key={p.name}
-                className={`reveal relative flex flex-col border-2 p-6 transition overflow-hidden select-none ${
+                className={`reveal card-glint relative flex flex-col border-2 p-6 transition overflow-hidden select-none ${
                   p.locked
                     ? "border-border/50 bg-[#090312]/60 cursor-not-allowed"
                     : p.featured
@@ -812,7 +950,7 @@ function Index() {
           ] as const).map((p, i) => (
             <div
               key={p.code}
-              className={`reveal group relative flex flex-col border-2 border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 ${p.border} ${p.shadow}`}
+              className={`reveal card-glint group relative flex flex-col border-2 border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 ${p.border} ${p.shadow}`}
               style={{ transitionDelay: `${i * 80}ms` }}
             >
               <p className="font-pixel text-[9px] text-muted-foreground tracking-widest">{p.code}</p>
