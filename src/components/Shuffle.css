@@ -1,0 +1,29 @@
+/* Shuffle.css - Cyberpunk Text Scramble & Flip Animation */
+
+.shuffle-parent {
+  display: inline-block;
+  user-select: none;
+  font-family: inherit;
+  transition: color 0.3s ease;
+  position: relative;
+}
+
+.shuffle-parent.is-ready {
+  opacity: 1;
+}
+
+.shuffle-char {
+  display: inline-block;
+  will-change: transform, opacity, filter;
+  transition: transform 0.25s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.2s ease, color 0.2s ease;
+}
+
+.shuffle-word {
+  display: inline-block;
+  white-space: pre;
+}
+
+.shuffle-char.is-scrambling {
+  color: var(--signal, #a855f7);
+  text-shadow: 0 0 8px currentColor;
+}

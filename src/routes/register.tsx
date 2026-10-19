@@ -1227,21 +1227,19 @@ export function RegisterPage() {
         {/* ============================================================== */}
         {step === 4 && confirmedRecord && (
           <section className="animate-fade-in max-w-4xl mx-auto space-y-8">
-            {/* 3D Physical Lanyard Badge Showcase */}
-            <div className="border-2 border-primary/50 bg-[#090314]/90 p-4 sm:p-6 shadow-[0_0_35px_rgba(168,85,247,0.35)] relative overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3 mb-2">
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-signal animate-pulse" />
-                  <span className="font-pixel text-xs text-primary font-bold">
-                    OFFICIAL 3D EVENT LANYARD BADGE
-                  </span>
-                </div>
-                <div className="font-term text-xs sm:text-sm text-muted-foreground">
-                  CLICK TO FLIP 360° · DRAG BADGE TO SWING ON STRAP
-                </div>
+            {/* 3D Physical Lanyard Badge Showcase (Free-Floating, Unboxed) */}
+            <div className="relative w-full flex flex-col items-center justify-center my-4">
+              <div className="inline-flex items-center gap-2 border border-primary/40 bg-primary/10 px-3.5 py-1.5 rounded-full mb-2 backdrop-blur-sm">
+                <span className="h-2 w-2 rounded-full bg-signal animate-pulse" />
+                <span className="font-pixel text-[9px] sm:text-[10px] text-primary font-bold tracking-wider">
+                  OFFICIAL 3D EVENT LANYARD BADGE // INTERACTIVE PHYSICS
+                </span>
+                <span className="hidden sm:inline font-term text-xs text-muted-foreground ml-2">
+                  (DRAG TO SWING · CLICK TO ROTATE 360°)
+                </span>
               </div>
 
-              <div className="h-[460px] sm:h-[520px] w-full flex items-center justify-center relative">
+              <div className="h-[520px] sm:h-[600px] w-full flex items-center justify-center relative">
                 <Lanyard
                   frontImage={generateBadgeFrontSvg(confirmedRecord)}
                   backImage={generateBadgeBackSvg()}
@@ -1250,16 +1248,16 @@ export function RegisterPage() {
                   metal="silver"
                   strapColor="#7e22ce"
                   orientation="portrait"
-                  size={0.65}
-                  strapLength={0.5}
+                  size={0.68}
+                  strapLength={0.52}
                   interactive={true}
                   intro={true}
                 />
               </div>
 
-              <div className="text-center font-pixel text-[8px] sm:text-[9px] text-muted-foreground tracking-widest border-t border-border/40 pt-3">
+              <p className="mt-2 text-center font-pixel text-[8px] sm:text-[9px] text-muted-foreground tracking-widest">
                 ✦ PHYSICAL LANYARD &amp; RFID BADGE ISSUED AT COIMBATORE CHECK-IN DESK ✦
-              </div>
+              </p>
             </div>
 
             <BlackoutPassCard record={confirmedRecord} />

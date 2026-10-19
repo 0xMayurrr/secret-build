@@ -1,4 +1,5 @@
 import type { RegistrationRecord } from "./supabase";
+import { BUILDICY_LOGO_DATA_URL } from "./buildicyLogoBase64";
 
 /**
  * Generates an SVG Data URI for the front of the 3D physical lanyard badge.
@@ -46,10 +47,11 @@ export function generateBadgeFrontSvg(record: Partial<RegistrationRecord>): stri
   <rect x="262" y="260" width="500" height="72" rx="36" fill="#7e22ce" />
   <text x="512" y="306" font-family="monospace" font-size="28" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">${tier}</text>
 
-  <!-- Attendee Avatar Symbol / Cyber Skull Core -->
+  <!-- Attendee Avatar Symbol / Official Buildicy Logo Emblem -->
   <circle cx="512" cy="520" r="140" fill="#130722" stroke="url(#neon)" stroke-width="5" />
   <circle cx="512" cy="520" r="110" fill="none" stroke="rgba(168,85,247,0.3)" stroke-width="2" stroke-dasharray="10 8" />
-  <text x="512" y="555" font-family="monospace" font-size="96" fill="#d946ef" text-anchor="middle">⚡</text>
+  <image href="${BUILDICY_LOGO_DATA_URL}" x="402" y="410" width="220" height="220" />
+
 
   <!-- Attendee Name -->
   <text x="512" y="760" font-family="'Courier New', monospace" font-size="52" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="2">${name}</text>
@@ -140,7 +142,7 @@ export function generateBadgeBackSvg(): string {
 
   <!-- Top Logo Emblem -->
   <circle cx="512" cy="280" r="110" fill="#0f031c" stroke="#d946ef" stroke-width="4" />
-  <text x="512" y="315" font-family="monospace" font-size="80" fill="#00f3ff" text-anchor="middle">✦</text>
+  <image href="${BUILDICY_LOGO_DATA_URL}" x="422" y="190" width="180" height="180" />
 
   <text x="512" y="450" font-family="'Courier New', monospace" font-size="36" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="6">BLACKOUT 2026</text>
   <text x="512" y="490" font-family="monospace" font-size="20" fill="#a855f7" text-anchor="middle" letter-spacing="4">SURPRISE CHALLENGE HACKATHON</text>

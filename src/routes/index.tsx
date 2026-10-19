@@ -6,12 +6,12 @@ import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
 import { ChainedLockOverlay } from "@/components/ChainedLockOverlay";
 import { GooeyNav } from "@/components/GooeyNav";
-import { PaperCrumple } from "@/components/PaperCrumple";
-import { CLASSIFIED_BRIEF_DATA_URL } from "@/assets/classifiedDossierData";
 import { Lock, ArrowUp } from "lucide-react";
 import { blackoutAudio } from "@/lib/blackout-audio";
 import MoltenMetal from "@/components/MoltenMetal";
 import Silk from "@/components/Silk";
+import BlurText from "@/components/BlurText";
+import Shuffle from "@/components/Shuffle";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -643,7 +643,7 @@ function Index() {
         <div className="pointer-events-none absolute inset-0 z-[1] bg-[radial-gradient(ellipse_at_center,transparent_20%,var(--background)_75%)]" />
         <div className="relative z-10 mx-auto w-full max-w-6xl px-5 text-center">
 
-          <p
+          <div
             className="font-term text-lg text-signal md:text-2xl"
             style={{
               opacity: intro === "done" ? 1 : 0,
@@ -651,8 +651,14 @@ function Index() {
               transition: "opacity 0.6s ease 0.1s, transform 0.6s ease 0.1s",
             }}
           >
-            <Typer text="> system.status: POWER_FAILURE_IMMINENT" active={intro === "done"} />
-          </p>
+            <Shuffle
+              text="> system.status: POWER_FAILURE_IMMINENT"
+              className="inline-block"
+              triggerOnHover={true}
+              scrambleCharset="01#$X_!?<>"
+              shuffleTimes={2}
+            />
+          </div>
 
           {/* Hero Anchor placeholder reserving space for the morphing logo */}
           <div
@@ -677,7 +683,7 @@ function Index() {
           </p>
 
           <h1
-            className="glow glitch mx-auto mt-8 font-pixel text-xl leading-relaxed md:text-4xl"
+            className="glow glitch mx-auto mt-8 font-pixel text-xl leading-relaxed md:text-4xl flex items-center justify-center"
             data-text="READY FOR THE UNKNOWN?"
             style={{
               opacity: intro === "done" ? 1 : 0,
@@ -685,7 +691,16 @@ function Index() {
               transition: "opacity 0.7s ease 0.4s, transform 0.7s ease 0.4s",
             }}
           >
-            READY FOR THE UNKNOWN?
+            <BlurText
+              text="READY FOR THE UNKNOWN?"
+              animateBy="words"
+              direction="top"
+              blur={14}
+              distance={24}
+              effect="zoom"
+              delay={120}
+              focusOnHover={true}
+            />
           </h1>
 
           {/* HIGH-TECH CYBER COUNTDOWN TIMER WITH NEON GLOW & SPLIT HORIZON NOTCHES */}
@@ -848,7 +863,19 @@ function Index() {
       <section id="mystery" className="relative overflow-hidden border-y-2 border-border bg-card/40 py-28">
         <div className="noise pointer-events-none absolute inset-0 opacity-30" />
         <div className="relative mx-auto max-w-6xl px-5">
-          <SectionHead n="02" k="the mystery" title={<>YOU WON'T KNOW<br /><span className="text-signal">UNTIL YOU SHOW UP.</span></>} />
+          <SectionHead
+            n="02"
+            k="the mystery"
+            title={
+              <>
+                <BlurText text="YOU WON'T KNOW" delay={90} effect="tilt" />
+                <br />
+                <span className="text-signal">
+                  <BlurText text="UNTIL YOU SHOW UP." delay={90} effect="zoom" />
+                </span>
+              </>
+            }
+          />
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {[
               ["FILE_001.ENC", "PROBLEM STATEMENT", "Sealed. Encrypted. Unopened until zero hour."],
@@ -873,43 +900,7 @@ function Index() {
               </div>
             ))}
           </div>
-          {/* INTERACTIVE 3D CRUMPLE DOSSIER */}
-          <div className="reveal mt-12 border-2 border-primary/50 bg-[#0c0317]/85 p-6 md:p-8 shadow-[0_0_35px_rgba(168,85,247,0.25)]">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-4 mb-4">
-              <div>
-                <div className="flex items-center gap-2">
-                  <span className="h-2 w-2 rounded-full bg-signal animate-pulse" />
-                  <span className="font-pixel text-xs text-signal font-bold">CLASSIFIED DOSSIER // FILE_001.ENC</span>
-                </div>
-                <p className="font-term text-sm text-muted-foreground mt-1">
-                  Hold &amp; drag document to crumple into a 3D paper ball · Release to unfold &amp; crease
-                </p>
-              </div>
-              <div className="border border-signal/60 bg-signal/10 px-3 py-1 font-pixel text-[8px] text-signal font-bold">
-                PHYSICS: THREE.JS VERLET SIMULATION
-              </div>
-            </div>
-
-            <div className="relative mx-auto flex items-center justify-center min-h-[460px] md:min-h-[520px]">
-              <PaperCrumple
-                src={CLASSIFIED_BRIEF_DATA_URL}
-                alt="Sealed Blackout Challenge Brief Dossier"
-                width={360}
-                height={480}
-                sceneHeight={520}
-                crumpleAmount={0.88}
-                creaseStrength={0.25}
-                releaseBehavior="creased"
-                paperColor="#150824"
-                roughness={0.92}
-                paperTexture={0.12}
-                shadow={true}
-                shadowOpacity={0.18}
-                draggable={true}
-                dragRotation={14}
-              />
-            </div>
-          </div>
+          {/* Sealed Brief Indicators */}
 
           <p className="reveal mt-10 text-center font-pixel text-[10px] tracking-[0.4em] text-muted-foreground md:text-xs">
             ACCESS_DENIED · CLEARANCE_REQUIRED · ACCESS_DENIED
@@ -919,7 +910,7 @@ function Index() {
 
       {/* WHO */}
       <section id="who" className="mx-auto max-w-6xl px-4 py-16 md:py-28">
-        <SectionHead n="03" k="who should join" title="Anyone who builds." />
+        <SectionHead n="03" k="who should join" title={<Shuffle text="Anyone who builds." triggerOnHover={true} effect="slide" />} />
         <div className="mt-10 grid grid-cols-2 gap-4 md:grid-cols-4">
           {WHO.map((w, i) => (
             <div
@@ -955,7 +946,7 @@ function Index() {
           />
         </div>
         <div className="relative z-10 mx-auto max-w-6xl px-5">
-          <SectionHead n="04" k="registration passes" title="Pick your pass." />
+          <SectionHead n="04" k="registration passes" title={<BlurText text="Pick your pass." delay={100} effect="blur" />} />
           <div className="mt-8 grid gap-5 md:grid-cols-3">
             {PASSES.map((p, i) => (
               <article
