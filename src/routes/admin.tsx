@@ -31,6 +31,11 @@ import {
   Image as ImageIcon,
   Maximize2,
   ExternalLink,
+  Shirt,
+  Clock,
+  Layers,
+  BarChart3,
+  Package,
 } from "lucide-react";
 import blackoutLogo from "@/assets/blackout-logo.png";
 import {
@@ -94,9 +99,8 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
   const [actionSuccessMsg, setActionSuccessMsg] = useState("");
   const [actionErrorMsg, setActionErrorMsg] = useState("");
 
-  // Admin-only revenue display clearance
-  const [showRevenue, setShowRevenue] = useState(false);
-  const [showAdminRevenueModal, setShowAdminRevenueModal] = useState(false);
+  // Dashboard view mode
+  const [dashboardTab, setDashboardTab] = useState<"CHECK_IN" | "ROSTER" | "LOGISTICS">("CHECK_IN");
 
   // Payment proof screenshot viewer lightbox
   const [proofModalRecord, setProofModalRecord] = useState<RegistrationRecord | null>(null);
@@ -106,7 +110,6 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         setProofModalRecord(null);
-        setShowAdminRevenueModal(false);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
@@ -523,7 +526,39 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
   const checkedInCount = registrations.filter((r) => r.checked_in).length;
   const pendingCount = totalRegistrations - checkedInCount;
   const checkInRate = totalRegistrations > 0 ? Math.round((checkedInCount / totalRegistrations) * 100) : 0;
-  const totalRevenue = registrations.reduce((acc, r) => acc + (r.total_price || r.pass_price || 0), 0);
+  const soloCount = registrations.filter((r) => r.participation_type !== "team").length;
+  const teamCount = registrations.filter((r) => r.participation_type === "team").length;
+
+  // Swag sizing breakdown for logistics console
+  const swagSizeTally = registrations.reduce(
+    (acc, r) => {
+      const size = (r.tshirt_size || "L").toUpperCase();
+      if (!acc[size]) acc[size] = { total: 0, checkedIn: 0 };
+      acc[size].total += 1;
+      if (r.checked_in) acc[size].checkedIn += 1;
+
+      if (r.team_members_details && r.team_members_details.length > 0) {
+        r.team_members_details.slice(1).forEach((m) => {
+          const mSize = (m.tshirt_size || "L").toUpperCase();
+          if (!acc[mSize]) acc[mSize] = { total: 0, checkedIn: 0 };
+          acc[mSize].total += 1;
+          if (r.checked_in) acc[mSize].checkedIn += 1;
+        });
+      }
+      return acc;
+    },
+    {} as Record<string, { total: number; checkedIn: number }>
+  );
+
+  // Pass tier distribution
+  const tierDistribution = registrations.reduce(
+    (acc, r) => {
+      const tier = r.pass_name || "Standard";
+      acc[tier] = (acc[tier] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   // Filtered registrations
   const filteredList = registrations.filter((r) => {
@@ -759,83 +794,176 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
 
   return (
     <div className="crt min-h-screen bg-[#07020d] text-foreground select-none pb-20">
-      {/* TOP DESK HEADER */}
+      {/* CLEAN DASHBOARD HEADER */}
       <header className="sticky top-0 z-50 border-b-2 border-border/80 bg-[#07020d]/95 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-          <a
-            href="/"
-            className="flex items-center gap-2 border-2 border-border px-3 py-1 font-pixel text-[9px] text-muted-foreground hover:border-signal hover:text-signal transition"
-          >
-            <ArrowLeft className="h-3 w-3" />
-            <span>HQ</span>
-          </a>
-
-          <div className="flex items-center gap-2.5">
-            <img src={blackoutLogo} alt="BLACKOUT" className="h-6 w-auto" />
-            <div className="text-left">
-              <span className="font-pixel text-[10px] text-primary block leading-none font-bold">
-                REGISTRATION DESK
-              </span>
-              <span className="font-mono text-[9px] text-signal block mt-0.5">
-                LIVE CHECK-IN &amp; ATTENDANCE
-              </span>
-            </div>
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2.5">
+          {/* Left Brand Identity */}
+          <div className="flex items-center gap-3">
+            <a href="/" className="flex items-center gap-2.5 group">
+              <img
+                src={blackoutLogo}
+                alt="BLACKOUT"
+                className="h-7 w-auto drop-shadow-[0_0_12px_rgba(168,85,247,0.7)] group-hover:scale-105 transition"
+              />
+              <div className="border-l border-border/80 pl-2.5">
+                <span className="font-pixel text-[10px] text-foreground block font-bold leading-none tracking-wider">
+                  REGISTRATION DESK
+                </span>
+                <span className="font-mono text-[9px] text-signal block mt-1 tracking-wider font-semibold flex items-center gap-1.5">
+                  <span className="h-1.5 w-1.5 rounded-full bg-signal animate-pulse" />
+                  LIVE CHECK-IN &amp; ATTENDANCE
+                </span>
+              </div>
+            </a>
           </div>
 
+          {/* Center: Dashboard View Navigation Tabs */}
+          <nav className="hidden md:flex items-center gap-1 p-1 bg-black/60 border border-border/80 rounded">
+            <button
+              type="button"
+              onClick={() => setDashboardTab("CHECK_IN")}
+              className={`px-3 py-1.5 font-pixel text-[8px] flex items-center gap-1.5 transition ${
+                dashboardTab === "CHECK_IN"
+                  ? "bg-primary text-primary-foreground font-bold shadow-[2px_2px_0_0_var(--signal)]"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <QrCode className="h-3 w-3" />
+              <span>CHECK-IN DESK</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDashboardTab("ROSTER")}
+              className={`px-3 py-1.5 font-pixel text-[8px] flex items-center gap-1.5 transition ${
+                dashboardTab === "ROSTER"
+                  ? "bg-primary text-primary-foreground font-bold shadow-[2px_2px_0_0_var(--signal)]"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Users className="h-3 w-3" />
+              <span>ROSTER ({totalRegistrations})</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setDashboardTab("LOGISTICS")}
+              className={`px-3 py-1.5 font-pixel text-[8px] flex items-center gap-1.5 transition ${
+                dashboardTab === "LOGISTICS"
+                  ? "bg-primary text-primary-foreground font-bold shadow-[2px_2px_0_0_var(--signal)]"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Shirt className="h-3 w-3" />
+              <span>SWAG LOGISTICS</span>
+            </button>
+          </nav>
+
+          {/* Right: Clean Action Controls */}
           <div className="flex items-center gap-2">
-            {/* ORGANIZER AUTH BADGE */}
-            <div className="hidden md:flex items-center gap-1.5 border border-primary/50 bg-primary/10 px-2.5 py-1 font-mono text-[10px]">
-              <Shield className="h-3 w-3 text-signal" />
-              <span className="text-muted-foreground">AUTH:</span>
-              <span className="text-signal font-bold truncate max-w-[160px]">
+            {/* Operator Identity Pill */}
+            <div className="hidden sm:flex items-center gap-1.5 border border-border/80 bg-background/80 px-2.5 py-1 font-mono text-[10px]">
+              <User className="h-3 w-3 text-signal" />
+              <span className="text-signal font-bold truncate max-w-[120px]">
                 {currentOrganizer?.email || "DESK VOLUNTEER"}
               </span>
-              <span className="h-1.5 w-1.5 rounded-full bg-signal animate-pulse" />
             </div>
 
-            <button
-              type="button"
-              onClick={handleLockTerminal}
-              title="Lock admin terminal and sign out"
-              className="flex items-center gap-1.5 border border-destructive/60 bg-destructive/10 px-2.5 py-1 font-pixel text-[8px] text-destructive hover:bg-destructive hover:text-white transition active:scale-95"
-            >
-              <LogOut className="h-3 w-3" />
-              <span className="hidden sm:inline">SIGN OUT / LOCK</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowAdminRevenueModal(true)}
-              title="Admin Financial Vault (Total Revenue & Sales)"
-              className="hidden sm:flex items-center gap-1.5 border border-primary/50 bg-primary/10 px-2.5 py-1 font-pixel text-[8px] text-primary hover:bg-primary hover:text-black transition active:scale-95"
-            >
-              <Lock className="h-3 w-3" />
-              <span>ADMIN REVENUE</span>
-            </button>
-
+            {/* Sync */}
             <button
               type="button"
               onClick={() => loadData()}
               title="Refresh attendance records"
-              className="flex items-center gap-1.5 border border-border px-2.5 py-1 font-mono text-xs text-muted-foreground hover:text-foreground hover:border-signal transition active:scale-95"
+              className="flex items-center gap-1.5 border border-border bg-card/60 px-2.5 py-1 font-mono text-xs text-muted-foreground hover:text-foreground hover:border-signal transition active:scale-95"
             >
               <RefreshCw className={`h-3 w-3 ${isLoading ? "animate-spin" : ""}`} />
-              <span className="hidden sm:inline">SYNC</span>
+              <span className="hidden sm:inline font-pixel text-[8px]">SYNC</span>
             </button>
-            <a
-              href="/register"
-              className="hidden sm:inline-block border border-primary/60 bg-primary/10 px-2.5 py-1 font-pixel text-[8px] text-primary hover:bg-primary hover:text-black transition"
+
+            {/* Lock Terminal */}
+            <button
+              type="button"
+              onClick={handleLockTerminal}
+              title="Lock terminal and sign out"
+              className="flex items-center gap-1.5 border border-destructive/60 bg-destructive/10 px-2.5 py-1 font-pixel text-[8px] text-destructive hover:bg-destructive hover:text-white transition active:scale-95"
             >
-              + NEW PASS
+              <LogOut className="h-3 w-3" />
+              <span className="hidden sm:inline">LOCK</span>
+            </button>
+
+            {/* Return HQ */}
+            <a
+              href="/"
+              title="Return to HQ"
+              className="flex items-center gap-1.5 border border-border px-2.5 py-1 font-pixel text-[8px] text-muted-foreground hover:border-signal hover:text-signal transition"
+            >
+              <ArrowLeft className="h-3 w-3" />
+              <span>HQ</span>
             </a>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-6xl px-4 sm:px-6 pt-6">
-        {/* STATS DECK */}
+        {/* LIVE VENUE ADMISSION PROGRESS GAUGE */}
+        <div className="border-2 border-border bg-card/40 p-3 sm:p-4 mb-6 shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+          <div className="flex flex-wrap items-center justify-between gap-2 mb-2 font-mono text-xs">
+            <div className="flex items-center gap-2">
+              <span className="h-2 w-2 rounded-full bg-signal animate-pulse" />
+              <span className="font-pixel text-[9px] text-foreground font-bold uppercase tracking-wider">
+                VENUE ADMISSION CAPACITY // ARENA CLEARANCE
+              </span>
+            </div>
+            <span className="text-signal font-bold font-mono text-xs">
+              {checkedInCount} / {totalRegistrations} Admitted ({checkInRate}%)
+            </span>
+          </div>
+          <div className="w-full bg-black/80 h-2.5 border border-border/80 overflow-hidden rounded-sm">
+            <div
+              className="h-full bg-gradient-to-r from-primary via-signal to-signal shadow-[0_0_12px_rgba(34,197,94,0.8)] transition-all duration-500"
+              style={{ width: `${Math.max(checkInRate, 2)}%` }}
+            />
+          </div>
+        </div>
+
+        {/* MOBILE VIEW SWITCHER TABS */}
+        <div className="flex md:hidden border-2 border-border p-1 bg-black/80 mb-6 font-pixel text-[8px]">
+          <button
+            type="button"
+            onClick={() => setDashboardTab("CHECK_IN")}
+            className={`flex-1 py-2 text-center transition ${
+              dashboardTab === "CHECK_IN"
+                ? "bg-primary text-primary-foreground font-bold shadow-[2px_2px_0_0_var(--signal)]"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            CHECK-IN DESK
+          </button>
+          <button
+            type="button"
+            onClick={() => setDashboardTab("ROSTER")}
+            className={`flex-1 py-2 text-center transition ${
+              dashboardTab === "ROSTER"
+                ? "bg-primary text-primary-foreground font-bold shadow-[2px_2px_0_0_var(--signal)]"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            ROSTER ({totalRegistrations})
+          </button>
+          <button
+            type="button"
+            onClick={() => setDashboardTab("LOGISTICS")}
+            className={`flex-1 py-2 text-center transition ${
+              dashboardTab === "LOGISTICS"
+                ? "bg-primary text-primary-foreground font-bold shadow-[2px_2px_0_0_var(--signal)]"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            SWAG STATS
+          </button>
+        </div>
+
+        {/* STATS DECK - OPERATIONAL KPIS ONLY (NO REVENUE CARD) */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-6">
-          <div className="border-2 border-border bg-card/60 p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.5)]">
+          <div className="border-2 border-border bg-card/60 p-4 shadow-[4px_4px_0_0_rgba(0,0,0,0.5)] flex flex-col justify-between">
             <span className="font-pixel text-[8px] text-muted-foreground uppercase block">
               TOTAL REGISTERED
             </span>
@@ -845,9 +973,12 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
               </span>
               <span className="font-mono text-xs text-muted-foreground">builders</span>
             </div>
+            <span className="font-mono text-[9px] text-muted-foreground mt-1 block">
+              {soloCount} Solo · {teamCount} Squads
+            </span>
           </div>
 
-          <div className="border-2 border-signal/60 bg-signal/5 p-4 shadow-[4px_4px_0_0_var(--signal)]">
+          <div className="border-2 border-signal/60 bg-signal/5 p-4 shadow-[4px_4px_0_0_var(--signal)] flex flex-col justify-between">
             <span className="font-pixel text-[8px] text-signal uppercase block font-bold">
               CHECKED IN (PRESENT)
             </span>
@@ -859,9 +990,12 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                 ({checkInRate}%)
               </span>
             </div>
+            <span className="font-mono text-[9px] text-signal/80 mt-1 block">
+              Admitted to arena
+            </span>
           </div>
 
-          <div className="border-2 border-amber-500/60 bg-amber-500/5 p-4 shadow-[4px_4px_0_0_rgba(245,158,11,0.5)]">
+          <div className="border-2 border-amber-500/60 bg-amber-500/5 p-4 shadow-[4px_4px_0_0_rgba(245,158,11,0.5)] flex flex-col justify-between">
             <span className="font-pixel text-[8px] text-amber-400 uppercase block">
               PENDING ADMITTANCE
             </span>
@@ -871,57 +1005,31 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
               </span>
               <span className="font-mono text-xs text-muted-foreground">remaining</span>
             </div>
+            <span className="font-mono text-[9px] text-amber-400/80 mt-1 block">
+              Awaiting desk arrival
+            </span>
           </div>
 
-          {/* REVENUE LOGGED (RESTRICTED TO ADMIN ONLY) */}
-          <div className="border-2 border-primary/50 bg-primary/5 p-4 shadow-[4px_4px_0_0_var(--primary)] flex flex-col justify-between">
+          <div className="border-2 border-primary/60 bg-primary/5 p-4 shadow-[4px_4px_0_0_var(--primary)] flex flex-col justify-between">
             <div className="flex items-center justify-between">
               <span className="font-pixel text-[8px] text-primary uppercase block font-bold">
-                REVENUE LOGGED
+                HOODIES &amp; SWAG PACKS
               </span>
-              <span className="border border-primary/50 bg-primary/15 px-1.5 py-0.5 font-pixel text-[7px] text-primary font-bold">
-                🔒 ADMIN ONLY
+              <span className="border border-primary/50 bg-primary/20 px-1.5 py-0.5 font-pixel text-[7px] text-primary font-bold">
+                GEAR DESK
               </span>
             </div>
-
-            <div className="mt-2 flex items-center justify-between">
-              {showRevenue ? (
-                <div>
-                  <span className="font-pixel text-xl sm:text-2xl text-primary font-bold">
-                    ₹{totalRevenue.toLocaleString("en-IN")}
-                  </span>
-                  <span className="block font-mono text-[9px] text-muted-foreground">TOTAL LOGGED</span>
-                </div>
-              ) : (
-                <div>
-                  <span className="font-pixel text-base sm:text-lg text-muted-foreground font-bold tracking-widest block">
-                    ●●●●●●
-                  </span>
-                  <span className="block font-mono text-[9px] text-muted-foreground">
-                    RESTRICTED TO ADMIN
-                  </span>
-                </div>
-              )}
-
-              <div className="flex items-center gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => setShowRevenue((prev) => !prev)}
-                  title={showRevenue ? "Hide revenue from desk" : "Reveal revenue (Admin)"}
-                  className="border border-primary/60 bg-primary/20 p-1.5 font-pixel text-[8px] text-primary hover:bg-primary hover:text-black transition active:scale-95 shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]"
-                >
-                  {showRevenue ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAdminRevenueModal(true)}
-                  title="Open Admin Financial Vault"
-                  className="border border-border bg-card p-1.5 font-pixel text-[8px] text-muted-foreground hover:text-foreground hover:border-signal transition active:scale-95 shadow-[2px_2px_0_0_rgba(0,0,0,0.5)]"
-                >
-                  <Lock className="h-3.5 w-3.5" />
-                </button>
-              </div>
+            <div className="mt-2 flex items-baseline gap-2">
+              <span className="font-pixel text-2xl sm:text-3xl text-foreground font-bold">
+                {checkedInCount}
+              </span>
+              <span className="font-mono text-xs text-muted-foreground">
+                / {totalRegistrations} issued
+              </span>
             </div>
+            <span className="font-mono text-[9px] text-primary/80 mt-1 block">
+              {pendingCount} packs remaining
+            </span>
           </div>
         </div>
 
@@ -958,8 +1066,9 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
           </div>
         )}
 
-        {/* SCANNER & VERIFICATION SECTION */}
-        <div className="grid gap-6 lg:grid-cols-12 mb-8">
+        {/* SCANNER & VERIFICATION SECTION (Rendered on CHECK_IN) */}
+        {dashboardTab === "CHECK_IN" && (
+          <div className="grid gap-6 lg:grid-cols-12 mb-8 animate-fade-in">
           {/* CAMERA QR SCANNER (Col 5) */}
           <div className="lg:col-span-5 border-2 border-primary/50 bg-[#0d0417] p-5 shadow-[6px_6px_0_0_var(--primary)]">
             <div className="flex items-center justify-between border-b border-border/60 pb-3 mb-4">
@@ -1376,9 +1485,11 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
             )}
           </div>
         </div>
+        )}
 
-        {/* ATTENDEE DIRECTORY SECTION */}
-        <section className="border-2 border-border bg-card p-5 sm:p-6 shadow-[8px_8px_0_0_rgba(0,0,0,0.8)]">
+        {/* ATTENDEE DIRECTORY SECTION (Rendered on CHECK_IN and ROSTER) */}
+        {(dashboardTab === "CHECK_IN" || dashboardTab === "ROSTER") && (
+          <section className="border-2 border-border bg-card p-5 sm:p-6 shadow-[8px_8px_0_0_rgba(0,0,0,0.8)]">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-border/80 pb-4 mb-5">
             <div>
               <h3 className="font-pixel text-base sm:text-lg text-foreground">
@@ -1559,123 +1670,100 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
             </table>
           </div>
         </section>
+        )}
 
-        {/* ============================================================== */}
-        {/* ADMIN FINANCIAL VAULT MODAL (RESTRICTED TO ADMIN ONLY) */}
-        {/* ============================================================== */}
-        {showAdminRevenueModal && (
-          <div
-            role="dialog"
-            aria-modal="true"
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-fade-in"
-            onClick={() => setShowAdminRevenueModal(false)}
-          >
-            <div
-              className="relative w-full max-w-lg border-2 border-primary bg-[#0d0417] p-6 shadow-[8px_8px_0_0_var(--signal)] text-foreground"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="flex items-center justify-between border-b-2 border-border/80 pb-3 mb-4">
+        {/* VIEW 3: SWAG & LOGISTICS DASHBOARD */}
+        {dashboardTab === "LOGISTICS" && (
+          <div className="space-y-6 mb-8 animate-fade-in">
+            {/* Swag Sizing Inventory Console */}
+            <div className="border-2 border-primary bg-card/70 p-5 shadow-[6px_6px_0_0_var(--signal)]">
+              <div className="flex items-center justify-between border-b border-border/80 pb-3 mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="h-8 w-8 rounded border border-primary bg-primary/20 flex items-center justify-center text-primary">
-                    <Lock className="h-4 w-4" />
-                  </div>
-                  <div>
-                    <h3 className="font-pixel text-sm text-foreground font-bold">
-                      ADMIN FINANCIAL VAULT
-                    </h3>
-                    <span className="font-mono text-[10px] text-signal">
-                      RESTRICTED EXECUTIVE CLEARANCE
-                    </span>
-                  </div>
+                  <Shirt className="h-5 w-5 text-signal" />
+                  <h3 className="font-pixel text-sm text-foreground font-bold">
+                    OFFICIAL HOODIE &amp; T-SHIRT INVENTORY TALLY
+                  </h3>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setShowAdminRevenueModal(false)}
-                  className="border-2 border-border p-1.5 font-pixel text-xs text-muted-foreground hover:border-destructive hover:text-destructive transition"
-                >
-                  ✕
-                </button>
+                <span className="font-mono text-xs text-signal font-bold">
+                  {checkedInCount} / {totalRegistrations} Handed Out
+                </span>
               </div>
 
-              <div className="space-y-4 font-mono text-xs">
-                <div className="border-2 border-primary/60 bg-primary/10 p-4 text-center shadow-[4px_4px_0_0_var(--primary)]">
-                  <span className="font-pixel text-[9px] text-primary uppercase block">
-                    TOTAL REVENUE LODGED
-                  </span>
-                  <span className="font-pixel text-3xl sm:text-4xl text-foreground font-bold block mt-1">
-                    ₹{totalRevenue.toLocaleString("en-IN")}
-                  </span>
-                  <span className="font-mono text-[10px] text-muted-foreground mt-1 block">
-                    Calculated from {registrations.length} verified participant registrations
-                  </span>
+              <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+                {["S", "M", "L", "XL", "XXL"].map((sz) => {
+                  const data = swagSizeTally[sz] || { total: 0, checkedIn: 0 };
+                  const remaining = data.total - data.checkedIn;
+                  return (
+                    <div
+                      key={sz}
+                      className="border-2 border-border/80 bg-background/80 p-3 text-center shadow-sm"
+                    >
+                      <span className="font-pixel text-xs text-primary font-bold block mb-1">
+                        SIZE {sz}
+                      </span>
+                      <span className="font-pixel text-2xl text-foreground font-bold block">
+                        {data.total}
+                      </span>
+                      <div className="mt-2 pt-2 border-t border-border/60 font-mono text-[10px] space-y-0.5">
+                        <div className="text-signal flex justify-between">
+                          <span>Dispatched:</span>
+                          <span className="font-bold">{data.checkedIn}</span>
+                        </div>
+                        <div className="text-amber-400 flex justify-between">
+                          <span>Remaining:</span>
+                          <span className="font-bold">{remaining}</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Participation & Tier Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="border-2 border-border bg-card/60 p-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <div className="flex items-center gap-2 border-b border-border/60 pb-3 mb-3">
+                  <Users className="h-4 w-4 text-primary" />
+                  <h4 className="font-pixel text-xs text-foreground font-bold">
+                    SQUAD VS SOLO DISTRIBUTION
+                  </h4>
                 </div>
-
-                <div className="grid grid-cols-2 gap-3 pt-2">
-                  <div className="border border-border/80 bg-background/80 p-3">
-                    <span className="font-pixel text-[8px] text-muted-foreground uppercase block">
-                      SOLO PARTICIPANTS
-                    </span>
-                    <span className="font-pixel text-lg text-foreground font-bold block mt-1">
-                      {registrations.filter((r) => r.participation_type !== "team").length}
-                    </span>
-                    <span className="text-[10px] text-signal font-bold">
-                      ₹{registrations
-                        .filter((r) => r.participation_type !== "team")
-                        .reduce((acc, r) => acc + (r.total_price || r.pass_price || 0), 0)
-                        .toLocaleString("en-IN")}
-                    </span>
+                <div className="space-y-3 font-mono text-xs">
+                  <div className="flex items-center justify-between border-b border-border/40 pb-2">
+                    <span className="text-muted-foreground">Solo Hacker Operatives:</span>
+                    <span className="font-bold text-foreground font-pixel text-sm">{soloCount}</span>
                   </div>
-
-                  <div className="border border-border/80 bg-background/80 p-3">
-                    <span className="font-pixel text-[8px] text-muted-foreground uppercase block">
-                      TEAM SQUADS
-                    </span>
-                    <span className="font-pixel text-lg text-foreground font-bold block mt-1">
-                      {registrations.filter((r) => r.participation_type === "team").length}
-                    </span>
-                    <span className="text-[10px] text-signal font-bold">
-                      ₹{registrations
-                        .filter((r) => r.participation_type === "team")
-                        .reduce((acc, r) => acc + (r.total_price || r.pass_price || 0), 0)
-                        .toLocaleString("en-IN")}
-                    </span>
+                  <div className="flex items-center justify-between border-b border-border/40 pb-2">
+                    <span className="text-muted-foreground">Team Squads:</span>
+                    <span className="font-bold text-signal font-pixel text-sm">{teamCount}</span>
                   </div>
-                </div>
-
-                <div className="border border-border/60 bg-background/60 p-3 flex items-center justify-between">
-                  <div>
-                    <span className="font-pixel text-[8px] text-muted-foreground uppercase block">
-                      DESK DISPLAY TOGGLE
-                    </span>
-                    <p className="text-[10px] text-muted-foreground mt-0.5">
-                      Keep revenue hidden from volunteers at check-in desk
-                    </p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-muted-foreground">Total Arena Builders:</span>
+                    <span className="font-bold text-primary font-pixel text-sm">{totalRegistrations}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowRevenue((prev) => !prev);
-                      setShowAdminRevenueModal(false);
-                    }}
-                    className={`border px-3 py-1.5 font-pixel text-[8px] font-bold transition ${
-                      showRevenue
-                        ? "border-destructive/60 bg-destructive/15 text-destructive hover:bg-destructive hover:text-white"
-                        : "border-signal bg-signal/20 text-signal hover:bg-signal hover:text-black"
-                    }`}
-                  >
-                    {showRevenue ? "HIDE ON DESK" : "REVEAL ON DESK"}
-                  </button>
                 </div>
               </div>
 
-              <div className="mt-5 pt-3 border-t border-border/60 flex justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowAdminRevenueModal(false)}
-                  className="border-2 border-border px-5 py-2 font-pixel text-[9px] text-muted-foreground hover:text-foreground hover:border-signal transition"
-                >
-                  CLOSE VAULT
-                </button>
+              <div className="border-2 border-border bg-card/60 p-5 shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]">
+                <div className="flex items-center gap-2 border-b border-border/60 pb-3 mb-3">
+                  <BarChart3 className="h-4 w-4 text-signal" />
+                  <h4 className="font-pixel text-xs text-foreground font-bold">
+                    PASS TIER ALLOCATION
+                  </h4>
+                </div>
+                <div className="space-y-2 font-mono text-xs">
+                  {Object.entries(tierDistribution).length > 0 ? (
+                    Object.entries(tierDistribution).map(([tier, count]) => (
+                      <div key={tier} className="flex items-center justify-between border-b border-border/40 pb-1.5">
+                        <span className="text-muted-foreground">{tier}:</span>
+                        <span className="font-bold text-signal font-pixel text-sm">{count}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-muted-foreground text-center py-4">No registrations loaded.</p>
+                  )}
+                </div>
               </div>
             </div>
           </div>

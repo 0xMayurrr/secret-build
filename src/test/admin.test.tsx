@@ -195,43 +195,31 @@ describe("Admin Registration Desk & QR Check-in System", () => {
     });
   });
 
-  it("restricts total revenue visibility by default and reveals it when admin toggles or opens vault", async () => {
+  it("renders dashboard operational KPIs, swag dispatch tracker, and verifies revenue card is removed", async () => {
     render(<AdminDeskPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
     });
 
-    // By default, revenue logged should be masked and marked as ADMIN ONLY
-    expect(screen.getByText(/REVENUE LOGGED/i)).toBeInTheDocument();
-    expect(screen.getByText(/ADMIN ONLY/i)).toBeInTheDocument();
-    expect(screen.getByText(/RESTRICTED TO ADMIN/i)).toBeInTheDocument();
+    // Verify operational dashboard KPI cards
+    expect(screen.getByText(/TOTAL REGISTERED/i)).toBeInTheDocument();
+    expect(screen.getByText(/CHECKED IN/i)).toBeInTheDocument();
+    expect(screen.getByText(/PENDING ADMITTANCE/i)).toBeInTheDocument();
+    expect(screen.getByText(/HOODIES & SWAG PACKS/i)).toBeInTheDocument();
 
-    // Click reveal toggle button
-    const revealBtn = screen.getByTitle(/Reveal revenue \(Admin\)/i);
-    fireEvent.click(revealBtn);
+    // Verify Revenue Logged is completely removed from the dashboard
+    expect(screen.queryByText(/REVENUE LOGGED/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/ADMIN REVENUE/i)).not.toBeInTheDocument();
 
-    // Now revenue amount should be revealed
-    await waitFor(() => {
-      expect(screen.getByText(/1,497/i)).toBeInTheDocument();
-    });
+    // Switch to SWAG LOGISTICS dashboard view tab
+    const logisticsTab = screen.getByRole("button", { name: /SWAG LOGISTICS/i });
+    fireEvent.click(logisticsTab);
 
-    // Click hide button
-    const hideBtn = screen.getByTitle(/Hide revenue from desk/i);
-    fireEvent.click(hideBtn);
-    expect(screen.getByText(/RESTRICTED TO ADMIN/i)).toBeInTheDocument();
-
-    // Click lock icon to open Admin Financial Vault modal
-    const vaultBtn = screen.getByTitle(/Open Admin Financial Vault/i);
-    fireEvent.click(vaultBtn);
-
-    expect(screen.getByText("ADMIN FINANCIAL VAULT")).toBeInTheDocument();
-    expect(screen.getByText(/TOTAL REVENUE LODGED/i)).toBeInTheDocument();
-    expect(screen.getByText("CLOSE VAULT")).toBeInTheDocument();
-
-    // Close modal
-    fireEvent.click(screen.getByText("CLOSE VAULT"));
-    expect(screen.queryByText("ADMIN FINANCIAL VAULT")).not.toBeInTheDocument();
+    // Verify Swag inventory console is visible
+    expect(screen.getByText(/OFFICIAL HOODIE & T-SHIRT INVENTORY TALLY/i)).toBeInTheDocument();
+    expect(screen.getByText(/SIZE M/i)).toBeInTheDocument();
+    expect(screen.getByText(/SQUAD VS SOLO DISTRIBUTION/i)).toBeInTheDocument();
   });
 
   it("displays uploaded payment screenshot proof in dossier and opens lightbox modal", async () => {
