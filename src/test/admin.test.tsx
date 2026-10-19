@@ -120,16 +120,12 @@ describe("Admin Registration Desk & QR Check-in System", () => {
     expect(revertedRecord?.checked_in_at).toBeNull();
   });
 
-  it("renders Admin Desk page with camera scanner controls and stats deck", async () => {
+  it("renders Admin Desk page with operational stats deck and attendee directory", async () => {
     render(<AdminDeskPage />);
 
     // Header & Badge
     expect(screen.getByText("REGISTRATION DESK")).toBeInTheDocument();
     expect(screen.getByText("LIVE CHECK-IN & ATTENDANCE")).toBeInTheDocument();
-
-    // Scanning action buttons
-    expect(screen.getByText("MOBILE CAMERA QR SCANNER")).toBeInTheDocument();
-    expect(screen.getByText("START CAMERA SCANNER")).toBeInTheDocument();
 
     // Stats deck
     expect(screen.getByText(/TOTAL REGISTERED/i)).toBeInTheDocument();
@@ -143,7 +139,6 @@ describe("Admin Registration Desk & QR Check-in System", () => {
     await waitFor(() => {
       expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
       expect(screen.getByText("BLK-2026-TEST01")).toBeInTheDocument();
-      expect(screen.getByText("M")).toBeInTheDocument();
     });
   });
 
@@ -195,7 +190,7 @@ describe("Admin Registration Desk & QR Check-in System", () => {
     });
   });
 
-  it("renders dashboard operational KPIs, swag dispatch tracker, and verifies revenue card is removed", async () => {
+  it("renders dashboard operational KPIs, verifies revenue and swag inventory are removed", async () => {
     render(<AdminDeskPage />);
 
     await waitFor(() => {
@@ -206,59 +201,42 @@ describe("Admin Registration Desk & QR Check-in System", () => {
     expect(screen.getByText(/TOTAL REGISTERED/i)).toBeInTheDocument();
     expect(screen.getByText(/CHECKED IN/i)).toBeInTheDocument();
     expect(screen.getByText(/PENDING ADMITTANCE/i)).toBeInTheDocument();
-    expect(screen.getByText(/HOODIES & SWAG PACKS/i)).toBeInTheDocument();
 
-    // Verify Revenue Logged is completely removed from the dashboard
-    expect(screen.queryByText(/REVENUE LOGGED/i)).not.toBeInTheDocument();
-    expect(screen.queryByText(/ADMIN REVENUE/i)).not.toBeInTheDocument();
-
-    // Switch to SWAG LOGISTICS dashboard view tab
-    const logisticsTab = screen.getByRole("button", { name: /SWAG LOGISTICS/i });
-    fireEvent.click(logisticsTab);
-
-    // Verify Swag inventory console is visible
-    expect(screen.getByText(/OFFICIAL HOODIE & T-SHIRT INVENTORY TALLY/i)).toBeInTheDocument();
-    expect(screen.getByText(/SIZE M/i)).toBeInTheDocument();
-    expect(screen.getByText(/SQUAD VS SOLO DISTRIBUTION/i)).toBeInTheDocument();
+    // Verify Swag and Revenue are completely removed from the dashboard
+    expect(screen.queryByText(/HOODIES & SWAG PACKS/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/SWAG LOGISTICS/i)).not.toBeInTheDocument();
+    expect(screen.queryByText(/REVENUE/i)).not.toBeInTheDocument();
   });
 
-  it("displays uploaded payment screenshot proof in dossier and opens lightbox modal", async () => {
+  it("opens attendee details popup modal with full details and uploaded screenshot proof", async () => {
     render(<AdminDeskPage />);
 
     await waitFor(() => {
       expect(screen.getByText("Ada Lovelace")).toBeInTheDocument();
     });
 
-    // Select attendee row to open active dossier
+    // Select attendee row to open full details dossier modal
     const row = screen.getByText("Ada Lovelace").closest("tr");
     expect(row).not.toBeNull();
     fireEvent.click(row!);
 
-    // Check payment screenshot section in dossier
+    // Check operative dossier modal with full details and payment screenshot section
     await waitFor(() => {
+      expect(screen.getByText("OPERATIVE DOSSIER // FULL DETAILS")).toBeInTheDocument();
+      expect(screen.getByText("CONTACT & PROFILE DETAILS")).toBeInTheDocument();
+      expect(screen.getByText("PASS TICKET & SQUAD INFORMATION")).toBeInTheDocument();
       expect(screen.getByText("PAYMENT SCREENSHOT PROOF")).toBeInTheDocument();
       expect(screen.getByText("✔ SCREENSHOT ATTACHED")).toBeInTheDocument();
       expect(screen.getAllByText("987654321098").length).toBeGreaterThanOrEqual(1);
     });
 
-    // Click "VIEW FULL SCREENSHOT" button to open lightbox
-    const viewProofBtn = screen.getByRole("button", { name: /VIEW FULL SCREENSHOT/i });
-    fireEvent.click(viewProofBtn);
-
-    // Lightbox modal should be open
-    expect(screen.getByText("PAYMENT VERIFICATION PROOF")).toBeInTheDocument();
     const modalImg = screen.getByAltText(/Payment screenshot for Ada Lovelace/i);
     expect(modalImg).toBeInTheDocument();
     expect(modalImg).toHaveAttribute("src", "data:image/png;base64,mockproof");
 
-    // Close lightbox
-    const closeBtn = screen.getByRole("button", { name: "Close proof preview" });
+    // Close modal
+    const closeBtn = screen.getByRole("button", { name: "Close operative dossier" });
     fireEvent.click(closeBtn);
-    expect(screen.queryByText("PAYMENT VERIFICATION PROOF")).not.toBeInTheDocument();
-
-    // Also test table row quick PROOF button
-    const tableProofBtn = screen.getByTitle(/View uploaded payment screenshot proof/i);
-    fireEvent.click(tableProofBtn);
-    expect(screen.getByText("PAYMENT VERIFICATION PROOF")).toBeInTheDocument();
+    expect(screen.queryByText("OPERATIVE DOSSIER // FULL DETAILS")).not.toBeInTheDocument();
   });
 });
