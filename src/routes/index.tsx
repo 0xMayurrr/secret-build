@@ -8,8 +8,7 @@ import { ArrowUp } from "lucide-react";
 import { blackoutAudio } from "@/lib/blackout-audio";
 import Silk from "@/components/Silk";
 import BlurText from "@/components/BlurText";
-import MoltenMetal from "@/components/MoltenMetal";
-import { PixelRunner } from "@/components/PixelRunner";
+import { MinecraftIdleCharacter } from "@/components/MinecraftIdleCharacter";
 
 
 export const Route = createFileRoute("/")({
@@ -878,17 +877,23 @@ function Index() {
             >
               <div className="flex items-center justify-between">
                 <p className="font-pixel text-xs opacity-75">[{w.c}]</p>
-                <span className="font-pixel text-[8px] opacity-40 uppercase tracking-widest hidden sm:inline">
-                  8-BIT // RUNNER
+                <span className="font-pixel text-[8px] opacity-50 uppercase tracking-widest hidden sm:inline">
+                  MINECRAFT // OPERATIVE
                 </span>
               </div>
 
-              {/* 8-Bit Pixel Character Running Across Inside The Card */}
-              <div className="relative my-3 h-12 w-full overflow-hidden">
-                <PixelRunner role={w.c} isFeatured={i === WHO.length - 1} delay={i * 0.45} />
+              {/* Minecraft Idle Character Next to the Title */}
+              <div className="my-auto flex items-center gap-3.5 py-2">
+                <div className="shrink-0 flex items-center justify-center p-1.5 rounded border border-border/40 bg-background/60 shadow-inner group-hover:border-signal/60 group-hover:bg-background/90 transition-all">
+                  <MinecraftIdleCharacter role={w.c} isFeatured={i === WHO.length - 1} />
+                </div>
+                <p className="font-term text-2xl md:text-3xl font-bold leading-tight">{w.t}</p>
               </div>
 
-              <p className="font-term text-2xl md:text-3xl font-bold leading-tight">{w.t}</p>
+              <div className="flex items-center justify-between border-t border-border/25 pt-2 font-mono text-[9px] text-muted-foreground opacity-60">
+                <span>STATUS: READY</span>
+                <span className="font-pixel text-[8px] text-signal">IDLE_ACTIVE ●</span>
+              </div>
             </div>
           ))}
         </div>
