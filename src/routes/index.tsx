@@ -9,6 +9,7 @@ import { blackoutAudio } from "@/lib/blackout-audio";
 import Silk from "@/components/Silk";
 import BlurText from "@/components/BlurText";
 import Shuffle from "@/components/Shuffle";
+import { CrossedDuctTape, PriceDuctTape } from "@/components/CrossedDuctTape";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -903,6 +904,12 @@ function Index() {
               >
                 {p.locked ? (
                   <>
+                    {/* Realistic Crossed Yellow & Black Hazard Duct Tape */}
+                    <CrossedDuctTape
+                      label1="RESTRICTED // DO NOT CROSS"
+                      label2="CLASSIFIED // OPENS POST EARLY-BIRD"
+                    />
+
                     {/* TV Glitch, CRT static & scanline layers */}
                     <div className="pointer-events-none absolute inset-0 opacity-25 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
                     <div className="scanline pointer-events-none absolute inset-0 opacity-35 transition-opacity group-hover/locked:opacity-75" />
@@ -917,11 +924,9 @@ function Index() {
 
                     <h3 className="mt-2 font-pixel text-sm text-foreground/90">{p.name}</h3>
 
-                    <div className="mt-6 flex items-center gap-3">
-                      <p className="font-pixel text-4xl text-muted-foreground/50 tracking-wider">
-                        <span className="text-2xl">₹</span>{p.price}
-                      </p>
-                      <div className="redact h-5 w-20" />
+                    {/* Price hidden completely by yellow-and-black hazard caution duct tape */}
+                    <div className="relative mt-6 h-12 w-full flex items-center justify-center overflow-hidden">
+                      <PriceDuctTape label="PRICE SEALED // ⚠" />
                     </div>
 
                     <div className="mt-6 flex-1 space-y-2">

@@ -27,6 +27,7 @@ import {
 import { BlackoutPassCard } from "@/components/BlackoutPassCard";
 import { Lanyard } from "@/components/Lanyard";
 import { generateBadgeFrontSvg, generateBadgeBackSvg } from "@/lib/badgeTexture";
+import { CrossedDuctTape, PriceDuctTape } from "@/components/CrossedDuctTape";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -579,6 +580,14 @@ export function RegisterPage() {
                         : "border-border bg-background/60 hover:border-foreground/50 hover:shadow-[5px_5px_0_0_rgba(0,0,0,0.5)] cursor-pointer"
                     }`}
                   >
+                    {/* Realistic Crossed Yellow & Black Hazard Duct Tape */}
+                    {tier.locked && (
+                      <CrossedDuctTape
+                        label1="RESTRICTED // DO NOT CROSS"
+                        label2="CLASSIFIED // ACCESS DENIED"
+                      />
+                    )}
+
                     {/* TV Glitch, CRT static & scanline layers for locked passes */}
                     {tier.locked && (
                       <>
@@ -604,22 +613,22 @@ export function RegisterPage() {
 
                       <h3 className="mt-4 font-pixel text-base text-foreground/90">{tier.name}</h3>
 
-                      <div className="mt-4 flex items-baseline gap-2">
-                        <span className={`font-pixel text-3xl sm:text-4xl font-bold ${
-                          tier.locked ? "text-muted-foreground/50 tracking-wider" : "text-foreground"
-                        }`}>
-                          ₹{tierTotal}
-                        </span>
-                        {tier.locked ? (
-                          <div className="redact h-4 w-16" />
-                        ) : (
+                      {tier.locked ? (
+                        <div className="relative mt-4 h-12 w-full flex items-center justify-center overflow-hidden">
+                          <PriceDuctTape label="PRICE SEALED // ⚠" />
+                        </div>
+                      ) : (
+                        <div className="mt-4 flex items-baseline gap-2">
+                          <span className="font-pixel text-3xl sm:text-4xl font-bold text-foreground">
+                            ₹{tierTotal}
+                          </span>
                           <span className="font-mono text-xs text-muted-foreground">
                             {participationType === "team"
                               ? `(${activeCount} × ₹${tier.price})`
                               : "/ builder"}
                           </span>
-                        )}
-                      </div>
+                        </div>
+                      )}
 
                       {tier.locked ? (
                         <div className="mt-5 space-y-2.5 border-t border-border/40 pt-4">
