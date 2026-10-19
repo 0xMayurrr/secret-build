@@ -4,10 +4,15 @@ import { TeamSection } from "@/components/TeamSection";
 import { TEAM_MEMBERS } from "@/components/team-data";
 
 describe("TeamSection", () => {
-  it("contains exactly 12 members in team-data", () => {
-    expect(TEAM_MEMBERS).toHaveLength(12);
+  it("contains all 17 members in team-data", () => {
+    expect(TEAM_MEMBERS).toHaveLength(17);
     expect(TEAM_MEMBERS[0].name).toBe("Karthick Mayur");
     expect(TEAM_MEMBERS[0].role).toBe("Founder & Lead Architect");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Tamil TM")?.role).toBe("Applied AI Engineer");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Nivethitha Ramesh")?.role).toBe("Applied AI Engineer");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Jamuna Rani")?.role).toBe("SDE Intern");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Rajeshwari M")?.role).toBe("SDE Intern");
+    expect(TEAM_MEMBERS.find((m) => m.name === "Bhuvana Sree S")?.role).toBe("SDE Intern");
   });
 
   it("renders in OFF state by default showing CLASSIFIED and IDENTITY_LOCKED", () => {
@@ -31,8 +36,9 @@ describe("TeamSection", () => {
     // Real team members appear
     expect(screen.getAllByText("Karthick Mayur").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Harish Kumar").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Sanjay Vignesh").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Arun Prasath").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Tamil TM").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Nivethitha Ramesh").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Jamuna Rani").length).toBeGreaterThan(0);
   });
 
   it("opens operative dossier modal when an illuminated card is clicked", () => {

@@ -1,3 +1,9 @@
+import tamilTmImg from "@/assets/team/tamil-tm.png";
+import nivethithaRameshImg from "@/assets/team/nivethitha-ramesh.png";
+import jamunaRaniImg from "@/assets/team/jamuna-rani.png";
+import rajeshwariMImg from "@/assets/team/rajeshwari-m.png";
+import bhuvanaSreeImg from "@/assets/team/bhuvana-sree.png";
+
 export interface TeamMember {
   id: string;
   name: string;
@@ -14,7 +20,7 @@ export interface TeamMember {
   avatarSvg: string;
 }
 
-// 12 Full Team Members for BLACKOUT Hackathon
+// 17 Team Members for BLACKOUT Hackathon
 export const TEAM_MEMBERS: TeamMember[] = [
   {
     id: "ID_001",
@@ -290,4 +296,75 @@ export const TEAM_MEMBERS: TeamMember[] = [
       <path d="M40 26 L60 26" stroke="%23fdba74" stroke-width="3"/>
     </svg>`,
   },
+  {
+    id: "ID_013",
+    name: "Tamil TM",
+    role: "Applied AI Engineer",
+    squad: "NEURAL_LABS",
+    clearance: "SIGMA_13",
+    bio: "Specializes in productionizing generative intelligence pipelines and edge model fine-tuning. Optimizing neural weights to evaluate autonomous hacker agents during the blackout.",
+    skills: ["Applied AI", "LLM Fine-Tuning", "Neural Pipelines", "PyTorch", "Model Eval"],
+    avatarBg: "oklch(0.2 0.08 160)",
+    accentColor: "#10b981",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    avatarSvg: tamilTmImg,
+  },
+  {
+    id: "ID_014",
+    name: "Nivethitha Ramesh",
+    role: "Applied AI Engineer",
+    squad: "NEURAL_CORE",
+    clearance: "SIGMA_14",
+    bio: "Architecting multimodal reasoning systems and latency-critical inference pipelines. Deploys resilient AI agents designed to operate in low-bandwidth, high-entropy challenge environments.",
+    skills: ["Generative AI", "Agentic Systems", "Prompt Engineering", "Python", "MLOps"],
+    avatarBg: "oklch(0.2 0.08 215)",
+    accentColor: "#0ea5e9",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    avatarSvg: nivethithaRameshImg,
+  },
+  {
+    id: "ID_015",
+    name: "Jamuna Rani",
+    role: "SDE Intern",
+    squad: "CORE_BUILDERS",
+    clearance: "DELTA_15",
+    bio: "Engineering high-performance fullstack interfaces and reactive services. Building tactile attendee interfaces, live submission trackers, and real-time event telemetry.",
+    skills: ["Full Stack", "TypeScript", "React", "Node.js", "API Design"],
+    avatarBg: "oklch(0.2 0.08 320)",
+    accentColor: "#ec4899",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    avatarSvg: jamunaRaniImg,
+  },
+  {
+    id: "ID_016",
+    name: "Rajeshwari M",
+    role: "SDE Intern",
+    squad: "CORE_BUILDERS",
+    clearance: "DELTA_16",
+    bio: "Focused on robust backend services, secure transaction validation, and database reliability. Ensuring high-availability data channels during peak hacker traffic spikes.",
+    skills: ["Software Engineering", "PostgreSQL", "Database Design", "Cloud Services", "Go/Java"],
+    avatarBg: "oklch(0.2 0.08 280)",
+    accentColor: "#a855f7",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    avatarSvg: rajeshwariMImg,
+  },
+  {
+    id: "ID_017",
+    name: "Bhuvana Sree S",
+    role: "SDE Intern",
+    squad: "CORE_BUILDERS",
+    clearance: "DELTA_17",
+    bio: "Crafting responsive user interfaces, real-time portal interactions, and edge client features. Translating complex evaluation metrics into seamless digital experiences.",
+    skills: ["Frontend Dev", "React/Next.js", "UI/UX Architecture", "REST APIs", "Modern Web"],
+    avatarBg: "oklch(0.2 0.08 260)",
+    accentColor: "#8b5cf6",
+    linkedin: "https://linkedin.com",
+    github: "https://github.com",
+    avatarSvg: bhuvanaSreeImg,
+  },
 ];
+

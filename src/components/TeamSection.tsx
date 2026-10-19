@@ -602,7 +602,9 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                     <img
                       src={m.avatarSvg}
                       alt={m.name}
-                      className="h-full w-full object-cover p-3 transition duration-500 group-hover/card:scale-105"
+                      className={`h-full w-full object-cover transition duration-500 group-hover/card:scale-105 ${
+                        m.avatarSvg.startsWith("data:image/svg") ? "p-3" : "p-0"
+                      }`}
                     />
                     <div className="scanline pointer-events-none absolute inset-0 opacity-40 transition group-hover/card:opacity-100" />
                   </div>
@@ -720,7 +722,9 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                 <img
                   src={selectedMember.avatarSvg}
                   alt={selectedMember.name}
-                  className="h-full w-full object-cover p-2"
+                  className={`h-full w-full object-cover ${
+                    selectedMember.avatarSvg.startsWith("data:image/svg") ? "p-2" : "p-0"
+                  }`}
                 />
               </div>
 
