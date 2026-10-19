@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { TEAM_MEMBERS, type TeamMember } from "./team-data";
-import ProfileCard from "./ProfileCard";
 
 interface TeamSectionProps {
   sectionHead?: React.ReactNode;
@@ -474,13 +473,11 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
         >
           {quadrupledMembers.map((m, idx) => {
             const isDown = idx % 2 === 1;
+            const cardDelay = `${(idx % 6) * 60}ms`;
 
             return (
-              <div
+              <article
                 key={`${m.id}-${idx}`}
-                className={`team-card-wrapper shrink-0 transition-transform duration-300 ${
-                  isDown ? "mt-6 md:mt-10" : ""
-                }`}
                 onClick={() => {
                   if (hasDraggedRef.current) return;
                   if (isLit) {
@@ -489,33 +486,142 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                     handleToggleLight();
                   }
                 }}
+                className={`team-card group/card relative w-[240px] shrink-0 border-2 border-foreground bg-background transition-transform duration-200 hover:rotate-0 hover:-translate-y-2 cursor-pointer ${
+                  isDown ? "mt-10 md:mt-14 rotate-[1.5deg]" : "-rotate-[1.5deg]"
+                } shadow-[6px_6px_0_0_var(--primary)] hover:shadow-[10px_10px_0_0_var(--signal)]`}
+                style={{
+                  willChange: "transform",
+                }}
               >
-                <ProfileCard
-                  avatarUrl={isLit ? m.avatarSvg : ""}
-                  miniAvatarUrl={isLit ? m.avatarSvg : ""}
-                  name={isLit ? m.name : `OPERATIVE // ${m.id}`}
-                  title={isLit ? m.role : "IDENTITY SEALED"}
-                  handle={m.id.toLowerCase()}
-                  status={isLit ? m.squad : "CLASSIFIED"}
-                  statusColor={isLit ? m.accentColor : "#ef4444"}
-                  contactText={isLit ? "DOSSIER" : "REVEAL"}
-                  onContactClick={() => {
-                    if (!isLit) {
-                      handleToggleLight();
-                    } else {
-                      setSelectedMember(m);
-                    }
-                  }}
-                  theme="dark"
-                  backdropColor={isLit ? m.avatarBg : "#181224"}
-                  radius={16}
-                  holo={isLit ? 0.9 : 0.45}
-                  glare={isLit ? 0.65 : 0.3}
-                  enableTilt={true}
-                  tiltStrength={15}
-                  parallax={8}
-                />
-              </div>
+                {/* CARD HEADER (Clean Brutalist BLACKOUT Theme) */}
+                <div className="flex items-center justify-between border-b-2 border-foreground bg-primary px-3 py-1 font-pixel text-[9px] text-primary-foreground">
+                  <span>{m.id}</span>
+                  <span className="animate-blink">●</span>
+                </div>
+
+                {/* CARD PHOTO AREA (Cinematic Blur-to-Sharpness Crossfade) */}
+                <div className="relative aspect-square overflow-hidden border-b-2 border-foreground bg-muted">
+                  {/* UNLIT / CLASSIFIED LAYER */}
+                  <div
+                    className={`absolute inset-0 pixel-grid flex flex-col items-center justify-center transition-opacity ease-out ${
+                      isLit
+                        ? "opacity-0 pointer-events-none"
+                        : "opacity-100"
+                    }`}
+                    style={{
+                      transitionDuration: "400ms",
+                      transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+                      transitionDelay: cardDelay,
+                    }}
+                  >
+                    <span className="font-pixel text-5xl text-primary transition group-hover/card:text-signal">
+                      ?
+                    </span>
+                    <span className="mt-4 font-term text-lg text-muted-foreground">
+                      IDENTITY_LOCKED
+                    </span>
+                    <div className="scanline pointer-events-none absolute inset-0 opacity-0 transition group-hover/card:opacity-100" />
+                  </div>
+
+                  {/* ILLUMINATED OPERATIVE AVATAR LAYER (Cinematic de-blur reveal) */}
+                  <div
+                    className={`absolute inset-0 flex items-center justify-center overflow-hidden transition-opacity ease-out ${
+                      isLit
+                        ? "opacity-100 pointer-events-auto"
+                        : "opacity-0 pointer-events-none"
+                    }`}
+                    style={{
+                      backgroundColor: m.avatarBg,
+                      transitionDuration: "400ms",
+                      transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+                      transitionDelay: cardDelay,
+                    }}
+                  >
+                    <img
+                      src={m.avatarSvg}
+                      alt={m.name}
+                      className={`h-full w-full object-cover transition duration-500 group-hover/card:scale-105 ${
+                        m.avatarSvg.startsWith("data:image/svg") ? "p-3" : "p-0"
+                      }`}
+                    />
+                    <div className="scanline pointer-events-none absolute inset-0 opacity-40 transition group-hover/card:opacity-100" />
+                  </div>
+                </div>
+
+                {/* CARD BODY (Cinematic Blur-to-Focus Slow Text Reveal) */}
+                <div className="relative p-3.5 min-h-[148px]">
+                  {/* UNLIT CLASSIFIED DETAILS */}
+                  <div
+                    className={`transition-all ease-out ${
+                      isLit
+                        ? "opacity-0 blur-sm scale-95 pointer-events-none absolute inset-x-3.5 top-3.5"
+                        : "opacity-100 blur-0 scale-100"
+                    }`}
+                    style={{
+                      transitionDuration: "800ms",
+                      transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+                      transitionDelay: cardDelay,
+                    }}
+                  >
+                    <h3 className="font-pixel text-xs leading-relaxed">CLASSIFIED</h3>
+                    <p className="mt-2 font-term text-xl text-signal">&gt; role: revealing soon</p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Profile drops before the lights go out.
+                    </p>
+                  </div>
+
+                  {/* ILLUMINATED REAL DETAILS (Smoothly unfolds like developing film) */}
+                  <div
+                    className={`transition-all ease-out ${
+                      isLit
+                        ? "opacity-100 blur-0 scale-100 pointer-events-auto"
+                        : "opacity-0 blur-md scale-95 pointer-events-none absolute inset-x-3.5 top-3.5"
+                    }`}
+                    style={{
+                      transitionDuration: "1100ms",
+                      transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+                      transitionDelay: cardDelay,
+                    }}
+                  >
+                    <h3 className="font-pixel text-xs leading-relaxed text-foreground group-hover/card:text-signal transition-colors">
+                      {m.name}
+                    </h3>
+                    <p className="mt-1 font-term text-lg text-signal font-bold leading-tight">
+                      &gt; {m.role}
+                    </p>
+                    <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                      {m.bio}
+                    </p>
+
+                    {/* Minimalist Social Links */}
+                    <div className="mt-3 flex items-center justify-between pt-2 border-t border-border/50 font-pixel text-[8px]">
+                      <div className="flex gap-2">
+                        <a
+                          href={m.linkedin}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="border border-border px-1.5 py-0.5 hover:border-signal hover:text-signal transition"
+                        >
+                          IN
+                        </a>
+                        <a
+                          href={m.github}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="border border-border px-1.5 py-0.5 hover:border-signal hover:text-signal transition"
+                        >
+                          GH
+                        </a>
+                      </div>
+                      <span className="text-muted-foreground group-hover/card:text-signal transition-colors">
+                        DOSSIER ▶
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </article>
             );
           })}
         </div>

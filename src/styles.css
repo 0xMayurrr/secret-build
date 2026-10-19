@@ -292,6 +292,50 @@
 }
 
 /* ============================================================== */
+/* TV GLITCH & CRT ENCRYPTED PASS CARD EFFECT */
+/* ============================================================== */
+@keyframes tv-glitch-anim {
+  0% { transform: translate(0, 0); }
+  2% { transform: translate(-3px, 1px); }
+  4% { transform: translate(3px, -1px); }
+  6% { transform: translate(0, 0); }
+  52% { transform: translate(0, 0); }
+  54% { transform: translate(-2px, -1px); }
+  56% { transform: translate(2px, 1px); }
+  58% { transform: translate(0, 0); }
+  100% { transform: translate(0, 0); }
+}
+
+@keyframes tv-static-roll {
+  0% { top: -20%; opacity: 0; }
+  15% { opacity: 0.7; }
+  85% { opacity: 0.7; }
+  100% { top: 120%; opacity: 0; }
+}
+
+.tv-glitch-card {
+  position: relative;
+  background-color: rgba(9, 3, 18, 0.85);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.tv-glitch-card:hover {
+  animation: tv-glitch-anim 2.5s infinite;
+}
+
+.tv-glitch-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, transparent, rgba(168, 85, 247, 0.7), rgba(255, 255, 255, 0.9), rgba(168, 85, 247, 0.7), transparent);
+  animation: tv-static-roll 3.2s linear infinite;
+  pointer-events: none;
+  z-index: 15;
+}
+
+/* ============================================================== */
 /* SCROLL REVEALS & COMPOSITOR-DRIVEN ENTRANCE ANIMATIONS */
 /* ============================================================== */
 .reveal {

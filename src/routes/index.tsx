@@ -4,9 +4,8 @@ import blackoutLogo from "@/assets/blackout-logo.png";
 import { TeamSection } from "@/components/TeamSection";
 import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
-import { ChainedLockOverlay } from "@/components/ChainedLockOverlay";
 import { GooeyNav } from "@/components/GooeyNav";
-import { Lock, ArrowUp } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 import { blackoutAudio } from "@/lib/blackout-audio";
 import MoltenMetal from "@/components/MoltenMetal";
 import Silk from "@/components/Silk";
@@ -953,51 +952,78 @@ function Index() {
                 key={p.name}
                 className={`reveal card-glint relative flex flex-col border-2 p-6 transition overflow-hidden select-none ${
                   p.locked
-                    ? "border-border/50 bg-[#090312]/60 cursor-not-allowed"
+                    ? "tv-glitch-card group/locked border-border/80 hover:border-primary/80 cursor-not-allowed shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]"
                     : p.featured
                     ? "border-foreground bg-primary text-primary-foreground shadow-[8px_8px_0_0_var(--signal)] hover:-translate-x-1 hover:-translate-y-1"
                     : "border-border bg-background hover:shadow-[6px_6px_0_0_var(--primary)] hover:-translate-x-1 hover:-translate-y-1"
                 }`}
                 style={{ transitionDelay: `${i * 100}ms` }}
               >
-                {/* Chained & Locked Overlay for Locked Passes */}
-                {p.locked && (
-                  <ChainedLockOverlay
-                    tierName={p.name}
-                    badgeText="TIER LOCKED // SEALED"
-                    subText="OPENS AFTER FIRST 20 EARLY BIRD PASSES SELL OUT"
-                  />
-                )}
-
-                <p className="font-term text-lg opacity-70">{p.tag}</p>
-                <h3 className="mt-2 font-pixel text-sm">{p.name}</h3>
-                <p className="mt-6 font-pixel text-4xl">
-                  <span className="text-2xl">₹</span>{p.price}
-                </p>
-                <div className="mt-6 flex-1 font-term text-xl">
-                  {p.benefits.length ? (
-                    <ul className="space-y-1">{p.benefits.map((b) => <li key={b}>+ {b}</li>)}</ul>
-                  ) : (
-                    <p className="opacity-70">&gt; Benefits announced soon</p>
-                  )}
-                  {p.availability && <p className="mt-3">{p.availability}</p>}
-                </div>
                 {p.locked ? (
-                  <div className="mt-8 border-2 border-amber-500/40 bg-amber-500/10 py-3 text-center font-pixel text-[9px] text-amber-400 flex items-center justify-center gap-1.5 cursor-not-allowed font-bold">
-                    <Lock className="h-3 w-3 text-amber-400" />
-                    <span>LOCKED // SEALED</span>
-                  </div>
+                  <>
+                    {/* TV Glitch, CRT static & scanline layers */}
+                    <div className="pointer-events-none absolute inset-0 opacity-25 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
+                    <div className="scanline pointer-events-none absolute inset-0 opacity-35 transition-opacity group-hover/locked:opacity-75" />
+                    <div className="noise pointer-events-none absolute inset-0 opacity-20" />
+
+                    <div className="flex items-center justify-between">
+                      <p className="font-term text-lg text-muted-foreground">{p.tag}.ENC</p>
+                      <span className="font-pixel text-[8px] tracking-widest text-primary/90 border border-primary/40 bg-primary/10 px-2 py-0.5">
+                        SEALED
+                      </span>
+                    </div>
+
+                    <h3 className="mt-2 font-pixel text-sm text-foreground/90">{p.name}</h3>
+
+                    <div className="mt-6 flex items-center gap-3">
+                      <p className="font-pixel text-4xl text-muted-foreground/50 tracking-wider">
+                        <span className="text-2xl">₹</span>{p.price}
+                      </p>
+                      <div className="redact h-5 w-20" />
+                    </div>
+
+                    <div className="mt-6 flex-1 space-y-2">
+                      <div className="space-y-2 py-1">
+                        <div className="redact h-4 w-full" />
+                        <div className="redact h-4 w-4/5" />
+                        <div className="redact h-4 w-3/5" />
+                      </div>
+                      <p className="mt-4 font-term text-xl text-muted-foreground transition group-hover/locked:text-signal">
+                        &gt; {p.availability ? `${p.availability} — Unlocks post Early Bird.` : "Encrypted. Unopened until zero hour."}
+                      </p>
+                    </div>
+
+                    <div className="mt-8 border-2 border-border/80 bg-background/80 py-3 text-center font-pixel text-[9px] text-muted-foreground flex items-center justify-center gap-2 group-hover/locked:border-primary group-hover/locked:text-primary transition-colors cursor-not-allowed">
+                      <span className="inline-block w-2 h-2 rounded-full bg-signal animate-blink" />
+                      <span className="tracking-wider">ENCRYPTED // OPENS POST EARLY-BIRD</span>
+                    </div>
+                  </>
                 ) : (
-                  <a
-                    href={REGISTER_URL}
-                    className={`mt-8 border-2 py-3 text-center font-pixel text-[10px] transition ${
-                      p.featured
-                        ? "border-foreground bg-background text-foreground hover:bg-signal hover:text-accent-foreground"
-                        : "border-primary text-primary hover:bg-primary hover:text-primary-foreground"
-                    }`}
-                  >
-                    CLAIM PASS ▶
-                  </a>
+                  <>
+                    <p className="font-term text-lg opacity-70">{p.tag}</p>
+                    <h3 className="mt-2 font-pixel text-sm">{p.name}</h3>
+                    <p className="mt-6 font-pixel text-4xl">
+                      <span className="text-2xl">₹</span>{p.price}
+                    </p>
+                    <div className="mt-6 flex-1 font-term text-xl">
+                      {p.benefits.length ? (
+                        <ul className="space-y-1">{p.benefits.map((b) => <li key={b}>+ {b}</li>)}</ul>
+                      ) : (
+                        <p className="opacity-70">&gt; Benefits announced soon</p>
+                      )}
+                      {p.availability && <p className="mt-3">{p.availability}</p>}
+                    </div>
+                    <a
+                      href={REGISTER_URL}
+                      className={`mt-8 border-2 py-3 text-center font-pixel text-[10px] transition ${
+                        p.featured
+                          ? "border-foreground bg-background text-foreground hover:bg-signal hover:text-accent-foreground"
+                          : "border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+                      }`}
+                    >
+                      CLAIM PASS ▶
+                    </a>
+                  </>
                 )}
               </article>
             ))}

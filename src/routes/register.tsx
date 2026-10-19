@@ -27,7 +27,6 @@ import {
   isSupabaseConfigured,
 } from "@/lib/supabase";
 import { BlackoutPassCard } from "@/components/BlackoutPassCard";
-import { ChainedLockOverlay } from "@/components/ChainedLockOverlay";
 import { Lanyard } from "@/components/Lanyard";
 import { generateBadgeFrontSvg, generateBadgeBackSvg } from "@/lib/badgeTexture";
 
@@ -579,81 +578,93 @@ export function RegisterPage() {
                     }}
                     className={`relative border-2 p-6 transition-all duration-300 flex flex-col justify-between overflow-hidden select-none ${
                       tier.locked
-                        ? "border-border/50 bg-[#090312]/60 cursor-not-allowed"
+                        ? "tv-glitch-card group/locked border-border/80 cursor-not-allowed shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]"
                         : isSelected
                         ? "border-primary bg-primary/10 shadow-[8px_8px_0_0_var(--primary)] -translate-y-1 cursor-pointer"
                         : "border-border bg-background/60 hover:border-foreground/50 hover:shadow-[5px_5px_0_0_rgba(0,0,0,0.5)] cursor-pointer"
                     }`}
                   >
-                    {/* Chained and Locked Overlay for Locked Tiers */}
+                    {/* TV Glitch, CRT static & scanline layers for locked passes */}
                     {tier.locked && (
-                      <ChainedLockOverlay
-                        tierName={tier.name}
-                        badgeText="TIER LOCKED // SEALED"
-                        subText="OPENS AFTER FIRST 20 EARLY BIRD PASSES SELL OUT"
-                      />
+                      <>
+                        <div className="pointer-events-none absolute inset-0 opacity-25 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
+                        <div className="scanline pointer-events-none absolute inset-0 opacity-35 transition-opacity group-hover/locked:opacity-75" />
+                        <div className="noise pointer-events-none absolute inset-0 opacity-20" />
+                      </>
                     )}
 
                     <div>
                       <div className="flex items-center justify-between border-b border-border/40 pb-3">
-                        <span className="font-term text-lg text-signal">{tier.tag}</span>
-                        <span className="font-pixel text-[8px] bg-card px-2 py-0.5 border border-border text-muted-foreground">
-                          {tier.badge}
+                        <span className="font-term text-lg text-signal">
+                          {tier.locked ? `${tier.tag}.ENC` : tier.tag}
+                        </span>
+                        <span className={`font-pixel text-[8px] px-2 py-0.5 border ${
+                          tier.locked
+                            ? "border-primary/40 bg-primary/10 text-primary/90"
+                            : "bg-card border-border text-muted-foreground"
+                        }`}>
+                          {tier.locked ? "SEALED" : tier.badge}
                         </span>
                       </div>
 
-                      <h3 className="mt-4 font-pixel text-base text-foreground">{tier.name}</h3>
+                      <h3 className="mt-4 font-pixel text-base text-foreground/90">{tier.name}</h3>
 
-                      <div className="mt-4 flex items-baseline gap-1.5">
-                        <span className="font-pixel text-3xl sm:text-4xl text-foreground font-bold">
+                      <div className="mt-4 flex items-baseline gap-2">
+                        <span className={`font-pixel text-3xl sm:text-4xl font-bold ${
+                          tier.locked ? "text-muted-foreground/50 tracking-wider" : "text-foreground"
+                        }`}>
                           ₹{tierTotal}
                         </span>
-                        <span className="font-mono text-xs text-muted-foreground">
-                          {participationType === "team"
-                            ? `(${activeCount} × ₹${tier.price})`
-                            : "/ builder"}
-                        </span>
+                        {tier.locked ? (
+                          <div className="redact h-4 w-16" />
+                        ) : (
+                          <span className="font-mono text-xs text-muted-foreground">
+                            {participationType === "team"
+                              ? `(${activeCount} × ₹${tier.price})`
+                              : "/ builder"}
+                          </span>
+                        )}
                       </div>
 
-                      <ul className="mt-5 space-y-2 border-t border-border/40 pt-4 font-term text-lg text-muted-foreground">
-                        {tier.benefits.map((b) => (
-                          <li key={b} className="flex items-center gap-2">
-                            <span className="text-signal font-bold">✔</span>
-                            <span>{b}</span>
-                          </li>
-                        ))}
-                      </ul>
+                      {tier.locked ? (
+                        <div className="mt-5 space-y-2.5 border-t border-border/40 pt-4">
+                          <div className="redact h-3.5 w-full" />
+                          <div className="redact h-3.5 w-4/5" />
+                          <div className="redact h-3.5 w-3/5" />
+                          <p className="font-term text-base text-muted-foreground/70 pt-2 transition-colors group-hover/locked:text-signal">
+                            &gt; Unlocks when Early Bird fills.
+                          </p>
+                        </div>
+                      ) : (
+                        <ul className="mt-5 space-y-2 border-t border-border/40 pt-4 font-term text-lg text-muted-foreground">
+                          {tier.benefits.map((b) => (
+                            <li key={b} className="flex items-center gap-2">
+                              <span className="text-signal font-bold">✔</span>
+                              <span>{b}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </div>
 
-                    <button
-                      type="button"
-                      disabled={tier.locked}
-                      onClick={(e) => {
-                        if (tier.locked) {
-                          e.stopPropagation();
-                          return;
-                        }
-                        setSelectedPass(tier);
-                      }}
-                      className={`mt-6 w-full border-2 py-2.5 font-pixel text-[9px] uppercase tracking-wider transition ${
-                        tier.locked
-                          ? "border-amber-500/40 bg-amber-500/10 text-amber-400 font-bold cursor-not-allowed"
-                          : isSelected
-                          ? "border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_var(--signal)] font-bold"
-                          : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
-                      }`}
-                    >
-                      {tier.locked ? (
-                        <span className="flex items-center justify-center gap-1.5">
-                          <Lock className="h-3 w-3 text-amber-400" />
-                          <span>LOCKED // SEALED</span>
-                        </span>
-                      ) : isSelected ? (
-                        "● SELECTED"
-                      ) : (
-                        "SELECT TIER"
-                      )}
-                    </button>
+                    {tier.locked ? (
+                      <div className="mt-6 w-full border-2 border-border/80 bg-background/80 py-2.5 font-pixel text-[9px] uppercase tracking-wider text-muted-foreground flex items-center justify-center gap-2 cursor-not-allowed group-hover/locked:border-primary group-hover/locked:text-primary transition-colors">
+                        <span className="inline-block w-1.5 h-1.5 bg-signal animate-blink" />
+                        <span>ENCRYPTED // OPENS POST EARLY-BIRD</span>
+                      </div>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedPass(tier)}
+                        className={`mt-6 w-full border-2 py-2.5 font-pixel text-[9px] uppercase tracking-wider transition ${
+                          isSelected
+                            ? "border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_var(--signal)] font-bold"
+                            : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+                        }`}
+                      >
+                        {isSelected ? "● SELECTED" : "SELECT TIER"}
+                      </button>
+                    )}
                   </div>
                 );
               })}
