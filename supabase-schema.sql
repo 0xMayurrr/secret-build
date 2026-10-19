@@ -225,11 +225,56 @@ begin
 end;
 $$;
 
+-- Procedure: Purge all fake / testing registrations (Protected by passkey)
+create or replace function public.admin_clear_all_registrations(p_passkey text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_authorized_key text := 'BLACKOUT@DESK2026';
+begin
+  if p_passkey is null or p_passkey <> v_authorized_key then
+    raise exception 'SECURITY ALERT: Unauthorized access attempt.';
+  end if;
+
+  delete from public.registrations;
+  return true;
+end;
+$$;
+
+-- Procedure: Delete single registration by ID (Protected by passkey)
+create or replace function public.admin_delete_registration(
+  p_passkey text,
+  p_registration_id text
+)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_authorized_key text := 'BLACKOUT@DESK2026';
+begin
+  if p_passkey is null or p_passkey <> v_authorized_key then
+    raise exception 'SECURITY ALERT: Unauthorized access attempt.';
+  end if;
+
+  delete from public.registrations
+  where registration_id = p_registration_id or id::text = p_registration_id;
+  return true;
+end;
+$$;
+
 -- Grant execute permissions to anon and authenticated roles for the RPCs
 grant execute on function public.admin_get_all_registrations(text) to anon, authenticated;
 grant execute on function public.admin_mark_attendance(text, text, text) to anon, authenticated;
 grant execute on function public.admin_undo_attendance(text, text) to anon, authenticated;
+grant execute on function public.admin_clear_all_registrations(text) to anon, authenticated;
+grant execute on function public.admin_delete_registration(text, text) to anon, authenticated;
 grant execute on function public.get_public_pass(text) to anon, authenticated;
+
 
 -- ========================================================
 -- 7. STORAGE BUCKET CONFIGURATION (PAYMENT PROOFS)

@@ -707,3 +707,85 @@ function saveAllToLocalStorage(records: RegistrationRecord[]) {
     // ignore
   }
 }
+
+/**
+ * Purges all registration records from both Supabase and localStorage.
+ * Protected by admin clearance passkey.
+ */
+export async function clearAllRegistrations(
+  adminPasskey?: string
+): Promise<{ success: boolean; error?: string }> {
+  const passkey = adminPasskey || getStoredAdminPasskey();
+
+  if (typeof window !== "undefined") {
+    localStorage.removeItem("blackout_registrations");
+  }
+
+  if (supabase && isSupabaseConfigured) {
+    try {
+      const { data, error } = await supabase.rpc("admin_clear_all_registrations", {
+        p_passkey: passkey,
+      });
+
+      if (error) {
+        // Fallback to direct delete if RPC is pending
+        const { error: directError } = await supabase
+          .from("registrations")
+          .delete()
+          .neq("registration_id", "KEEP_NONE_MATCH");
+
+        if (directError && directError.message) {
+          return { success: false, error: error.message };
+        }
+      }
+      return { success: true };
+    } catch (err: unknown) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to purge database",
+      };
+    }
+  }
+
+  return { success: true };
+}
+
+/**
+ * Deletes a single registration from both Supabase and localStorage.
+ */
+export async function deleteRegistration(
+  registrationId: string,
+  adminPasskey?: string
+): Promise<{ success: boolean; error?: string }> {
+  const passkey = adminPasskey || getStoredAdminPasskey();
+
+  if (typeof window !== "undefined") {
+    const locals = getLocalStorageRegistrations();
+    saveAllToLocalStorage(locals.filter((r) => r.registration_id !== registrationId));
+  }
+
+  if (supabase && isSupabaseConfigured) {
+    try {
+      const { error } = await supabase.rpc("admin_delete_registration", {
+        p_passkey: passkey,
+        p_registration_id: registrationId,
+      });
+
+      if (error) {
+        await supabase
+          .from("registrations")
+          .delete()
+          .eq("registration_id", registrationId);
+      }
+      return { success: true };
+    } catch (err: unknown) {
+      return {
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to delete record",
+      };
+    }
+  }
+
+  return { success: true };
+}
+

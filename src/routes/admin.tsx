@@ -27,6 +27,7 @@ import {
   Calendar,
   CreditCard,
   X,
+  Trash2,
 } from "lucide-react";
 import blackoutLogo from "@/assets/blackout-logo.png";
 import {
@@ -45,6 +46,8 @@ import {
   signUpOrganizer,
   signOutOrganizer,
   getOrganizerUser,
+  clearAllRegistrations,
+  deleteRegistration,
   supabase,
 } from "@/lib/supabase";
 
@@ -398,6 +401,59 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  // Purge all test data
+  const handlePurgeAllData = async () => {
+    if (
+      !window.confirm(
+        "CRITICAL ACTION: Are you sure you want to delete all registration data from the database? This cannot be undone."
+      )
+    ) {
+      return;
+    }
+
+    setIsLoading(true);
+    setActionSuccessMsg("");
+    setActionErrorMsg("");
+
+    const res = await clearAllRegistrations();
+    setIsLoading(false);
+
+    if (res.success) {
+      setRegistrations([]);
+      setSelectedAttendee(null);
+      setActionSuccessMsg("SUCCESS: All fake/test registration data has been purged.");
+      playBeep("success");
+    } else {
+      // If direct delete is restricted by database RLS, advise user of the 1-line SQL query
+      setRegistrations([]);
+      setSelectedAttendee(null);
+      setActionErrorMsg(
+        `Local cache cleared. To wipe Supabase table completely, execute 'TRUNCATE TABLE public.registrations CASCADE;' in your Supabase SQL Editor.`
+      );
+      playBeep("warn");
+    }
+  };
+
+  // Delete single attendee
+  const handleDeleteAttendee = async (registrationId: string, fullName: string) => {
+    if (!window.confirm(`Delete record for ${fullName} (${registrationId})?`)) {
+      return;
+    }
+
+    const res = await deleteRegistration(registrationId);
+    if (res.success) {
+      setRegistrations((prev) => prev.filter((r) => r.registration_id !== registrationId));
+      if (selectedAttendee?.registration_id === registrationId) {
+        setSelectedAttendee(null);
+      }
+      setActionSuccessMsg(`Deleted record: ${fullName}`);
+      playBeep("success");
+    } else {
+      setActionErrorMsg(res.error || "Failed to delete record.");
+      playBeep("error");
+    }
   };
 
   // Computed metrics
@@ -841,6 +897,17 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
               >
                 <Download className="h-3 w-3" />
                 <span>EXPORT CSV</span>
+              </button>
+
+              {/* Purge All Test Data */}
+              <button
+                type="button"
+                onClick={handlePurgeAllData}
+                className="flex items-center gap-1.5 border border-destructive/60 bg-destructive/10 px-3 py-1.5 font-pixel text-[8px] text-destructive hover:bg-destructive hover:text-white transition active:scale-95"
+                title="Wipe fake/test data from database"
+              >
+                <Trash2 className="h-3 w-3" />
+                <span>PURGE TEST DATA</span>
               </button>
             </div>
           </div>
@@ -1307,8 +1374,22 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                     </div>
                   </div>
 
-                  {/* Modal Bottom Close */}
-                  <div className="pt-3 border-t border-border/40 mt-3 flex justify-end">
+                  {/* Modal Bottom Actions */}
+                  <div className="pt-3 border-t border-border/40 mt-3 flex items-center justify-between">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDeleteAttendee(
+                          selectedAttendee.registration_id,
+                          selectedAttendee.full_name
+                        )
+                      }
+                      className="border border-destructive/60 bg-destructive/10 hover:bg-destructive hover:text-white px-3 py-1.5 font-pixel text-[8px] text-destructive transition flex items-center gap-1"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                      <span>DELETE RECORD</span>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() => setSelectedAttendee(null)}
