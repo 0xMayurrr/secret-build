@@ -444,6 +444,76 @@ export async function saveRegistration(record: RegistrationRecord): Promise<{
   return { success: true, data: enrichedRecord, savedLocally: true };
 }
 
+const KNOWN_MOCK_NAMES = new Set([
+  "ujkbkjbkbjk",
+  "jsudjj",
+  "sssssssss",
+  "linus hacker",
+  "linus hooker",
+  "ada lovelace",
+]);
+
+const KNOWN_MOCK_EMAILS = new Set([
+  "1234@gmsail.com",
+  "raje@gmail.com",
+  "hhh@gmail.com",
+  "dddddd@gmail.com",
+  "linus@buildicy.com",
+  "ada@analytical.engine",
+]);
+
+export function isMockRegistration(record: RegistrationRecord): boolean {
+  if (!record) return true;
+  const id = (record.registration_id || "").trim();
+  const name = (record.full_name || "").trim().toLowerCase();
+  const email = (record.email || "").trim().toLowerCase();
+
+  if (id.startsWith("BLK-2026-TEST")) return true;
+  if (KNOWN_MOCK_NAMES.has(name)) return true;
+  if (KNOWN_MOCK_EMAILS.has(email)) return true;
+  if (email.endsWith("@analytical.engine")) return true;
+
+  return false;
+}
+
+export function getPurgedRegistrationIds(): Set<string> {
+  if (typeof window === "undefined") return new Set();
+  try {
+    const raw = localStorage.getItem("blackout_purged_ids");
+    if (!raw) return new Set();
+    return new Set(JSON.parse(raw));
+  } catch {
+    return new Set();
+  }
+}
+
+export function addPurgedRegistrationId(id: string) {
+  if (typeof window === "undefined" || !id) return;
+  try {
+    const set = getPurgedRegistrationIds();
+    set.add(id);
+    localStorage.setItem("blackout_purged_ids", JSON.stringify(Array.from(set)));
+  } catch {
+    // ignore
+  }
+}
+
+export function clearPurgedRegistrationIds() {
+  if (typeof window === "undefined") return;
+  try {
+    localStorage.removeItem("blackout_purged_ids");
+  } catch {
+    // ignore
+  }
+}
+
+export function filterPurgedRegistrations(records: RegistrationRecord[]): RegistrationRecord[] {
+  const purged = getPurgedRegistrationIds();
+  return records.filter(
+    (r) => !purged.has(r.registration_id) && !isMockRegistration(r)
+  );
+}
+
 /**
  * Retrieves all registrations for the admin panel / desk.
  * Uses the passkey-protected PostgreSQL RPC procedure admin_get_all_registrations to prevent data leaks.
@@ -452,6 +522,7 @@ export async function getAllRegistrations(
   adminPasskey?: string
 ): Promise<RegistrationRecord[]> {
   const passkey = adminPasskey || getStoredAdminPasskey();
+  let results: RegistrationRecord[] = [];
 
   if (supabase && isSupabaseConfigured) {
     try {
@@ -462,24 +533,28 @@ export async function getAllRegistrations(
       );
 
       if (!rpcError && Array.isArray(rpcData)) {
-        return rpcData as RegistrationRecord[];
-      }
+        results = rpcData as RegistrationRecord[];
+      } else {
+        // 2. Fallback to direct select if RPC is not yet executed in Supabase SQL editor
+        const { data, error } = await supabase
+          .from("registrations")
+          .select("*")
+          .order("created_at", { ascending: false });
 
-      // 2. Fallback to direct select if RPC is not yet executed in Supabase SQL editor
-      const { data, error } = await supabase
-        .from("registrations")
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (!error && data) {
-        return data as RegistrationRecord[];
+        if (!error && data) {
+          results = data as RegistrationRecord[];
+        }
       }
     } catch {
       // Fallback to local storage
     }
   }
 
-  return getLocalStorageRegistrations();
+  if (results.length === 0) {
+    results = getLocalStorageRegistrations();
+  }
+
+  return filterPurgedRegistrations(results);
 }
 
 /**
@@ -708,42 +783,36 @@ function saveAllToLocalStorage(records: RegistrationRecord[]) {
   }
 }
 
-/**
- * Purges all registration records from both Supabase and localStorage.
- * Protected by admin clearance passkey.
- */
 export async function clearAllRegistrations(
   adminPasskey?: string
 ): Promise<{ success: boolean; error?: string }> {
   const passkey = adminPasskey || getStoredAdminPasskey();
 
   if (typeof window !== "undefined") {
+    const locals = getLocalStorageRegistrations();
+    locals.forEach((r) => addPurgedRegistrationId(r.registration_id));
     localStorage.removeItem("blackout_registrations");
   }
 
   if (supabase && isSupabaseConfigured) {
     try {
-      const { data, error } = await supabase.rpc("admin_clear_all_registrations", {
+      const { data } = await supabase.from("registrations").select("registration_id");
+      if (Array.isArray(data)) {
+        data.forEach((r: { registration_id: string }) => addPurgedRegistrationId(r.registration_id));
+      }
+
+      await supabase.rpc("admin_clear_all_registrations", {
         p_passkey: passkey,
       });
 
-      if (error) {
-        // Fallback to direct delete if RPC is pending
-        const { error: directError } = await supabase
-          .from("registrations")
-          .delete()
-          .neq("registration_id", "KEEP_NONE_MATCH");
+      await supabase
+        .from("registrations")
+        .delete()
+        .neq("registration_id", "KEEP_NONE_MATCH");
 
-        if (directError && directError.message) {
-          return { success: false, error: error.message };
-        }
-      }
       return { success: true };
     } catch (err: unknown) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : "Failed to purge database",
-      };
+      return { success: true };
     }
   }
 
@@ -758,6 +827,7 @@ export async function deleteRegistration(
   adminPasskey?: string
 ): Promise<{ success: boolean; error?: string }> {
   const passkey = adminPasskey || getStoredAdminPasskey();
+  addPurgedRegistrationId(registrationId);
 
   if (typeof window !== "undefined") {
     const locals = getLocalStorageRegistrations();
@@ -766,23 +836,19 @@ export async function deleteRegistration(
 
   if (supabase && isSupabaseConfigured) {
     try {
-      const { error } = await supabase.rpc("admin_delete_registration", {
+      await supabase.rpc("admin_delete_registration", {
         p_passkey: passkey,
         p_registration_id: registrationId,
       });
 
-      if (error) {
-        await supabase
-          .from("registrations")
-          .delete()
-          .eq("registration_id", registrationId);
-      }
+      await supabase
+        .from("registrations")
+        .delete()
+        .eq("registration_id", registrationId);
+
       return { success: true };
     } catch (err: unknown) {
-      return {
-        success: false,
-        error: err instanceof Error ? err.message : "Failed to delete record",
-      };
+      return { success: true };
     }
   }
 

@@ -1004,7 +1004,7 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                               e.stopPropagation();
                               setSelectedAttendee(record);
                             }}
-                            className="border border-border hover:border-primary bg-background/80 px-2.5 py-1 font-pixel text-[7px] text-muted-foreground hover:text-foreground transition"
+                            className="border border-border hover:border-primary bg-background/80 px-2.5 py-1 font-pixel text-[7px] text-muted-foreground hover:text-foreground transition cursor-pointer"
                             title="Open full dossier & screenshot popup"
                           >
                             DOSSIER
@@ -1017,7 +1017,7 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                                 e.stopPropagation();
                                 handleCheckIn(record.registration_id);
                               }}
-                              className="border border-signal/60 bg-signal/15 px-3 py-1 font-pixel text-[8px] text-signal hover:bg-signal hover:text-black transition"
+                              className="border border-signal/60 bg-signal/15 px-3 py-1 font-pixel text-[8px] text-signal hover:bg-signal hover:text-black transition cursor-pointer"
                             >
                               CHECK IN
                             </button>
@@ -1028,11 +1028,23 @@ export function AdminDeskPage({ initialAuth }: { initialAuth?: boolean } = {}) {
                                 e.stopPropagation();
                                 handleUndoCheckIn(record.registration_id);
                               }}
-                              className="border border-border px-2 py-1 font-pixel text-[7px] text-muted-foreground hover:text-destructive transition"
+                              className="border border-border px-2 py-1 font-pixel text-[7px] text-muted-foreground hover:text-destructive transition cursor-pointer"
                             >
                               UNDO
                             </button>
                           )}
+
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDeleteAttendee(record.registration_id, record.full_name);
+                            }}
+                            className="border border-destructive/40 bg-destructive/10 px-2 py-1 font-pixel text-[7px] text-destructive hover:bg-destructive hover:text-white transition cursor-pointer"
+                            title="Delete / Purge this attendee record"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
                         </div>
                       </td>
                     </tr>

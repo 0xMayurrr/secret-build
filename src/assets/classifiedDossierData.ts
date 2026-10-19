@@ -1,0 +1,71 @@
+export const CLASSIFIED_BRIEF_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="840" viewBox="0 0 640 840">
+  <defs>
+    <linearGradient id="paperBg" x1="0" y1="0" x2="0.2" y2="1">
+      <stop offset="0%" stop-color="#140722" />
+      <stop offset="50%" stop-color="#1c0b2f" />
+      <stop offset="100%" stop-color="#0f041b" />
+    </linearGradient>
+    <pattern id="dotGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1" fill="rgba(168,85,247,0.15)" />
+    </pattern>
+  </defs>
+
+  <rect width="640" height="840" rx="8" fill="url(#paperBg)" />
+  <rect width="640" height="840" fill="url(#dotGrid)" />
+
+  <rect x="24" y="24" width="592" height="792" rx="4" fill="none" stroke="#7e22ce" stroke-width="2" />
+  <rect x="32" y="32" width="576" height="776" rx="2" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="1" />
+
+  <rect x="24" y="24" width="592" height="28" fill="#e11d48" />
+  <text x="320" y="43" font-family="'Courier New', monospace" font-size="12" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="4">TOP SECRET // CLASSIFIED HACKATHON DOSSIER</text>
+
+  <text x="50" y="95" font-family="'Courier New', monospace" font-size="14" font-weight="bold" fill="#00f3ff" letter-spacing="2">DOCUMENT REF: BLK-2026/FILE_001.ENC</text>
+  <text x="50" y="120" font-family="'Courier New', monospace" font-size="11" fill="#a855f7" letter-spacing="1">SECURITY CLEARANCE: LEVEL 5 // STRICT EMBARGO</text>
+  <text x="50" y="140" font-family="'Courier New', monospace" font-size="11" fill="#71717a">ISSUING BODY: BUILDICY VENTURES &amp; BLACKOUT DESK</text>
+  <text x="50" y="160" font-family="'Courier New', monospace" font-size="11" fill="#71717a">DATE OF TRANSMISSION: NOVEMBER 28, 2026 09:00 IST</text>
+
+  <line x1="50" y1="180" x2="590" y2="180" stroke="#7e22ce" stroke-width="2" />
+
+  <g transform="translate(420, 110) rotate(-14)">
+    <rect x="-10" y="-18" width="180" height="48" rx="6" fill="none" stroke="#ef4444" stroke-width="3" stroke-dasharray="8 4" />
+    <text x="80" y="12" font-family="'Courier New', monospace" font-size="16" font-weight="900" fill="#ef4444" text-anchor="middle" letter-spacing="2">SEALED</text>
+    <text x="80" y="26" font-family="'Courier New', monospace" font-size="9" font-weight="bold" fill="#ef4444" text-anchor="middle">NO SPOILERS</text>
+  </g>
+
+  <text x="50" y="235" font-family="'Courier New', monospace" font-size="24" font-weight="900" fill="#ffffff" letter-spacing="2">PROJECT: BLACKOUT // ZERO HOUR</text>
+  <text x="50" y="265" font-family="'Courier New', monospace" font-size="13" font-weight="bold" fill="#a855f7">SURPRISE HACKATHON CHALLENGE BRIEF</text>
+
+  <text x="50" y="320" font-family="'Courier New', monospace" font-size="13" font-weight="900" fill="#00f3ff">SECTION 01: THE PRIME DIRECTIVE</text>
+  <rect x="50" y="335" width="540" height="18" fill="#18181b" />
+  <rect x="50" y="360" width="480" height="18" fill="#18181b" />
+  <rect x="50" y="385" width="510" height="18" fill="#18181b" />
+  <text x="60" y="348" font-family="'Courier New', monospace" font-size="10" fill="#52525b">████████████████████████████████████████████████████████████</text>
+  <text x="60" y="373" font-family="'Courier New', monospace" font-size="10" fill="#52525b">██████████████████████████████████████████████████</text>
+  <text x="60" y="398" font-family="'Courier New', monospace" font-size="10" fill="#52525b">█████████████████████████████████████████████████████</text>
+
+  <text x="50" y="445" font-family="'Courier New', monospace" font-size="13" font-weight="900" fill="#00f3ff">SECTION 02: TECHNICAL EXECUTION &amp; TIMELINE</text>
+  <rect x="50" y="460" width="530" height="18" fill="#18181b" />
+  <rect x="50" y="485" width="450" height="18" fill="#18181b" />
+  <text x="60" y="473" font-family="'Courier New', monospace" font-size="10" fill="#52525b">████████████████████████████████████████████████████████</text>
+  <text x="60" y="498" font-family="'Courier New', monospace" font-size="10" fill="#52525b">██████████████████████████████████████████████</text>
+
+  <text x="50" y="545" font-family="'Courier New', monospace" font-size="13" font-weight="900" fill="#d946ef">SECTION 03: THE BLACKOUT TWIST</text>
+  <rect x="50" y="560" width="540" height="24" fill="#2e1065" stroke="#7e22ce" stroke-width="1" />
+  <text x="60" y="576" font-family="'Courier New', monospace" font-size="11" font-weight="bold" fill="#e9d5ff">ENCRYPTED CIPHER: 7A 9F 33 C1 B0 E4 88 D2 · REVEALS AT ARENA</text>
+  <rect x="50" y="595" width="490" height="18" fill="#18181b" />
+  <rect x="50" y="620" width="420" height="18" fill="#18181b" />
+  <text x="60" y="608" font-family="'Courier New', monospace" font-size="10" fill="#52525b">█████████████████████████████████████████████████████</text>
+  <text x="60" y="633" font-family="'Courier New', monospace" font-size="10" fill="#52525b">███████████████████████████████████████████</text>
+
+  <g transform="translate(50, 680)">
+    <rect x="0" y="0" width="540" height="85" rx="8" fill="rgba(168,85,247,0.12)" stroke="#a855f7" stroke-width="2" />
+    <text x="270" y="30" font-family="'Courier New', monospace" font-size="13" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="1">⚡ INTERACTIVE BRIEFING SHEET</text>
+    <text x="270" y="52" font-family="'Courier New', monospace" font-size="11" fill="#d8b4fe" text-anchor="middle">CLICK &amp; HOLD TO CRUMPLE INTO A PAPER BALL · DRAG AROUND · RELEASE</text>
+    <text x="270" y="70" font-family="'Courier New', monospace" font-size="9" fill="#71717a" text-anchor="middle">PHYSICS POWERED BY 3D VERLET CRUMPLE SIMULATION</text>
+  </g>
+
+  <rect x="24" y="792" width="592" height="24" fill="#090212" />
+  <text x="320" y="808" font-family="'Courier New', monospace" font-size="9" fill="#a1a1aa" text-anchor="middle" letter-spacing="3">COIMBATORE // TAMIL NADU · BUILDICY HACKATHON PROTOCOL</text>
+</svg>`;
+
+export const CLASSIFIED_BRIEF_DATA_URL = `data:image/svg+xml;utf8,${encodeURIComponent(CLASSIFIED_BRIEF_SVG)}`;

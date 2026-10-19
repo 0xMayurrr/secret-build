@@ -5,6 +5,9 @@ import { TeamSection } from "@/components/TeamSection";
 import { FAQSection } from "@/components/FAQSection";
 import { Footer } from "@/components/Footer";
 import { ChainedLockOverlay } from "@/components/ChainedLockOverlay";
+import { GooeyNav } from "@/components/GooeyNav";
+import { PaperCrumple } from "@/components/PaperCrumple";
+import { CLASSIFIED_BRIEF_DATA_URL } from "@/assets/classifiedDossierData";
 import { Lock, ArrowUp } from "lucide-react";
 import { blackoutAudio } from "@/lib/blackout-audio";
 
@@ -544,47 +547,46 @@ function Index() {
         <span>{!isMuted ? "AUDIO: ON" : "AUDIO: MUTED"}</span>
       </button>
 
-      {/* HEADER — minimalist, centered nav, no logo text */}
+      {/* HEADER — GooeyNav + Register CTA */}
       <header
-        className="fixed inset-x-0 top-0 z-40 transition-all duration-300 ease-in-out"
+        className="fixed inset-x-0 top-3 z-40 transition-all duration-300 ease-in-out pointer-events-auto"
         style={{
           opacity: Math.max(0, 1 - scrollRatio * 2.2),
           transform: `translateY(-${scrollRatio * 60}px)`,
           pointerEvents: scrollRatio > 0.3 ? "none" : "auto",
         }}
       >
-        <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          {/* left — nav links */}
-          <div className="hidden md:flex items-center gap-8 font-term text-xl text-muted-foreground">
-            {NAV.slice(0, 3).map(([label, href]) => (
-              <a key={label} href={href} className="tracking-widest uppercase hover:text-foreground transition-colors">
-                {label}
-              </a>
-            ))}
+        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-2">
+          {/* Left spacer so center stays balanced with morphing logo/branding */}
+          <div className="hidden lg:block w-28" />
+
+          {/* Center GooeyNav */}
+          <div className="flex-1 flex justify-center">
+            <GooeyNav
+              items={[
+                { label: "ABOUT", href: "#about" },
+                { label: "MYSTERY", href: "#mystery" },
+                { label: "PASSES", href: "#passes" },
+                { label: "TEAM", href: "#team" },
+                { label: "FAQ", href: "#faq" },
+              ]}
+              theme="dark"
+              color="#a855f7"
+              size="md"
+              frame={true}
+            />
           </div>
 
-          {/* center — empty spacer so register sits right */}
-          <div className="flex-1" />
-
-          {/* right — remaining links + register */}
-          <div className="flex items-center gap-4 md:gap-8">
-            <div className="hidden md:flex items-center gap-8 font-term text-xl text-muted-foreground">
-              {NAV.slice(3).map(([label, href]) => (
-                <a key={label} href={href} className="tracking-widest uppercase hover:text-foreground transition-colors">
-                  {label}
-                </a>
-              ))}
-            </div>
+          {/* Right Action */}
+          <div className="flex items-center gap-3">
             <a
               href={REGISTER_URL}
-              className="font-pixel text-[9px] md:text-[10px] text-primary border border-primary/50 px-3 py-2 hover:bg-primary hover:text-primary-foreground transition-colors"
+              className="hard-shadow hidden sm:inline-flex items-center justify-center border-2 border-primary bg-primary px-4 py-2 font-pixel text-[9px] text-primary-foreground hover:translate-x-0.5 hover:translate-y-0.5 transition shadow-[3px_3px_0_0_var(--signal)]"
             >
-              REGISTER
+              CLAIM PASS
             </a>
           </div>
-        </nav>
-        {/* thin bottom line */}
-        <div className="h-px bg-border/40" />
+        </div>
       </header>
 
       {/* CONTINUOUS MORPHING LOGO: FULLY TRANSPARENT, ENLARGED, AND PURE PURPLE GLOW */}
@@ -853,7 +855,45 @@ function Index() {
               </div>
             ))}
           </div>
-          <p className="reveal mt-12 text-center font-pixel text-[10px] tracking-[0.4em] text-muted-foreground md:text-xs">
+          {/* INTERACTIVE 3D CRUMPLE DOSSIER */}
+          <div className="reveal mt-12 border-2 border-primary/50 bg-[#0c0317]/85 p-6 md:p-8 shadow-[0_0_35px_rgba(168,85,247,0.25)]">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-border/60 pb-4 mb-4">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-signal animate-pulse" />
+                  <span className="font-pixel text-xs text-signal font-bold">CLASSIFIED DOSSIER // FILE_001.ENC</span>
+                </div>
+                <p className="font-term text-sm text-muted-foreground mt-1">
+                  Hold &amp; drag document to crumple into a 3D paper ball · Release to unfold &amp; crease
+                </p>
+              </div>
+              <div className="border border-signal/60 bg-signal/10 px-3 py-1 font-pixel text-[8px] text-signal font-bold">
+                PHYSICS: THREE.JS VERLET SIMULATION
+              </div>
+            </div>
+
+            <div className="relative mx-auto flex items-center justify-center min-h-[460px] md:min-h-[520px]">
+              <PaperCrumple
+                src={CLASSIFIED_BRIEF_DATA_URL}
+                alt="Sealed Blackout Challenge Brief Dossier"
+                width={360}
+                height={480}
+                sceneHeight={520}
+                crumpleAmount={0.88}
+                creaseStrength={0.25}
+                releaseBehavior="creased"
+                paperColor="#150824"
+                roughness={0.92}
+                paperTexture={0.12}
+                shadow={true}
+                shadowOpacity={0.18}
+                draggable={true}
+                dragRotation={14}
+              />
+            </div>
+          </div>
+
+          <p className="reveal mt-10 text-center font-pixel text-[10px] tracking-[0.4em] text-muted-foreground md:text-xs">
             ACCESS_DENIED · CLEARANCE_REQUIRED · ACCESS_DENIED
           </p>
         </div>

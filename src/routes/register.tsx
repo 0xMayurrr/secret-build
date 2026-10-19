@@ -28,6 +28,8 @@ import {
 } from "@/lib/supabase";
 import { BlackoutPassCard } from "@/components/BlackoutPassCard";
 import { ChainedLockOverlay } from "@/components/ChainedLockOverlay";
+import { Lanyard } from "@/components/Lanyard";
+import { generateBadgeFrontSvg, generateBadgeBackSvg } from "@/lib/badgeTexture";
 
 export const Route = createFileRoute("/register")({
   head: () => ({
@@ -1224,7 +1226,42 @@ export function RegisterPage() {
         {/* STEP 4: PASS CONFIRMED & "WELCOME TO THE BLACKOUT" SHOWCASE */}
         {/* ============================================================== */}
         {step === 4 && confirmedRecord && (
-          <section className="animate-fade-in max-w-4xl mx-auto">
+          <section className="animate-fade-in max-w-4xl mx-auto space-y-8">
+            {/* 3D Physical Lanyard Badge Showcase */}
+            <div className="border-2 border-primary/50 bg-[#090314]/90 p-4 sm:p-6 shadow-[0_0_35px_rgba(168,85,247,0.35)] relative overflow-hidden">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 pb-3 mb-2">
+                <div className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-signal animate-pulse" />
+                  <span className="font-pixel text-xs text-primary font-bold">
+                    OFFICIAL 3D EVENT LANYARD BADGE
+                  </span>
+                </div>
+                <div className="font-term text-xs sm:text-sm text-muted-foreground">
+                  CLICK TO FLIP 360° · DRAG BADGE TO SWING ON STRAP
+                </div>
+              </div>
+
+              <div className="h-[460px] sm:h-[520px] w-full flex items-center justify-center relative">
+                <Lanyard
+                  frontImage={generateBadgeFrontSvg(confirmedRecord)}
+                  backImage={generateBadgeBackSvg()}
+                  cardColor="#0a0314"
+                  finish="holographic"
+                  metal="silver"
+                  strapColor="#7e22ce"
+                  orientation="portrait"
+                  size={0.65}
+                  strapLength={0.5}
+                  interactive={true}
+                  intro={true}
+                />
+              </div>
+
+              <div className="text-center font-pixel text-[8px] sm:text-[9px] text-muted-foreground tracking-widest border-t border-border/40 pt-3">
+                ✦ PHYSICAL LANYARD &amp; RFID BADGE ISSUED AT COIMBATORE CHECK-IN DESK ✦
+              </div>
+            </div>
+
             <BlackoutPassCard record={confirmedRecord} />
           </section>
         )}
