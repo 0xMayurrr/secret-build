@@ -81,7 +81,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { title: "BLACKOUT 2026 — Buildicy Hackathon" },
       { name: "description", content: "A 12-hour surprise-challenge hackathon in Coimbatore." },
       { property: "og:type", content: "website" },
+      { property: "og:image", content: "https://blackout2026.vercel.app/Purple%20City%20Hackathon%20Banner.png" },
+      { property: "og:image:width", content: "1200" },
+      { property: "og:image:height", content: "630" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://blackout2026.vercel.app/Purple%20City%20Hackathon%20Banner.png" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
