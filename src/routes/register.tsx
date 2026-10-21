@@ -455,7 +455,7 @@ export function RegisterPage() {
   )}&am=${totalAmount}&cu=INR&tn=${encodeURIComponent(`BLACKOUT_${selectedPass.name.replace(/\s+/g, "_")}_${activeCount}X`)}`;
 
   return (
-    <div className="crt min-h-screen bg-[#07020d] text-foreground select-none pb-24">
+    <div className="crt min-h-screen bg-[#07020d] text-foreground select-none pb-24" style={{ zoom: "90%" }}>
       {/* FULL-SCREEN BLACKOUT OVERRIDE SEQUENCE */}
       {isInitiatingBlackout && (
         <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center bg-black text-foreground p-6 select-none overflow-hidden animate-fade-in">
@@ -546,29 +546,38 @@ export function RegisterPage() {
       </header>
 
       <main className="mx-auto max-w-4xl px-4 sm:px-6 pt-10">
-        {/* PROGRESS STEPPER */}
-        <div className="mb-10">
-          <div className="grid grid-cols-4 gap-2 sm:gap-4 font-pixel text-[8px] sm:text-[10px] text-center">
-            {[
-              { num: 1, label: "01 // TICKET TIER" },
-              { num: 2, label: "02 // BUILDER INFO" },
-              { num: 3, label: "03 // PAYMENT PROOF" },
-              { num: 4, label: "04 // ACCESS BADGE" },
-            ].map((s) => (
-              <div
-                key={s.num}
-                className={`border-2 py-2.5 transition-all ${
+        {/* PROGRESS STEPPER — minimal dot + line */}
+        <div className="mb-10 flex items-center justify-center gap-0">
+          {[
+            { num: 1, label: "PATH" },
+            { num: 2, label: "INFO" },
+            { num: 3, label: "PAY" },
+            { num: 4, label: "PASS" },
+          ].map((s, i) => (
+            <>
+              {/* Dot + label */}
+              <div key={s.num} className="flex flex-col items-center gap-1.5">
+                <div className={`h-7 w-7 flex items-center justify-center border-2 font-pixel text-[9px] transition-all ${
                   step === s.num
-                    ? "border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_var(--signal)] font-bold"
+                    ? "border-primary bg-primary text-primary-foreground shadow-[0_0_12px_rgba(168,85,247,0.7)]"
                     : step > s.num
-                    ? "border-signal/70 bg-signal/10 text-signal"
-                    : "border-border/50 bg-background/50 text-muted-foreground"
-                }`}
-              >
-                <span>{s.label}</span>
+                    ? "border-signal bg-signal/20 text-signal"
+                    : "border-border/40 bg-transparent text-muted-foreground/50"
+                }`}>
+                  {step > s.num ? "✓" : s.num}
+                </div>
+                <span className={`font-pixel text-[8px] tracking-widest ${
+                  step === s.num ? "text-primary" : step > s.num ? "text-signal" : "text-muted-foreground/40"
+                }`}>{s.label}</span>
               </div>
-            ))}
-          </div>
+              {/* Connector line */}
+              {i < 3 && (
+                <div className={`h-px w-12 sm:w-20 mb-5 mx-1 transition-all ${
+                  step > s.num ? "bg-signal" : "bg-border/30"
+                }`} />
+              )}
+            </>
+          ))}
         </div>
 
         {/* ERROR NOTIFICATION BANNER */}
