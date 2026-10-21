@@ -927,7 +927,7 @@ function Index() {
 
 
       {/* PASSES */}
-      <section id="passes" className="pixel-grid border-y-2 border-border py-28 relative overflow-hidden">
+      <section id="passes" className="pixel-grid border-y-2 border-border py-28 relative overflow-hidden bg-background">
         {/* WEBGL2 INTERACTIVE SILK CLOTH BACKGROUND EFFECT */}
         <div className="absolute inset-0 z-0 overflow-hidden opacity-30 pointer-events-auto">
           <Silk
