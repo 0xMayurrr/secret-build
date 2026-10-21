@@ -53,8 +53,8 @@ const REGISTER_URL = "/register";
 
 const PASSES = [
   {
-    name: "EARLY BIRD",
-    price: "299",
+    name: "BLACKOUT BUILDER PASS",
+    price: "799",
     tag: "TIER_01",
     benefits: [
       "12-Hour Secret Hackathon Entry",
@@ -62,13 +62,13 @@ const PASSES = [
       "Official BLACKOUT Hacker Kit",
       "Mentorship & Venture Access",
     ],
-    availability: "⚡ First 20 Members Only",
+    availability: "⚡ Limited Slots Available",
     featured: true,
     locked: false,
   },
   {
     name: "BUILDER PASS",
-    price: "699",
+    price: "799",
     tag: "TIER_02",
     benefits: [
       "12-Hour Secret Hackathon Entry",
@@ -121,11 +121,11 @@ const FAQ = [
   ["What is BLACKOUT?", "A surprise-challenge hackathon by Buildicy. The problem statement stays sealed until the event begins — you discover it when you arrive."],
   ["Who can participate?", "Students, developers, designers, freelancers, professionals, founders — anyone passionate about building and innovation."],
   ["How do I register?", "Pick a pass in the Registration Passes section and hit Claim Your Pass. Registration details will be shared here as they go live."],
-  ["How much does it cost?", "Early Bird is ₹299 (for the first 20 members only), Builder Pass is ₹699, and Final Call is ₹799. All passes include the 12-hour hackathon experience."],
+  ["How much does it cost?", "The BLACKOUT Builder Pass is ₹799 per participant. All passes include the full 12-hour hackathon experience."],
   ["Can I join as a team?", "Yes! Register solo or as a team squad of 2 to 4 members. Pricing is calculated per member."],
   ["Where is the venue?", "Coimbatore, Tamil Nadu. The exact venue will be announced soon."],
   ["What should I bring?", "Your laptop, charger, and an open mind. Any further instructions will be sent to registered participants."],
-  ["Is there a refund policy?", "The refund policy will be published before registration opens."],
+  ["Is there a refund policy?", "Passes are non-refundable once registered. You may transfer your pass to another eligible participant by contacting buildicy@gmail.com at least 48 hours before the event. If BLACKOUT is cancelled by the organizers, a full refund will be issued within 7 working days."],
   ["Can you tell us the challenge?", "Nope. That's the whole point. You won't know until you show up."],
 ];
 
@@ -508,7 +508,8 @@ function Index() {
             { id: "prizes", label: "05", name: "PRIZES" },
             { id: "team", label: "06", name: "TEAM" },
             { id: "info", label: "07", name: "INFO" },
-            { id: "faq", label: "08", name: "FAQ" },
+            { id: "faq", label: "08", name: "WHY" },
+            { id: "faq", label: "09", name: "FAQ" },
           ].map((sec) => {
             const isActive = activeSection === sec.id;
             return (
@@ -1001,7 +1002,7 @@ function Index() {
                     </div>
 
                     <div className="mt-8 border-2 border-border/80 bg-background/80 py-3 text-center font-pixel text-[9px] text-muted-foreground flex items-center justify-center group-hover/locked:border-primary group-hover/locked:text-primary transition-colors cursor-not-allowed">
-                      <span className="tracking-wider">OPENS POST EARLY BIRD</span>
+                      <span className="tracking-wider">COMING SOON</span>
                     </div>
                   </>
                 ) : (
@@ -1085,7 +1086,7 @@ function Index() {
             ["LOCATION", "Coimbatore, Tamil Nadu"],
             ["VENUE", "To be announced"],
             ["ORGANIZER", null],
-            ["REGISTRATION", "Passes from ₹499"],
+            ["REGISTRATION", "Passes from ₹799"],
             ["CHALLENGE", "████████████"],
           ].map(([k, v], i) => (
             <div key={k} className={`reveal border-border p-6 ${i % 2 === 0 ? "md:border-r-2" : ""} ${i < 4 ? "border-b-2" : i === 4 ? "border-b-2 md:border-b-0" : ""}`}>
