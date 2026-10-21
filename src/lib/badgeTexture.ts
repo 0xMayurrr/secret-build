@@ -68,6 +68,12 @@ export function generateBadgeFrontSvg(record: Partial<RegistrationRecord>, qrDat
   const name = (record.full_name || "PARTICIPANT NAME").toUpperCase();
   const regId = (record.registration_id || "BLK-2026-0001").toUpperCase();
   const team = record.team_name ? record.team_name.toUpperCase() : "SOLO OPERATIVE";
+  const audienceMap: Record<string, string> = {
+    student: "STUDENT",
+    developer: "DEVELOPER",
+    professional: "PROFESSIONAL",
+  };
+  const audienceLabel = audienceMap[record.audience_type || ""] || "PARTICIPANT";
 
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1440" viewBox="0 0 1024 1440">
   <defs>
@@ -197,7 +203,7 @@ export function generateBadgeFrontSvg(record: Partial<RegistrationRecord>, qrDat
   <!-- ========================================================= -->
   <!-- 11. PARTICIPANT DESIGNATION TITLE -->
   <!-- ========================================================= -->
-  <text x="512" y="828" font-family="'Impact', 'Arial Black', sans-serif" font-size="54" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="8">PARTICIPANT</text>
+  <text x="512" y="828" font-family="'Impact', 'Arial Black', sans-serif" font-size="54" font-weight="900" fill="#ffffff" text-anchor="middle" letter-spacing="8">${audienceLabel}</text>
 
   <!-- ========================================================= -->
   <!-- 12. THREE SKEW/ROUNDED CREDENTIAL DATA BARS -->

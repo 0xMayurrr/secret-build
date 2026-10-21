@@ -73,6 +73,60 @@ export interface PassTier {
   lockReason?: string;
 }
 
+type AudienceType = "student" | "developer" | "professional";
+
+const AUDIENCE_OPTIONS: {
+  id: AudienceType;
+  label: string;
+  tag: string;
+  glyph: string;
+  title: string;
+  description: string;
+  benefits: string[];
+}[] = [
+  {
+    id: "student",
+    label: "THE NEXT GENERATION",
+    tag: "PATH_01",
+    glyph: "◈",
+    title: "STUDENT",
+    description: "Build your skills, take on a mystery challenge, and explore new career opportunities.",
+    benefits: [
+      "12-hour BLACKOUT hackathon entry",
+      "Complimentary access to the 30-day AI Tools Accelerator Program worth ₹1,500",
+      "Potential internship consideration based on performance and eligibility",
+    ],
+  },
+  {
+    id: "developer",
+    label: "THE BUILDER",
+    tag: "PATH_02",
+    glyph: "⌘",
+    title: "DEVELOPER",
+    description: "Put your technical skills to the test and build something under pressure.",
+    benefits: [
+      "12-hour BLACKOUT hackathon entry",
+      "Complimentary access to the 30-day AI Tools Accelerator Program worth ₹1,500",
+      "Opportunities to showcase technical skills and explore potential project collaborations",
+    ],
+  },
+  {
+    id: "professional",
+    label: "THE INNOVATOR",
+    tag: "PATH_03",
+    glyph: "◆",
+    title: "PROFESSIONAL",
+    description: "Experiment with new ideas, explore AI workflows, and connect with other builders.",
+    benefits: [
+      "12-hour BLACKOUT hackathon entry",
+      "Complimentary access to the 30-day AI Tools Accelerator Program worth ₹1,500",
+      "Networking and potential professional, product, or startup collaboration opportunities",
+    ],
+  },
+];
+
+const BLACKOUT_PASS_PRICE = 799;
+
 const COMMON_BENEFITS = [
   "12-Hour Secret Hackathon Entry",
   "Meals, Energy Drinks & Snacks",
@@ -82,33 +136,13 @@ const COMMON_BENEFITS = [
 
 const PASS_TIERS: PassTier[] = [
   {
-    id: "early-bird",
-    name: "EARLY BIRD",
-    price: 499,
+    id: "blackout-builder",
+    name: "BLACKOUT BUILDER PASS",
+    price: BLACKOUT_PASS_PRICE,
     tag: "TIER_01",
-    badge: "FIRST 20 SEATS ONLY",
+    badge: "ALL BUILDERS",
     benefits: COMMON_BENEFITS,
     locked: false,
-  },
-  {
-    id: "builder-pass",
-    name: "BUILDER PASS",
-    price: 699,
-    tag: "TIER_02",
-    badge: "STANDARD ENTRY",
-    benefits: COMMON_BENEFITS,
-    locked: true,
-    lockReason: "OPENS AFTER FIRST 20 EARLY BIRD PASSES SELL OUT",
-  },
-  {
-    id: "final-call",
-    name: "FINAL CALL",
-    price: 799,
-    tag: "TIER_03",
-    badge: "LATE SLOTS",
-    benefits: COMMON_BENEFITS,
-    locked: true,
-    lockReason: "RESERVED FOR FINAL REGISTRATION PHASE",
   },
 ];
 
@@ -152,8 +186,9 @@ export function RegisterPage() {
     setIsAudioMuted(muted);
   };
 
-  // Form States - Early Bird is the active open tier
-  const [selectedPass, setSelectedPass] = useState<PassTier>(PASS_TIERS[0]);
+  // Form States - Audience + single pass
+  const [selectedPass] = useState<PassTier>(PASS_TIERS[0]);
+  const [audienceType, setAudienceType] = useState<AudienceType>("student");
   const [participationType, setParticipationType] = useState<"solo" | "team">("solo");
 
   // Hacker Details
@@ -332,6 +367,7 @@ export function RegisterPage() {
       pass_name: selectedPass.name,
       pass_price: selectedPass.price,
       participation_type: participationType,
+      audience_type: audienceType,
       team_size: activeCount,
       total_price: totalAmount,
       full_name: fullName.trim(),
@@ -550,10 +586,10 @@ export function RegisterPage() {
           <section className="animate-fade-in">
             <div className="text-center mb-8">
               <h1 className="font-pixel text-2xl sm:text-4xl text-foreground">
-                SELECT YOUR <span className="text-primary">PASS TIER</span>
+                WHO ARE <span className="text-primary">YOU?</span>
               </h1>
               <p className="mt-2 text-xs sm:text-sm text-muted-foreground font-mono">
-                12-Hour Hackathon · Early Bird valid for first 20 members only.
+                Select your path · BLACKOUT BUILDER PASS · ₹{BLACKOUT_PASS_PRICE} per participant
               </p>
             </div>
 
@@ -590,9 +626,7 @@ export function RegisterPage() {
             {/* Team Squad Size Selector */}
             {participationType === "team" && (
               <div className="mb-8 flex flex-wrap items-center justify-center gap-2 sm:gap-3 animate-fade-in">
-                <span className="font-pixel text-[9px] text-muted-foreground uppercase">
-                  SQUAD SIZE:
-                </span>
+                <span className="font-pixel text-[9px] text-muted-foreground uppercase">SQUAD SIZE:</span>
                 {[2, 3, 4].map((size) => (
                   <button
                     key={size}
@@ -610,129 +644,89 @@ export function RegisterPage() {
               </div>
             )}
 
-            {/* Passes Cards Grid */}
-            <div className="grid gap-6 md:grid-cols-3">
-              {PASS_TIERS.map((tier) => {
-                const isSelected = selectedPass.id === tier.id;
-                const tierTotal = tier.price * activeCount;
-
+            {/* Audience Path Cards */}
+            <div className="grid gap-5 md:grid-cols-3">
+              {AUDIENCE_OPTIONS.map((opt) => {
+                const isSelected = audienceType === opt.id;
                 return (
                   <div
-                    key={tier.id}
-                    onClick={() => {
-                      if (tier.locked) return;
-                      setSelectedPass(tier);
-                    }}
-                    className={`relative border-2 p-6 transition-all duration-300 flex flex-col justify-between overflow-hidden select-none ${
-                      tier.locked
-                        ? "tv-glitch-card group/locked border-border/80 cursor-not-allowed shadow-[4px_4px_0_0_rgba(0,0,0,0.6)]"
-                        : isSelected
-                        ? "border-primary bg-primary/10 shadow-[8px_8px_0_0_var(--primary)] -translate-y-1 cursor-pointer"
-                        : "border-border bg-background/60 hover:border-foreground/50 hover:shadow-[5px_5px_0_0_rgba(0,0,0,0.5)] cursor-pointer"
+                    key={opt.id}
+                    onClick={() => setAudienceType(opt.id)}
+                    className={`relative flex flex-col border-2 p-6 cursor-pointer transition-all duration-200 ${
+                      isSelected
+                        ? "border-primary bg-primary/10 shadow-[8px_8px_0_0_var(--primary)] -translate-y-1"
+                        : "border-border bg-background/60 hover:border-foreground/50 hover:shadow-[5px_5px_0_0_rgba(0,0,0,0.5)]"
                     }`}
                   >
-                    {/* TV Glitch, CRT static & scanline layers for locked passes */}
-                    {tier.locked && (
-                      <>
-                        <div className="pointer-events-none absolute inset-0 opacity-25 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.5)_50%)] bg-[length:100%_4px]" />
-                        <div className="scanline pointer-events-none absolute inset-0 opacity-35 transition-opacity group-hover/locked:opacity-75" />
-                        <div className="noise pointer-events-none absolute inset-0 opacity-20" />
-                      </>
-                    )}
-
-                    <div>
-                      <div className="flex items-center justify-between border-b border-border/40 pb-3">
-                        <span className="font-term text-lg text-signal">
-                          {tier.locked ? `${tier.tag}.ENC` : tier.tag}
-                        </span>
-                        <span className={`font-pixel text-[8px] px-2 py-0.5 border ${
-                          tier.locked
-                            ? "border-primary/40 bg-primary/10 text-primary/90"
-                            : "bg-card border-border text-muted-foreground"
-                        }`}>
-                          {tier.locked ? "SEALED" : tier.badge}
-                        </span>
-                      </div>
-
-                      <h3 className="mt-4 font-pixel text-base text-foreground/90">{tier.name}</h3>
-
-                      {tier.locked ? (
-                        <div className="mt-4 flex items-center gap-3">
-                          <div className="relative overflow-hidden border border-primary/40 bg-black/70 px-4 py-1.5 shadow-[inset_0_0_12px_rgba(168,85,247,0.3)]">
-                            <div className="pointer-events-none absolute inset-0 opacity-40 bg-[linear-gradient(rgba(168,85,247,0)_50%,rgba(0,0,0,0.8)_50%)] bg-[length:100%_4px]" />
-                            <span className="font-pixel text-2xl sm:text-3xl text-primary/30 tracking-widest blur-[3px] select-none">
-                              ₹███
-                            </span>
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/40 to-transparent animate-scan pointer-events-none" />
-                          </div>
-                          <div className="redact h-4 w-16" />
-                        </div>
-                      ) : (
-                        <div className="mt-4 flex items-baseline gap-2">
-                          <span className="font-pixel text-3xl sm:text-4xl font-bold text-foreground">
-                            ₹{tierTotal}
-                          </span>
-                          <span className="font-mono text-xs text-muted-foreground">
-                            {participationType === "team"
-                              ? `(${activeCount} × ₹${tier.price})`
-                              : "/ builder"}
-                          </span>
-                        </div>
-                      )}
-
-                      {tier.locked ? (
-                        <div className="mt-5 space-y-2.5 border-t border-border/40 pt-4">
-                          <div className="redact h-3.5 w-full" />
-                          <div className="redact h-3.5 w-4/5" />
-                          <div className="redact h-3.5 w-3/5" />
-                          <p className="font-term text-base text-muted-foreground/70 pt-2 transition-colors group-hover/locked:text-signal">
-                            &gt; Unlocks when Early Bird fills.
-                          </p>
-                        </div>
-                      ) : (
-                        <ul className="mt-5 space-y-2 border-t border-border/40 pt-4 font-term text-lg text-muted-foreground">
-                          {tier.benefits.map((b) => (
-                            <li key={b} className="flex items-center gap-2">
-                              <span className="text-signal font-bold">✔</span>
-                              <span>{b}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                    {/* Tag + glyph */}
+                    <div className="flex items-center justify-between border-b border-border/40 pb-3">
+                      <span className="font-term text-lg text-signal">{opt.tag}</span>
+                      <span className={`font-pixel text-2xl ${
+                        isSelected ? "text-primary drop-shadow-[0_0_8px_rgba(168,85,247,0.9)]" : "text-muted-foreground"
+                      }`}>{opt.glyph}</span>
                     </div>
 
-                    {tier.locked ? (
-                      <div className="mt-6 w-full border-2 border-border/80 bg-background/80 py-2.5 font-pixel text-[9px] uppercase tracking-wider text-muted-foreground flex items-center justify-center cursor-not-allowed group-hover/locked:border-primary group-hover/locked:text-primary transition-colors">
-                        <span>OPENS POST EARLY BIRD</span>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPass(tier)}
-                        className={`mt-6 w-full border-2 py-2.5 font-pixel text-[9px] uppercase tracking-wider transition ${
-                          isSelected
-                            ? "border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_var(--signal)] font-bold"
-                            : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
-                        }`}
-                      >
-                        {isSelected ? "● SELECTED" : "SELECT TIER"}
-                      </button>
-                    )}
+                    {/* Title + label */}
+                    <h3 className="mt-4 font-pixel text-base text-foreground">{opt.title}</h3>
+                    <p className={`mt-1 font-term text-lg ${
+                      isSelected ? "text-primary" : "text-muted-foreground"
+                    }`}>{opt.label}</p>
+
+                    {/* Description */}
+                    <p className="mt-3 font-mono text-xs text-muted-foreground leading-relaxed">
+                      &gt; {opt.description}
+                    </p>
+
+                    {/* Benefits */}
+                    <ul className="mt-4 space-y-2 border-t border-border/40 pt-4 font-term text-base text-muted-foreground flex-1">
+                      {opt.benefits.map((b) => (
+                        <li key={b} className="flex items-start gap-2">
+                          <span className="text-signal font-bold shrink-0">✔</span>
+                          <span>{b}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Select button */}
+                    <button
+                      type="button"
+                      onClick={() => setAudienceType(opt.id)}
+                      className={`mt-6 w-full border-2 py-2.5 font-pixel text-[9px] uppercase tracking-wider transition ${
+                        isSelected
+                          ? "border-primary bg-primary text-primary-foreground shadow-[4px_4px_0_0_var(--signal)] font-bold"
+                          : "border-border text-muted-foreground hover:border-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {isSelected ? "● SELECTED" : "SELECT PATH"}
+                    </button>
                   </div>
                 );
               })}
             </div>
 
+            {/* Pass summary */}
+            <div className="mt-8 border-2 border-primary/40 bg-primary/5 p-4 flex flex-wrap items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <CreditCard className="h-4 w-4 text-primary shrink-0" />
+                <div>
+                  <p className="font-pixel text-[9px] text-primary">BLACKOUT BUILDER PASS</p>
+                  <p className="font-mono text-xs text-muted-foreground mt-0.5">
+                    ₹{BLACKOUT_PASS_PRICE} × {activeCount} {activeCount === 1 ? "builder" : "builders"} · All paths include the same benefits
+                  </p>
+                </div>
+              </div>
+              <div className="font-pixel text-xl text-signal font-bold">₹{totalAmount}</div>
+            </div>
+
             {/* Step 1 Actions */}
-            <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
+            <div className="mt-6 flex flex-wrap items-center justify-between gap-4 border-t border-border pt-6">
               <div className="font-mono text-xs sm:text-sm">
                 <span className="text-muted-foreground">TOTAL: </span>
                 <span className="font-pixel text-lg sm:text-xl text-signal font-bold">₹{totalAmount}</span>
                 <span className="text-muted-foreground text-xs ml-2">
-                  ({selectedPass.name} · {activeCount} {activeCount === 1 ? "builder" : "builders"})
+                  ({audienceType.toUpperCase()} · {activeCount} {activeCount === 1 ? "builder" : "builders"})
                 </span>
               </div>
-
               <button
                 type="button"
                 onClick={() => {

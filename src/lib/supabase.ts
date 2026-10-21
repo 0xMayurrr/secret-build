@@ -303,6 +303,7 @@ export interface RegistrationRecord {
   pass_name: string;
   pass_price: number;
   participation_type: "solo" | "team";
+  audience_type?: "student" | "developer" | "professional";
   full_name: string;
   email: string;
   phone: string;
