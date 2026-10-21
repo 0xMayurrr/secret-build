@@ -54,7 +54,7 @@ const REGISTER_URL = "/register";
 const PASSES = [
   {
     name: "EARLY BIRD",
-    price: "499",
+    price: "299",
     tag: "TIER_01",
     benefits: [
       "12-Hour Secret Hackathon Entry",
@@ -121,7 +121,7 @@ const FAQ = [
   ["What is BLACKOUT?", "A surprise-challenge hackathon by Buildicy. The problem statement stays sealed until the event begins — you discover it when you arrive."],
   ["Who can participate?", "Students, developers, designers, freelancers, professionals, founders — anyone passionate about building and innovation."],
   ["How do I register?", "Pick a pass in the Registration Passes section and hit Claim Your Pass. Registration details will be shared here as they go live."],
-  ["How much does it cost?", "Early Bird is ₹499 (for the first 20 members only), Builder Pass is ₹699, and Final Call is ₹799. All passes include the 12-hour hackathon experience."],
+  ["How much does it cost?", "Early Bird is ₹299 (for the first 20 members only), Builder Pass is ₹699, and Final Call is ₹799. All passes include the 12-hour hackathon experience."],
   ["Can I join as a team?", "Yes! Register solo or as a team squad of 2 to 4 members. Pricing is calculated per member."],
   ["Where is the venue?", "Coimbatore, Tamil Nadu. The exact venue will be announced soon."],
   ["What should I bring?", "Your laptop, charger, and an open mind. Any further instructions will be sent to registered participants."],
