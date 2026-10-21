@@ -628,32 +628,30 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
       {/* OPERATIVE FULL DOSSIER MODAL (Click card when bulb is ON) */}
       {selectedMember && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm animate-fade-in"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-3 sm:p-4 backdrop-blur-sm animate-fade-in overflow-y-auto"
           onClick={() => setSelectedMember(null)}
         >
           <div
-            className="relative w-full max-w-lg border-2 border-primary bg-[#0d0718] p-6 shadow-[10px_10px_0_0_var(--primary)] crt"
+            className="relative w-full max-w-lg border-2 border-primary bg-[#0d0718] p-4 sm:p-6 shadow-[10px_10px_0_0_var(--primary)] crt my-auto"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
             <div className="flex items-center justify-between border-b-2 border-border/70 pb-3">
-              <div className="flex items-center gap-2 font-pixel text-[10px] text-primary">
+              <div className="flex items-center gap-2 font-pixel text-[9px] sm:text-[10px] text-primary">
                 <span className="animate-blink text-signal">●</span>
-                <span className="tracking-wider">OPERATIVE DOSSIER // {selectedMember.id}</span>
+                <span className="tracking-wider truncate">OPERATIVE DOSSIER // {selectedMember.id}</span>
               </div>
               <button
                 onClick={() => setSelectedMember(null)}
-                className="border-2 border-border/80 px-2 py-1 font-pixel text-[10px] text-muted-foreground hover:border-primary hover:text-white transition"
+                className="shrink-0 border-2 border-border/80 px-2 py-1 font-pixel text-[10px] text-muted-foreground hover:border-primary hover:text-white transition"
               >
                 ✕ ESC
               </button>
             </div>
 
             {/* Modal Content */}
-            <div className="mt-5 grid grid-cols-1 sm:grid-cols-3 gap-5">
-              <div
-                className="relative aspect-square border-2 border-primary/50 overflow-hidden bg-[#0d041a] shadow-[0_0_20px_rgba(168,85,247,0.35)]"
-              >
+            <div className="mt-4 flex flex-col sm:grid sm:grid-cols-3 gap-4">
+              <div className="relative w-full sm:aspect-square h-40 sm:h-auto border-2 border-primary/50 overflow-hidden bg-[#0d041a] shadow-[0_0_20px_rgba(168,85,247,0.35)] shrink-0">
                 <img
                   src={selectedMember.avatarSvg}
                   alt={selectedMember.name}
@@ -666,26 +664,26 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                 <span className="rounded bg-primary/20 border border-primary/50 px-2.5 py-0.5 font-pixel text-[8px] text-purple-200 uppercase tracking-wider font-bold">
                   {selectedMember.squad}
                 </span>
-                <h3 className="mt-2 font-pixel text-lg text-white font-bold">
+                <h3 className="mt-2 font-pixel text-sm sm:text-lg text-white font-bold leading-snug">
                   {selectedMember.name}
                 </h3>
-                <p className="mt-1 font-term text-2xl text-primary font-bold">
+                <p className="mt-1 font-term text-xl sm:text-2xl text-primary font-bold">
                   &gt; {selectedMember.role}
                 </p>
-                <p className="mt-3 font-sans text-xs sm:text-sm leading-relaxed text-neutral-200">
+                <p className="mt-2 font-sans text-xs leading-relaxed text-neutral-200">
                   {selectedMember.bio}
                 </p>
               </div>
             </div>
 
             {/* Skills */}
-            <div className="mt-5 border-t border-border pt-4">
+            <div className="mt-4 border-t border-border pt-3">
               <p className="font-pixel text-[9px] text-signal">&gt; SPECIALTIES:</p>
-              <div className="mt-2 flex flex-wrap gap-2">
+              <div className="mt-2 flex flex-wrap gap-1.5">
                 {selectedMember.skills.map((skill) => (
                   <span
                     key={skill}
-                    className="border border-border bg-card px-2 py-0.5 font-mono text-xs text-foreground"
+                    className="border border-border bg-card px-2 py-0.5 font-mono text-[10px] text-foreground"
                   >
                     {skill}
                   </span>
@@ -694,7 +692,7 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
             </div>
 
             {/* Footer */}
-            <div className="mt-6 flex flex-wrap items-center justify-between gap-3 border-t-2 border-border pt-4">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t-2 border-border pt-3">
               <div className="flex gap-2">
                 <a
                   href={selectedMember.linkedin}
@@ -713,7 +711,7 @@ export function TeamSection({ sectionHead }: TeamSectionProps) {
                   GITHUB ▶
                 </a>
               </div>
-              <span className="font-term text-lg text-muted-foreground">
+              <span className="font-term text-sm sm:text-lg text-muted-foreground">
                 STATUS: CONFIRMED_BUILDER
               </span>
             </div>
